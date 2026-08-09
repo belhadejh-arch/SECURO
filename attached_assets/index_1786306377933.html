@@ -380,7 +380,8 @@
         <div id="auth-screen" class="screen active">
             <div class="card" style="margin-top: 10px;">
                 <h2 id="auth-title" style="text-align: center; color: var(--text-white); margin-bottom: 10px;">تسجيل الدخول</h2>
-                <div class="form-group">
+                <form class="form-group" id="auth-form" onsubmit="event.preventDefault(); handleAuth();">
+                    <label id="reg-name-label" for="reg-name" style="display:none;">الاسم الكامل</label>
                     <input type="text" id="reg-name" placeholder="الاسم الكامل" style="display: none;">
                     <input type="email" id="auth-email" placeholder="البريد الإلكتروني (مثال: example@gmail.com)">
                     <input type="password" id="auth-pass" placeholder="كلمة المرور (6 أحرف أو أرقام على الأقل)">
@@ -391,8 +392,8 @@
                         <span style="font-size: 0.75rem; color: var(--accent-green); margin-top: 4px; display: block;">✓ سيتم ربط حسابك بمرسل الدعوة كفريق</span>
                     </div>
 
-                    <button class="btn btn-primary" id="auth-btn" onclick="handleAuth()">🚀 دخول</button>
-                </div>
+                    <button class="btn btn-primary" id="auth-btn" type="submit">🚀 دخول</button>
+                </form>
                 <div style="text-align: center; margin-top: 15px;">
                     <span id="toggle-text" style="color: var(--primary-blue); cursor: pointer; font-size: 0.88rem; font-weight: bold;" onclick="toggleAuth()">ليس لديك حساب؟ إنشاء حساب جديد</span>
                 </div>
@@ -1166,6 +1167,7 @@
     function toggleAuth() {
         isSignup = !isSignup;
         document.getElementById('reg-name').style.display = isSignup ? 'block' : 'none';
+        document.getElementById('reg-name-label').style.display = isSignup ? 'block' : 'none';
         document.getElementById('invite-group').style.display = isSignup ? 'block' : 'none';
         document.getElementById('auth-title').innerText = isSignup ? 'إنشاء حساب جديد' : 'تسجيل الدخول';
         document.getElementById('auth-btn').innerText = isSignup ? '🚀 إنشاء الحساب' : '🚀 دخول';

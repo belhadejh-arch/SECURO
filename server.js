@@ -26,6 +26,7 @@ const PORT = Number(process.env.PORT || 5000);
 const publicDir = path.join(__dirname, "attached_assets");
 
 app.disable("x-powered-by");
+app.set("trust proxy", 1);
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: "32kb" }));
 app.use(
@@ -569,13 +570,20 @@ app.post("/api/admin/withdrawals/:id/review", requireAdmin, async (req, res) => 
   }
 });
 
+app.get("/index_1786306377933.html", (_req, res) =>
+  res.sendFile(path.join(publicDir, "index.html")),
+);
 app.use(express.static(publicDir));
 app.get("/{*splat}", (_req, res) => res.sendFile(path.join(publicDir, "index.html")));
 
-const server = app.listen(PORT, "0.0.0.0", () => {
-  console.log(`SECURO server listening on port ${PORT}`);
-});
+if (require.main === module) {
+  const server = app.listen(PORT, "0.0.0.0", () => {
+    console.log(`SECURO server listening on port ${PORT}`);
+  });
 
-process.on("SIGTERM", () => {
-  server.close(() => pool.end(() => process.exit(0)));
-});
+  process.on("SIGTERM", () => {
+    server.close(() => pool.end(() => process.exit(0)));
+  });
+}
+
+module.exports = app;

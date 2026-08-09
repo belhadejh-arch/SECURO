@@ -4,10 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "node server.js",
     "start": "node server.js",
     "db:init": "node db-init.js",
     "admin:create": "node create-admin.js",
-    "test": "node --check server.js && node --check attached_assets/client-api.js"
+    "build": "node --check server.js && node --check api/index.js && node --check attached_assets/client-api.js",
+    "test": "npm run build"
   },
   "keywords": [],
   "author": "",

@@ -26,13 +26,20 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #020617; display: flex; justify-content: center; min-height: 100vh; }
+        body {
+            background:
+                radial-gradient(circle at 12% 8%, rgba(37, 99, 235, 0.18), transparent 28rem),
+                radial-gradient(circle at 88% 92%, rgba(14, 165, 233, 0.12), transparent 26rem),
+                #020617;
+            display: flex; justify-content: center; min-height: 100vh;
+        }
 
         .app-container {
-            width: 100%; max-width: 430px; height: 100vh;
+            width: 100%; max-width: 1180px; min-height: 100vh; height: 100vh;
             background-color: var(--bg-body);
             display: flex; flex-direction: column; position: relative;
             overflow: hidden; color: var(--text-white);
+            box-shadow: 0 0 80px rgba(15, 23, 42, 0.55);
         }
 
         /* رأس الصفحة */
@@ -51,9 +58,72 @@
             font-family: 'Arial Black', sans-serif;
         }
 
-        .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
+        .content { flex: 1; overflow-y: auto; padding: 24px; padding-bottom: 90px; }
         .screen { display: none; }
         .screen.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+
+        .auth-layout {
+            min-height: calc(100vh - 80px); display: grid; grid-template-columns: 1.15fr .85fr;
+            align-items: center; gap: 34px; max-width: 1080px; margin: 0 auto; padding: 24px 0;
+        }
+        .auth-brand { padding: 34px 18px; }
+        .brand-mark {
+            width: 66px; height: 66px; border-radius: 20px; display: grid; place-items: center;
+            background: linear-gradient(135deg, #60a5fa, #2563eb); color: white;
+            font-size: 1.8rem; box-shadow: 0 18px 40px rgba(37, 99, 235, .3); margin-bottom: 20px;
+        }
+        .auth-brand h2 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.1; margin-bottom: 16px; }
+        .auth-brand h2 span { color: #60a5fa; }
+        .auth-brand p { color: #a7b4c9; max-width: 510px; line-height: 1.9; font-size: 1rem; }
+        .trust-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+        .trust-pill {
+            display: inline-flex; align-items: center; gap: 7px; padding: 9px 12px;
+            border: 1px solid rgba(96, 165, 250, .22); border-radius: 999px;
+            color: #cbd5e1; background: rgba(30, 41, 59, .52); font-size: .78rem;
+        }
+        .auth-card {
+            width: 100%; max-width: 430px; justify-self: end; padding: 26px;
+            background: linear-gradient(145deg, rgba(30, 41, 59, .98), rgba(15, 23, 42, .98));
+            border-color: rgba(96, 165, 250, .24); box-shadow: 0 24px 70px rgba(0,0,0,.34);
+        }
+        .auth-card .form-group { margin-top: 22px; }
+        .field-label { display: block; color: #cbd5e1; font-size: .78rem; font-weight: 700; margin: 0 0 -5px; }
+        .auth-note {
+            display: flex; align-items: center; gap: 8px; color: #94a3b8; font-size: .76rem;
+            line-height: 1.6; margin-top: 15px; padding-top: 14px; border-top: 1px solid rgba(148,163,184,.14);
+        }
+        .admin-shell { max-width: 1280px; }
+        .admin-screen { max-width: 1120px; margin: 0 auto; }
+        .admin-hero {
+            display: flex; justify-content: space-between; align-items: center; gap: 20px;
+            background: linear-gradient(135deg, #172554 0%, #1e3a8a 52%, #0f766e 140%);
+            border: 1px solid rgba(125, 211, 252, .28); border-radius: 24px; padding: 28px;
+            margin-bottom: 18px; box-shadow: 0 22px 55px rgba(30, 64, 175, .22);
+        }
+        .admin-hero-copy { display: flex; align-items: center; gap: 16px; }
+        .admin-hero-icon {
+            width: 58px; height: 58px; border-radius: 18px; display: grid; place-items: center;
+            background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); font-size: 1.8rem;
+        }
+        .admin-hero h2 { color: #eff6ff; font-size: 1.45rem; margin-bottom: 5px; }
+        .admin-hero p { color: #bfdbfe; font-size: .82rem; }
+        .admin-refresh {
+            width: auto; padding: 11px 15px; background: rgba(255,255,255,.1);
+            border: 1px solid rgba(255,255,255,.22); color: white; font-size: .8rem;
+        }
+        .admin-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; background: transparent; border: 0; padding: 0; }
+        .admin-stats .stat-box {
+            text-align: right; padding: 18px 20px; border-radius: 18px; background: #162236;
+            border: 1px solid rgba(148,163,184,.16); position: relative; overflow: hidden;
+        }
+        .admin-stats .stat-box::after {
+            content: ""; position: absolute; width: 85px; height: 85px; border-radius: 50%;
+            background: rgba(59,130,246,.1); left: -25px; bottom: -40px;
+        }
+        .admin-stats .stat-num { font-size: 1.55rem; color: #e0f2fe; }
+        .admin-stats .stat-lbl { font-size: .76rem; color: #94a3b8; margin-top: 5px; }
+        .admin-panel { background: rgba(30, 41, 59, .86); border-color: rgba(148,163,184,.16); padding: 20px; }
+        .admin-panel h3 { font-size: 1rem; padding-bottom: 12px; border-bottom: 1px solid rgba(148,163,184,.12); }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -78,6 +148,7 @@
             color: var(--text-white); transition: border 0.2s; outline: none; resize: none;
         }
         input:focus, select:focus, textarea:focus { border-color: var(--primary-blue); }
+        input::placeholder, textarea::placeholder { color: #64748b; }
 
         input[readonly] {
             background-color: #0f172a !important;
@@ -92,6 +163,8 @@
             font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
             display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;
         }
+        .btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+        .btn:disabled { opacity: .65; transform: none; }
         .btn-primary { background: var(--primary-gradient); color: white; box-shadow: var(--shadow-lg); }
         .btn-green { background-color: var(--accent-green); color: white; }
         .btn-red { background-color: var(--accent-red); color: white; }
@@ -283,6 +356,7 @@
             margin-bottom: 10px; border: 1px solid var(--border-color);
             display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm);
         }
+        .admin-panel .history-card { background: rgba(15, 23, 42, .6); border-color: rgba(148,163,184,.13); }
         .history-info { display: flex; flex-direction: column; gap: 4px; }
         .history-title { font-weight: bold; font-size: 0.95rem; color: var(--text-white); }
         .history-date { font-size: 0.78rem; color: var(--text-muted); }
@@ -366,6 +440,23 @@
         }
         .nav-link.active { color: var(--primary-blue); }
         .nav-link span { font-size: 1.25rem; }
+
+        @media (max-width: 760px) {
+            .app-container { max-width: 520px; }
+            .content { padding: 15px; padding-bottom: 86px; }
+            .auth-layout { display: block; min-height: auto; padding: 22px 0; }
+            .auth-brand { padding: 16px 8px 24px; text-align: center; }
+            .brand-mark { margin: 0 auto 16px; }
+            .auth-brand h2 { font-size: 2rem; }
+            .auth-brand p { font-size: .88rem; margin: auto; }
+            .trust-row { justify-content: center; }
+            .auth-card { max-width: none; justify-self: auto; }
+            .admin-hero { align-items: flex-start; padding: 20px; }
+            .admin-hero-copy { align-items: flex-start; }
+            .admin-refresh { width: auto; }
+            .admin-stats { grid-template-columns: 1fr; gap: 10px; }
+            .admin-stats .stat-box { text-align: center; }
+        }
     </style>
 </head>
 <body>
@@ -378,68 +469,97 @@
     <div class="content">
         <!-- 1. شاشة تسجيل الدخول وإنشاء حساب -->
         <div id="auth-screen" class="screen active">
-            <div class="card" style="margin-top: 10px;">
-                <h2 id="auth-title" style="text-align: center; color: var(--text-white); margin-bottom: 10px;">تسجيل الدخول</h2>
-                <div class="form-group">
-                    <input type="text" id="reg-name" placeholder="الاسم الكامل" style="display: none;">
-                    <input type="email" id="auth-email" placeholder="البريد الإلكتروني (مثال: example@gmail.com)">
-                    <input type="password" id="auth-pass" placeholder="كلمة المرور (6 أحرف أو أرقام على الأقل)">
+            <div class="auth-layout">
+              <div class="auth-brand">
+                <div class="brand-mark"><i class="fa-solid fa-shield-halved"></i></div>
+                <h2>إدارة أموالك<br><span>بذكاء وأمان.</span></h2>
+                <p>منصة SECURO تجمع لك إدارة الحساب، متابعة الأرباح، ونظام الإحالة في تجربة عربية بسيطة ومصممة للموبايل.</p>
+                <div class="trust-row">
+                  <div class="trust-pill"><i class="fa-solid fa-lock"></i> جلسات مشفّرة</div>
+                  <div class="trust-pill"><i class="fa-solid fa-database"></i> بيانات موثوقة</div>
+                  <div class="trust-pill"><i class="fa-solid fa-headset"></i> دعم مباشر</div>
+                </div>
+              </div>
+              <div class="card auth-card">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;">
+                  <div>
+                    <div style="font-size:.74rem;color:#60a5fa;font-weight:800;letter-spacing:.08em;">WELCOME BACK</div>
+                    <h2 id="auth-title" style="color: var(--text-white); margin-top: 6px;">تسجيل الدخول</h2>
+                  </div>
+                  <div style="width:42px;height:42px;border-radius:14px;background:rgba(59,130,246,.14);display:grid;place-items:center;color:#60a5fa;"><i class="fa-solid fa-arrow-right-to-bracket"></i></div>
+                </div>
+                <form class="form-group" id="auth-form" onsubmit="event.preventDefault(); handleAuth();">
+                    <label class="field-label" id="reg-name-label" for="reg-name" style="display:none;">الاسم الكامل</label>
+                    <input type="text" id="reg-name" placeholder="اكتب اسمك الكامل" style="display: none;">
+                    <label class="field-label" for="auth-email">البريد الإلكتروني</label>
+                    <input type="email" id="auth-email" placeholder="name@example.com" autocomplete="email">
+                    <label class="field-label" for="auth-pass">كلمة المرور</label>
+                    <input type="password" id="auth-pass" placeholder="6 أحرف أو أرقام على الأقل" autocomplete="current-password">
                     
                     <div id="invite-group" style="display: none;">
-                        <label style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; display: block;">رمز الدعوة (اختياري/مُثبّت):</label>
+                        <label class="field-label" for="invite-code-input">رمز الدعوة <span style="color:#64748b;font-weight:400;">(اختياري)</span></label>
                         <input type="text" id="invite-code-input" value="" placeholder="أدخل رمز الدعوة">
                         <span style="font-size: 0.75rem; color: var(--accent-green); margin-top: 4px; display: block;">✓ سيتم ربط حسابك بمرسل الدعوة كفريق</span>
                     </div>
 
-                    <button class="btn btn-primary" id="auth-btn" onclick="handleAuth()">🚀 دخول</button>
+                    <button class="btn btn-primary" id="auth-btn" type="submit">🚀 دخول</button>
+                </form>
+                <div class="auth-note"><i class="fa-solid fa-circle-info" style="color:#60a5fa;"></i><span>لن نشارك بياناتك. يتم حفظ حسابك في قاعدة بيانات آمنة.</span></div>
+                <div style="text-align: center; margin-top: 18px;">
+                    <span id="toggle-text" style="color: #60a5fa; cursor: pointer; font-size: 0.88rem; font-weight: bold;" onclick="toggleAuth()">ليس لديك حساب؟ إنشاء حساب جديد</span>
                 </div>
-                <div style="text-align: center; margin-top: 15px;">
-                    <span id="toggle-text" style="color: var(--primary-blue); cursor: pointer; font-size: 0.88rem; font-weight: bold;" onclick="toggleAuth()">ليس لديك حساب؟ إنشاء حساب جديد</span>
+              </div>
                 </div>
             </div>
         </div>
 
         <!-- 1.5 لوحة تحكم الأدمن (Admin Dashboard) -->
-        <div id="admin-screen" class="screen">
-            <div style="background: linear-gradient(135deg, #7c2d12, #9a3412); border-radius: 16px; padding: 18px; text-align: center; margin-bottom: 15px; border: 1px solid #f97316;">
-                <div style="font-size: 2rem; margin-bottom: 4px;">👑</div>
-                <h2 style="color: #ffedd5; font-size: 1.3rem; margin-bottom: 4px;">لوحة تحكم المشرف (Admin)</h2>
-                <p style="font-size: 0.8rem; color: #fed7aa;">إدارة كافة حسابات المستخدمين وإحصائيات المنصة الشاملة</p>
+        <div id="admin-screen" class="screen admin-screen">
+            <div class="admin-hero">
+              <div class="admin-hero-copy">
+                <div class="admin-hero-icon"><i class="fa-solid fa-crown"></i></div>
+                <div>
+                  <h2>لوحة تحكم المشرف</h2>
+                  <p>نظرة موحّدة على الحسابات والطلبات والمعاملات</p>
+                </div>
+              </div>
+              <button class="btn admin-refresh" onclick="renderAdminDashboard()"><i class="fa-solid fa-rotate"></i> تحديث البيانات</button>
             </div>
 
-            <div class="stats-bar" style="margin-bottom: 15px;">
+            <div class="stats-bar admin-stats">
                 <div class="stat-box">
+                    <div style="color:#60a5fa;margin-bottom:8px;"><i class="fa-solid fa-users"></i></div>
                     <div class="stat-num" id="admin-total-users">0</div>
                     <div class="stat-lbl">إجمالي الحسابات</div>
                 </div>
-                <div style="height: 25px; width: 1px; background: var(--border-color);"></div>
                 <div class="stat-box">
+                    <div style="color:#34d399;margin-bottom:8px;"><i class="fa-solid fa-arrow-trend-up"></i></div>
                     <div class="stat-num" id="admin-total-deposits">$0.00</div>
-                    <div class="stat-lbl">إجمالي الإيداعات</div>
+                    <div class="stat-lbl">الإيداعات المقبولة</div>
                 </div>
-                <div style="height: 25px; width: 1px; background: var(--border-color);"></div>
                 <div class="stat-box">
+                    <div style="color:#fbbf24;margin-bottom:8px;"><i class="fa-solid fa-arrow-trend-down"></i></div>
                     <div class="stat-num" id="admin-total-withdraws">$0.00</div>
-                    <div class="stat-lbl">إجمالي السحوبات</div>
+                    <div class="stat-lbl">السحوبات المقبولة</div>
                 </div>
             </div>
 
-            <div class="card">
-                <h3>👥 الحسابات المسجلة في المنصة</h3>
+            <div class="card admin-panel">
+                <h3><i class="fa-solid fa-users" style="color:#60a5fa;"></i> الحسابات المسجلة في المنصة</h3>
                 <div id="admin-users-list" style="margin-top: 10px;"></div>
             </div>
 
-             <div class="card" style="margin-top: 15px;">
-                 <h3>💳 طلبات الإيداع</h3>
+             <div class="card admin-panel" style="margin-top: 15px;">
+                 <h3><i class="fa-solid fa-wallet" style="color:#34d399;"></i> طلبات الإيداع</h3>
                  <div id="admin-deposit-requests" style="margin-top: 10px;"></div>
              </div>
 
-             <div class="card" style="margin-top: 15px;">
-                 <h3>💸 طلبات السحب</h3>
+             <div class="card admin-panel" style="margin-top: 15px;">
+                 <h3><i class="fa-solid fa-money-bill-transfer" style="color:#fbbf24;"></i> طلبات السحب</h3>
                  <div id="admin-withdrawal-requests" style="margin-top: 10px;"></div>
              </div>
 
-            <button class="btn" style="background-color: #451a03; color: #f87171; margin-top: 15px;" onclick="logout()">🚪 تسجيل الخروج من الأدمن</button>
+            <button class="btn" style="background:rgba(127,29,29,.28);border:1px solid rgba(248,113,113,.25);color:#fca5a5;margin-top:15px;" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i> تسجيل الخروج</button>
         </div>
 
         <!-- 2. الصفحة الرئيسية للمستخدم -->
@@ -1166,6 +1286,7 @@
     function toggleAuth() {
         isSignup = !isSignup;
         document.getElementById('reg-name').style.display = isSignup ? 'block' : 'none';
+        document.getElementById('reg-name-label').style.display = isSignup ? 'block' : 'none';
         document.getElementById('invite-group').style.display = isSignup ? 'block' : 'none';
         document.getElementById('auth-title').innerText = isSignup ? 'إنشاء حساب جديد' : 'تسجيل الدخول';
         document.getElementById('auth-btn').innerText = isSignup ? '🚀 إنشاء الحساب' : '🚀 دخول';

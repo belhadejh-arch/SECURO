@@ -16,7 +16,7 @@ NEON_DATABASE_URL=postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require
 هيّئ الجداول مرة واحدة فقط، محلياً أو من Shell في Render:
 
 ```bash
-npm ci
+npm ci --omit=dev
 npm run db:init
 ```
 
@@ -29,7 +29,7 @@ npm run db:init
 ```text
 Root Directory: (فارغ — جذر المستودع)
 Runtime: Node
-Build Command: npm install --registry=https://registry.npmjs.org/ --include=prod --package-lock=false && npm run build
+Build Command: npm ci --omit=dev --no-audit --no-fund --registry=https://registry.npmjs.org/ --replace-registry-host=never && npm run build
 Start Command: npm start
 Health Check Path: /api/health
 ```
@@ -54,7 +54,7 @@ COOKIE_SAME_SITE=none
 ### أوامر Backend المطلوبة
 
 ```text
-Build Command: npm ci && npm run build
+Build Command: npm ci --omit=dev --no-audit --no-fund --registry=https://registry.npmjs.org/ --replace-registry-host=never && npm run build
 Start Command: npm start
 ```
 
@@ -76,7 +76,7 @@ Root Directory: attached_assets
 Framework Preset: Other
 Build Command: npm run build
 Output Directory: .
-Install Command: npm install
+Install Command: npm ci
 ```
 
 ### أمر التشغيل في Vercel
@@ -112,6 +112,9 @@ https://securo-backend.onrender.com
 https://اسم-خدمة-render.onrender.com
 ```
 
+> إذا كان اسم خدمة Render مختلفاً، يجب استبدال الرابط الموجود في
+> `attached_assets/vercel.json` بالرابط الحقيقي للخدمة قبل نشر Vercel.
+
 بعدها أعد نشر Vercel. ملف `vercel.json` يمرر تلقائياً كل طلب يبدأ بـ `/api/`
 إلى Render، لذلك لا نضع رابطاً ثابتاً داخل كود المتصفح.
 
@@ -139,6 +142,6 @@ npm run build
 
 ```bash
 cd attached_assets
-npm install
+npm ci
 npm run build
 ```

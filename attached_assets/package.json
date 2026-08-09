@@ -4,5 +4,9 @@
   "private": true,
   "scripts": {
     "build": "node --check client-api.js && node -e \"const fs=require('fs'); for (const file of ['index.html','client-api.js']) { if (!fs.existsSync(file)) throw new Error(file + ' is missing'); }\""
+  },
+  "engines": {
+    "node": "20.x",
+    "npm": "10.x"
   }
 }

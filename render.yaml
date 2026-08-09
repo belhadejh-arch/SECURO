@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: securo-backend
+    runtime: node
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: NEON_DATABASE_URL
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: COOKIE_SAME_SITE
+        value: none

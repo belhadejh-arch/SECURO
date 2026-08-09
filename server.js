@@ -24,11 +24,34 @@ const pool = new Pool({
 const app = express();
 const PORT = Number(process.env.PORT || 5000);
 const publicDir = path.join(__dirname, "attached_assets");
+const frontendUrl = String(process.env.FRONTEND_URL || "").trim().replace(/\/+$/, "");
+const allowedOrigins = frontendUrl
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
+const isProduction = process.env.NODE_ENV === "production";
+const cookieSameSite = process.env.COOKIE_SAME_SITE || (isProduction ? "none" : "lax");
 
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: "32kb" }));
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
+  }
+  if (req.method === "OPTIONS") {
+    return origin && allowedOrigins.includes(origin)
+      ? res.sendStatus(204)
+      : res.sendStatus(403);
+  }
+  next();
+});
 app.use(
   session({
     store: new pgSession({
@@ -41,8 +64,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      sameSite: cookieSameSite,
+      secure: isProduction || cookieSameSite === "none",
       maxAge: 1000 * 60 * 60 * 24 * 30,
     },
   }),

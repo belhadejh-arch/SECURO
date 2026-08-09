@@ -1,0 +1,1 @@
+- [Render وVercel](render-vercel-deployment.md) — عند فصل الواجهة والـ API، يجب ضبط CORS وCookies والجسر `/api` معاً.

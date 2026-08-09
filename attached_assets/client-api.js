@@ -6,10 +6,19 @@
     accepted: "مقبول",
     rejected: "مرفوض",
   };
+  const configuredApiBaseUrl =
+    window.SECURO_API_URL ||
+    document.querySelector('meta[name="securo-api-url"]')?.content ||
+    "__BACKEND_URL__";
+  const apiBaseUrl =
+    configuredApiBaseUrl === "__BACKEND_URL__"
+      ? ""
+      : configuredApiBaseUrl.replace(/\/+$/, "");
 
   async function api(url, options) {
-    const response = await fetch(url, {
-      credentials: "same-origin",
+    const requestUrl = /^https?:\/\//i.test(url) ? url : `${apiBaseUrl}${url}`;
+    const response = await fetch(requestUrl, {
+      credentials: "include",
       headers: { "Content-Type": "application/json", ...(options && options.headers) },
       ...options,
     });

@@ -29,7 +29,7 @@ npm run db:init
 ```text
 Root Directory: (فارغ — جذر المستودع)
 Runtime: Node
-Build Command: npm ci && npm run build
+Build Command: npm install --registry=https://registry.npmjs.org/ --include=prod --package-lock=false && npm run build
 Start Command: npm start
 Health Check Path: /api/health
 ```

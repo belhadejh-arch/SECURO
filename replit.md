@@ -14,7 +14,7 @@ The project is intentionally split into two services:
 Create the Render service from the repository root. The checked-in `render.yaml`
 contains the service configuration:
 
-- Build command: `npm ci && npm run build`
+- Build command: `npm install --registry=https://registry.npmjs.org/ --include=prod --package-lock=false && npm run build`
 - Start command: `npm start`
 - Health check: `/api/health`
 - Runtime: Node.js

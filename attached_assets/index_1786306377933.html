@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SECURO VIP - الإدارة والمستخدم</title>
+    <!-- مكتبة الأيقونات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --bg-light-card: #334155;
+            --text-white: #ffffff;
+            --text-muted: #94a3b8;
+            --primary-blue: #3b82f6;
+            --primary-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            --vip-gold: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --vip-disabled: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --telegram-blue: #229ED9;
+            --border-color: #334155;
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #020617; display: flex; justify-content: center; min-height: 100vh; }
+
+        .app-container {
+            width: 100%; max-width: 430px; height: 100vh;
+            background-color: var(--bg-body);
+            display: flex; flex-direction: column; position: relative;
+            overflow: hidden; color: var(--text-white);
+        }
+
+        /* رأس الصفحة */
+        header {
+            background: var(--bg-card);
+            padding: 12px 16px; text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+        header h1 {
+            background: linear-gradient(90deg, #60a5fa, #2563eb);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-size: 1.5rem; font-weight: 900; letter-spacing: 2px;
+            font-family: 'Arial Black', sans-serif;
+        }
+
+        .content { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
+        .screen { display: none; }
+        .screen.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ترويسة الشاشات الفرعية */
+        .subpage-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);
+        }
+        .back-btn-arrow {
+            background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-white);
+            width: 38px; height: 38px; border-radius: 50%; display: flex;
+            align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer;
+            transition: 0.2s;
+        }
+        .back-btn-arrow:active { background: var(--bg-light-card); }
+
+        /* نموذج الإدخال */
+        .form-group { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+        input, select, textarea {
+            width: 100%; padding: 14px; border: 1.5px solid var(--border-color);
+            border-radius: 12px; font-size: 0.95rem; background-color: var(--bg-card);
+            color: var(--text-white); transition: border 0.2s; outline: none; resize: none;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--primary-blue); }
+
+        input[readonly] {
+            background-color: #0f172a !important;
+            color: #38bdf8 !important;
+            font-weight: bold;
+            cursor: not-allowed;
+            border-color: #1e3a8a !important;
+        }
+
+        .btn {
+            width: 100%; padding: 14px; border: none; border-radius: 12px;
+            font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;
+        }
+        .btn-primary { background: var(--primary-gradient); color: white; box-shadow: var(--shadow-lg); }
+        .btn-green { background-color: var(--accent-green); color: white; }
+        .btn-red { background-color: var(--accent-red); color: white; }
+        .btn-gold { background: var(--vip-gold); color: white; }
+        .btn-disabled { background: var(--vip-disabled); color: #94a3b8; cursor: not-allowed; }
+        .btn-telegram { background-color: var(--telegram-blue); color: white; box-shadow: 0 4px 12px rgba(34, 158, 217, 0.3); }
+
+        /* سلايدر الصور */
+        .slider-container {
+            width: 100%; height: 180px; border-radius: 18px; overflow: hidden;
+            position: relative; margin-bottom: 15px; box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+        }
+        .slider-slide {
+            width: 100%; height: 100%; position: absolute; opacity: 0;
+            transition: opacity 0.8s ease-in-out; background-size: cover; background-position: center;
+            display: flex; align-items: flex-end;
+        }
+        .slider-slide.active { opacity: 1; }
+        .slide-caption {
+            background: linear-gradient(to top, rgba(15, 23, 42, 0.95), transparent);
+            color: white; width: 100%; padding: 12px; font-size: 0.85rem; text-align: center; font-weight: bold;
+        }
+
+        /* شبكة الإختصارات السريعة */
+        .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
+        .action-item {
+            background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px;
+            padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+            cursor: pointer; transition: transform 0.2s; text-align: center;
+        }
+        .action-item:active { transform: scale(0.95); }
+        .action-icon {
+            width: 42px; height: 42px; border-radius: 12px; background: rgba(59, 130, 246, 0.15);
+            display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: #60a5fa;
+        }
+        .action-title { font-size: 0.75rem; font-weight: bold; color: var(--text-muted); }
+
+        /* بطاقة عجلة الحظ */
+        .wheel-card {
+            background: linear-gradient(135deg, #1e1b4b 0%, #311b92 100%);
+            border: 1.5px solid #6366f1; border-radius: 20px; padding: 18px;
+            text-align: center; margin-bottom: 18px; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.25);
+            position: relative; overflow: hidden;
+        }
+        .wheel-container-wrapper { position: relative; width: 230px; height: 230px; margin: 15px auto; }
+        .wheel-pointer {
+            position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 14px solid transparent; border-right: 14px solid transparent;
+            border-top: 24px solid #ef4444; z-index: 10;
+            filter: drop-shadow(0 3px 4px rgba(0,0,0,0.5));
+        }
+        .wheel-canvas {
+            width: 100%; height: 100%; border-radius: 50%;
+            border: 5px solid #fbbf24; box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);
+            transition: transform 4s cubic-bezier(0.15, 0.99, 0.24, 0.99);
+        }
+        .spin-center-btn {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 54px; height: 54px; background: var(--vip-gold); border: 3px solid #ffffff;
+            border-radius: 50%; color: white; font-weight: 900; font-size: 0.85rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4); z-index: 5;
+        }
+
+        /* شريط الإحصائيات */
+        .stats-bar {
+            background: linear-gradient(90deg, #1e1b4b, #1e293b); border-radius: 14px;
+            padding: 12px 16px; margin-bottom: 15px; border: 1px solid #312e81;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .stat-box { text-align: center; }
+        .stat-num { font-size: 1.1rem; font-weight: 800; color: #60a5fa; }
+        .stat-lbl { font-size: 0.7rem; color: var(--text-muted); }
+
+        /* بطاقات العرض */
+        .card {
+            background: var(--bg-card); border-radius: 16px; padding: 16px;
+            margin-bottom: 15px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm);
+        }
+        .card h3 { color: var(--text-white); margin-bottom: 8px; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; }
+
+        /* صفحة فريقي */
+        .referral-earnings-card {
+            background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+            border: 1px solid #34d399; border-radius: 16px; padding: 18px;
+            text-align: center; margin-bottom: 15px; box-shadow: var(--shadow-lg);
+        }
+        .referral-box {
+            background: linear-gradient(135deg, #1e1b4b, #0f172a);
+            border: 1px solid #3b82f6; border-radius: 16px; padding: 16px; margin-bottom: 15px;
+        }
+        .copy-input-container { display: flex; gap: 8px; margin-top: 8px; }
+        .copy-btn {
+            background: var(--primary-gradient); color: white; border: none;
+            padding: 0 16px; border-radius: 10px; font-weight: bold; cursor: pointer;
+            font-size: 0.85rem; white-space: nowrap;
+        }
+        .levels-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .level-card {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: 14px; padding: 12px 8px; text-align: center;
+        }
+        .level-badge { font-size: 0.75rem; font-weight: bold; padding: 2px 8px; border-radius: 10px; display: inline-block; margin-bottom: 6px; }
+        .lvl-1 { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
+        .lvl-2 { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid #3b82f6; }
+        .lvl-3 { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
+
+        /* صفحة ملكي */
+        .balance-card {
+            background: var(--primary-gradient); color: white; border-radius: 18px;
+            padding: 20px; text-align: center; margin-bottom: 15px; box-shadow: var(--shadow-lg);
+            position: relative;
+        }
+        .balance-amount { font-size: 2.2rem; font-weight: 800; margin: 10px 0; }
+
+        .daily-reward-card {
+            background: #2e1065; border: 1.5px dashed #a855f7; border-radius: 14px;
+            padding: 14px; text-align: center; margin-bottom: 15px;
+        }
+
+        .support-banner-profile {
+            background: linear-gradient(135deg, #0e7490 0%, #0369a1 100%);
+            border: 1px solid #38bdf8; border-radius: 16px; padding: 16px;
+            margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: var(--shadow-sm); cursor: pointer; transition: transform 0.2s;
+        }
+        .support-banner-profile:active { transform: scale(0.98); }
+        .support-avatar-box {
+            width: 55px; height: 55px; background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; border: 1px solid rgba(255, 255, 255, 0.3); flex-shrink: 0;
+        }
+
+        .menu-list { display: flex; flex-direction: column; gap: 10px; margin: 15px 0; }
+        .menu-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: 12px; font-weight: 600; font-size: 0.95rem; cursor: pointer; color: var(--text-white);
+        }
+        .menu-item select {
+            background: var(--bg-body); color: var(--text-white);
+            border: 1px solid var(--border-color); border-radius: 8px;
+            padding: 4px 10px; font-size: 0.85rem; outline: none; cursor: pointer; width: auto;
+        }
+
+        /* شاشة المهام */
+        .task-progress-box {
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+            border: 1px solid #4338ca; border-radius: 16px; padding: 16px;
+            margin-bottom: 15px; text-align: center; box-shadow: var(--shadow-sm);
+        }
+        .hotel-card {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            border-radius: 16px; overflow: hidden; margin-bottom: 15px; box-shadow: var(--shadow-sm);
+        }
+        .hotel-img {
+            width: 100%; height: 160px; background-size: cover; background-position: center;
+            position: relative; display: flex; align-items: flex-end;
+        }
+        .hotel-badge {
+            position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px); color: #fbbf24; padding: 4px 10px;
+            border-radius: 20px; font-size: 0.8rem; font-weight: bold;
+        }
+        .hotel-info { padding: 14px; }
+
+        .task-complete-card {
+            background: linear-gradient(135deg, #064e3b 0%, #022c22 100%);
+            border: 2px solid #10b981; border-radius: 20px; padding: 25px 18px;
+            text-align: center; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.25);
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .task-complete-icon-box {
+            width: 80px; height: 80px; background: rgba(16, 185, 129, 0.2);
+            border: 2px solid #34d399; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 15px auto; color: #34d399; font-size: 2.8rem;
+            animation: scaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .commission-badge-box {
+            background: rgba(15, 23, 42, 0.6); border: 1px dashed #34d399;
+            border-radius: 14px; padding: 12px; margin: 15px 0; display: inline-block; width: 100%;
+        }
+
+        .history-card {
+            background: var(--bg-card); border-radius: 14px; padding: 14px;
+            margin-bottom: 10px; border: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm);
+        }
+        .history-info { display: flex; flex-direction: column; gap: 4px; }
+        .history-title { font-weight: bold; font-size: 0.95rem; color: var(--text-white); }
+        .history-date { font-size: 0.78rem; color: var(--text-muted); }
+        .history-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+        .badge-green { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+        .badge-orange { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .badge-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+
+        .vip-card {
+            background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: 16px;
+            padding: 16px; margin-bottom: 15px; position: relative; overflow: hidden;
+        }
+        .vip-card.trial {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #064e3b 0%, #1e293b 100%);
+        }
+        .vip-card.disabled { border-color: #475569; opacity: 0.75; }
+        .vip-badge {
+            position: absolute; top: 12px; left: 12px; background: var(--vip-gold);
+            color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold;
+        }
+        .vip-badge.trial-badge { background: #10b981; }
+        .vip-badge.locked-badge { background: #64748b; }
+
+        .trial-success-box {
+            display: none; text-align: center; padding: 14px 12px;
+            background: rgba(16, 185, 129, 0.2); border: 1.5px solid #34d399;
+            border-radius: 14px; margin-top: 10px; animation: fadeIn 0.4s ease-in-out forwards;
+        }
+        .trial-success-icon { font-size: 2.5rem; color: #34d399; margin-bottom: 6px; animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .trial-success-text { color: #34d399; font-weight: 800; font-size: 1rem; margin-bottom: 4px; }
+
+        @keyframes scaleUp { 0% { transform: scale(0); } 80% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+        .withdraw-info-box {
+            background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: 12px;
+            padding: 12px; margin-top: 15px; text-align: right; font-size: 0.8rem; color: var(--text-muted); line-height: 1.6;
+        }
+
+        .deposit-notice-box {
+            background: rgba(245, 158, 11, 0.15); border: 1px solid #f59e0b; border-radius: 12px;
+            padding: 10px 14px; margin-top: 12px; text-align: center; font-size: 0.85rem; color: #fbbf24; font-weight: bold;
+        }
+
+        .modal {
+            display: none; position: absolute; top:0; left:0; right:0; bottom:0;
+            background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(6px);
+            z-index: 100; justify-content: center; align-items: center; padding: 20px;
+        }
+        .modal-content {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            width: 100%; border-radius: 20px; padding: 22px;
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center; color: var(--text-white);
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .warning-icon-box {
+            background: rgba(245, 158, 11, 0.15); width: 65px; height: 65px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 12px auto; border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .error-icon-box {
+            background: rgba(239, 68, 68, 0.15); width: 70px; height: 70px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 12px auto; border: 2px solid var(--accent-red); font-size: 2.2rem;
+        }
+        .success-icon-box {
+            background: rgba(16, 185, 129, 0.15); width: 70px; height: 70px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 12px auto; border: 2px solid var(--accent-green); font-size: 2.5rem;
+        }
+
+        .bottom-nav {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 68px;
+            background-color: var(--bg-card); border-top: 1px solid var(--border-color);
+            display: none; justify-content: space-around; align-items: center; z-index: 10; padding: 0 4px;
+        }
+        .nav-link {
+            display: flex; flex-direction: column; align-items: center; color: var(--text-muted);
+            cursor: pointer; font-size: 0.7rem; font-weight: 700; gap: 3px; flex: 1;
+        }
+        .nav-link.active { color: var(--primary-blue); }
+        .nav-link span { font-size: 1.25rem; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <h1 id="header-title">SECURO</h1>
+    </header>
+
+    <div class="content">
+        <!-- 1. شاشة تسجيل الدخول وإنشاء حساب -->
+        <div id="auth-screen" class="screen active">
+            <div class="card" style="margin-top: 10px;">
+                <h2 id="auth-title" style="text-align: center; color: var(--text-white); margin-bottom: 10px;">تسجيل الدخول</h2>
+                <div class="form-group">
+                    <input type="text" id="reg-name" placeholder="الاسم الكامل" style="display: none;">
+                    <input type="email" id="auth-email" placeholder="البريد الإلكتروني (مثال: example@gmail.com)">
+                    <input type="password" id="auth-pass" placeholder="كلمة المرور (6 أحرف أو أرقام على الأقل)">
+                    
+                    <div id="invite-group" style="display: none;">
+                        <label style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; display: block;">رمز الدعوة (اختياري/مُثبّت):</label>
+                        <input type="text" id="invite-code-input" value="529993" placeholder="أدخل رمز الدعوة">
+                        <span style="font-size: 0.75rem; color: var(--accent-green); margin-top: 4px; display: block;">✓ سيتم ربط حسابك بمرسل الدعوة كفريق</span>
+                    </div>
+
+                    <button class="btn btn-primary" id="auth-btn" onclick="handleAuth()">🚀 دخول</button>
+                </div>
+                <div style="text-align: center; margin-top: 15px;">
+                    <span id="toggle-text" style="color: var(--primary-blue); cursor: pointer; font-size: 0.88rem; font-weight: bold;" onclick="toggleAuth()">ليس لديك حساب؟ إنشاء حساب جديد</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1.5 لوحة تحكم الأدمن (Admin Dashboard) -->
+        <div id="admin-screen" class="screen">
+            <div style="background: linear-gradient(135deg, #7c2d12, #9a3412); border-radius: 16px; padding: 18px; text-align: center; margin-bottom: 15px; border: 1px solid #f97316;">
+                <div style="font-size: 2rem; margin-bottom: 4px;">👑</div>
+                <h2 style="color: #ffedd5; font-size: 1.3rem; margin-bottom: 4px;">لوحة تحكم المشرف (Admin)</h2>
+                <p style="font-size: 0.8rem; color: #fed7aa;">إدارة كافة حسابات المستخدمين وإحصائيات المنصة الشاملة</p>
+            </div>
+
+            <div class="stats-bar" style="margin-bottom: 15px;">
+                <div class="stat-box">
+                    <div class="stat-num" id="admin-total-users">0</div>
+                    <div class="stat-lbl">إجمالي الحسابات</div>
+                </div>
+                <div style="height: 25px; width: 1px; background: var(--border-color);"></div>
+                <div class="stat-box">
+                    <div class="stat-num" id="admin-total-deposits">$0.00</div>
+                    <div class="stat-lbl">إجمالي الإيداعات</div>
+                </div>
+                <div style="height: 25px; width: 1px; background: var(--border-color);"></div>
+                <div class="stat-box">
+                    <div class="stat-num" id="admin-total-withdraws">$0.00</div>
+                    <div class="stat-lbl">إجمالي السحوبات</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>👥 الحسابات المسجلة في المنصة</h3>
+                <div id="admin-users-list" style="margin-top: 10px;"></div>
+            </div>
+
+            <button class="btn" style="background-color: #451a03; color: #f87171; margin-top: 15px;" onclick="logout()">🚪 تسجيل الخروج من الأدمن</button>
+        </div>
+
+        <!-- 2. الصفحة الرئيسية للمستخدم -->
+        <div id="home-screen" class="screen">
+            <div class="slider-container">
+                <div class="slider-slide active" style="background-image: linear-gradient(to top, #0f172a, transparent), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80');">
+                    <div class="slide-caption">🏢 المقر الرئيسي للشركة - نيويورك، الولايات المتحدة الأمريكية</div>
+                </div>
+                <div class="slider-slide" style="background-image: linear-gradient(to top, #0f172a, transparent), url('https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=600&q=80');">
+                    <div class="slide-caption">🏛️ مكاتب العمل الإدارية والتقنية (تأسست عام 2014)</div>
+                </div>
+                <div class="slider-slide" style="background-image: linear-gradient(to top, #0f172a, transparent), url('https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80');">
+                    <div class="slide-caption">⚡ SECURO - ريادة عالمية موثوقة في الاستثمار الذكي</div>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <div class="action-item" onclick="openDepositModal()">
+                    <div class="action-icon">💳</div>
+                    <div class="action-title">إيداع</div>
+                </div>
+                <div class="action-item" onclick="openWithdrawModal()">
+                    <div class="action-icon">💸</div>
+                    <div class="action-title">سحب</div>
+                </div>
+                <div class="action-item" onclick="switchTab('tasks')">
+                    <div class="action-icon">⭐</div>
+                    <div class="action-title">مهامي</div>
+                </div>
+                <div class="action-item" onclick="openSupportModal()">
+                    <div class="action-icon">🎧</div>
+                    <div class="action-title">الدعم</div>
+                </div>
+            </div>
+
+            <!-- عجلة الحظ -->
+            <div class="wheel-card">
+                <h3 style="justify-content: center; color: #fbbf24; font-size: 1.2rem; margin-bottom: 2px;">🎡 عجلة الحظ المباشرة</h3>
+                <p style="font-size: 0.78rem; color: #c7d2fe;">تُمنح محاولات عجلة الحظ تلقائياً عند إجراء الترقية أو إيداع صديق عن طريق رابط دعواتك!</p>
+                
+                <div class="wheel-container-wrapper">
+                    <div class="wheel-pointer"></div>
+                    <canvas id="wheel-canvas" class="wheel-canvas" width="230" height="230"></canvas>
+                    <button class="spin-center-btn" onclick="spinWheel()">دوران</button>
+                </div>
+
+                <div style="background: rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 8px 12px; display: inline-block; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <span style="font-size: 0.85rem; color: #a5f3fc; font-weight: bold;">المحاولات المتاحة لديك: </span>
+                    <span id="wheel-spins-count" style="font-size: 1.1rem; font-weight: 900; color: #fbbf24;">0</span>
+                </div>
+            </div>
+
+            <div class="stats-bar">
+                <div class="stat-box">
+                    <div class="stat-num">$1.2M+</div>
+                    <div class="stat-lbl">إجمالي السحوبات</div>
+                </div>
+                <div style="height: 25px; width: 1px; background: var(--border-color);"></div>
+                <div class="stat-box">
+                    <div class="stat-num">45.8K</div>
+                    <div class="stat-lbl">مستثمر نشط</div>
+                </div>
+                <div style="height: 25px; width: 1px; background: var(--border-color);"></div>
+                <div class="stat-box">
+                    <div class="stat-num">2014</div>
+                    <div class="stat-lbl">سنة التأسيس</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>🇺🇸 عن شركة SECURO (نيويورك)</h3>
+                <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6;">
+                    تأسست شركة **SECURO** رسميًا في عام **2014** وتتخذ من مدينة **نيويورك في الولايات المتحدة الأمريكية** مقراً رئيسياً لها. تُعد المنصة رائدة عالمياً في مجالات التداول والحلول الاستثمارية الرقمية المتقدمة.
+                </p>
+            </div>
+        </div>
+
+        <!-- 3. صفحة VIP -->
+        <div id="vip-screen" class="screen">
+            <h2 style="margin-bottom: 15px; color: var(--text-white);">👑 مستويات ومنتجات VIP</h2>
+
+            <div class="vip-card trial">
+                <span class="vip-badge trial-badge">تجربة مجانية</span>
+                <h3 style="color: #34d399;">🎁 الفترة التجريبية (Trial Period)</h3>
+                <p style="font-size: 0.85rem; color: #a7f3d0; margin: 5px 0 10px 0;">
+                    المدة: 2 يومان | الأرباح: $2.00 يومياً | مجاني بالكامل
+                </p>
+                <button class="btn btn-green" id="btn-trial-activate" onclick="activateTrial()">تفعيل الفترة التجريبية (مجاناً)</button>
+                <div id="trial-success-section" class="trial-success-box">
+                    <i class="fa-solid fa-circle-check trial-success-icon"></i>
+                    <div class="trial-success-text">تهانينا! لقد تم تفعيل الفترة التجريبية بنجاح 🚀</div>
+                    <div style="font-size: 0.82rem; color: #a7f3d0;">يمكنك الآن الانتقال لصفحة "مهامي" للبدء في كسب الأرباح اليومية!</div>
+                </div>
+            </div>
+
+            <div class="vip-card" id="vip-card-vip1" style="border-color: #f59e0b;">
+                <span class="vip-badge">VIP 1</span>
+                <h3 style="color: #fbbf24;">المستوى الأول</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 5px 0 10px 0;">المدة: 365 يوماً | 3 مهام يومياً | دخل المهام: $1.20 | سعر العضوية: $14.00</p>
+                <button class="btn btn-gold" id="btn-buy-vip1" onclick="buyVipProduct('VIP 1', 14, 3, 1.20)">شراء العضوية ($14)</button>
+            </div>
+
+            <div class="vip-card" id="vip-card-vip2" style="border-color: #f59e0b;">
+                <span class="vip-badge">VIP 2</span>
+                <h3 style="color: #fbbf24;">المستوى الثاني</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 5px 0 10px 0;">المدة: 365 يوماً | 6 مهام يومياً | دخل المهام: $2.50 | سعر العضوية: $24.00</p>
+                <button class="btn btn-gold" id="btn-buy-vip2" onclick="buyVipProduct('VIP 2', 24, 6, 2.50)">شراء العضوية ($24)</button>
+            </div>
+
+            <div class="vip-card" id="vip-card-vip3" style="border-color: #f59e0b;">
+                <span class="vip-badge">VIP 3</span>
+                <h3 style="color: #fbbf24;">المستوى الثالث</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 5px 0 10px 0;">المدة: 365 يوماً | 8 مهام يومياً | دخل المهام: $7.00 | سعر العضوية: $54.00</p>
+                <button class="btn btn-gold" id="btn-buy-vip3" onclick="buyVipProduct('VIP 3', 54, 8, 7.00)">شراء العضوية ($54)</button>
+            </div>
+
+            <div class="vip-card" id="vip-card-vip4" style="border-color: #f59e0b;">
+                <span class="vip-badge">VIP 4</span>
+                <h3 style="color: #fbbf24;">المستوى الرابع</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 5px 0 10px 0;">المدة: 365 يوماً | 10 مهام يومياً | دخل المهام: $18.00 | سعر العضوية: $120.00</p>
+                <button class="btn btn-gold" id="btn-buy-vip4" onclick="buyVipProduct('VIP 4', 120, 10, 18.00)">شراء العضوية ($120)</button>
+            </div>
+
+            <div class="vip-card disabled">
+                <span class="vip-badge locked-badge">🔒 قريباً</span>
+                <h3 style="color: #94a3b8;">VIP 5 - المستوى المتقدم</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 5px 0 10px 0;">المدة: 365 يوماً | السعر: $200.00 | سيكون متاحاً للتفعيل قريباً جداً!</p>
+                <button class="btn btn-disabled" disabled>🔒 غير متاح حالياً (قريباً)</button>
+            </div>
+
+            <div class="vip-card disabled">
+                <span class="vip-badge locked-badge">🔒 قريباً</span>
+                <h3 style="color: #94a3b8;">VIP 6 - المستوى الذهبي كبار الشخصيات</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 5px 0 10px 0;">المدة: 365 يوماً | السعر: $300.00 | سيكون متاحاً للتفعيل قريباً جداً!</p>
+                <button class="btn btn-disabled" disabled>🔒 غير متاح حالياً (قريباً)</button>
+            </div>
+        </div>
+
+        <!-- 4. صفحة مهامي -->
+        <div id="tasks-screen" class="screen">
+            <h2 style="margin-bottom: 10px; color: var(--text-white);">🏨 مهام تقييم الفنادق العالمية</h2>
+            
+            <div class="task-progress-box">
+                <div style="font-size: 0.85rem; color: #bae6fd; margin-bottom: 4px;" id="task-vip-status">العضوية الحالية: غير مشترك</div>
+                <div style="font-size: 1.2rem; font-weight: 800; color: white;" id="task-progress-text">المهام المنجزة: 0 / 0</div>
+                <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">قيّم الفنادق المتاحة بـ 5 نجوم واترك تعليقاً لتحصيل أرباحك اليومية!</div>
+            </div>
+
+            <div id="tasks-container"></div>
+        </div>
+
+        <!-- 5. صفحة فريقي -->
+        <div id="team-screen" class="screen">
+            <h2 style="margin-bottom: 12px; color: var(--text-white);">👥 إدارة وتفاصيل فريقي</h2>
+            
+            <div class="referral-earnings-card">
+                <div style="font-size: 0.85rem; color: #d1fae5; font-weight: bold;">💰 إجمالي مكافآت الإحالة المكتسبة</div>
+                <div style="font-size: 2.2rem; font-weight: 900; color: #ffffff; margin: 4px 0;">$<span id="total-referral-earnings">0.00</span></div>
+                <div style="font-size: 0.75rem; color: #a7f3d0;">تحصل على 10%، 5%، أو 1% فور إيداع أي شخص يدخل عبر رابطك!</div>
+            </div>
+
+            <div class="referral-box">
+                <div style="font-size: 0.85rem; color: #bae6fd; font-weight: bold;">🔑 رمز الدعوة الخاص بك:</div>
+                <div class="copy-input-container">
+                    <input type="text" id="my-invite-code" readonly style="font-weight: 800; color: #fbbf24; text-align: center; letter-spacing: 2px;">
+                    <button class="copy-btn" onclick="copyInviteCode()">نسخ الرمز</button>
+                </div>
+
+                <div style="font-size: 0.85rem; color: #bae6fd; font-weight: bold; margin-top: 12px;">🔗 رابط الدعوة المباشر:</div>
+                <div class="copy-input-container">
+                    <input type="text" id="my-invite-link" readonly style="font-size: 0.8rem;">
+                    <button class="copy-btn" onclick="copyInviteLink()">نسخ الرابط</button>
+                </div>
+            </div>
+
+            <div class="levels-grid">
+                <div class="level-card">
+                    <span class="level-badge lvl-1">المستوى 1</span>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: #fbbf24; margin: 4px 0;">10%</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">مكافأة الإيداع</div>
+                    <div style="font-size: 0.75rem; font-weight: bold; color: white; margin-top: 6px;" id="lvl1-count">0 شخص</div>
+                </div>
+                <div class="level-card">
+                    <span class="level-badge lvl-2">المستوى 2</span>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: #60a5fa; margin: 4px 0;">5%</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">مكافأة الإيداع</div>
+                    <div style="font-size: 0.75rem; font-weight: bold; color: white; margin-top: 6px;" id="lvl2-count">0 شخص</div>
+                </div>
+                <div class="level-card">
+                    <span class="level-badge lvl-3">المستوى 3</span>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: #34d399; margin: 4px 0;">1%</div>
+                    <div style="font-size: 0.7rem; color: var(--text-muted);">مكافأة الإيداع</div>
+                    <div style="font-size: 0.75rem; font-weight: bold; color: white; margin-top: 6px;" id="lvl3-count">0 شخص</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>📜 الأشخاص المسجلين ضمن فريقك (<span id="total-team-count">0</span>)</h3>
+                <div id="team-members-list" style="margin-top: 10px;"></div>
+            </div>
+        </div>
+
+        <!-- 6. شاشة ملكي -->
+        <div id="profile-screen" class="screen">
+            <div class="balance-card">
+                <div style="font-size: 0.9rem; opacity: 0.9;">إجمالي الرصيد الحالي</div>
+                <div class="balance-amount">$<span id="user-balance">0.00</span></div>
+                <div style="font-size: 0.85rem; opacity: 0.8;" id="user-display-email">email@example.com</div>
+            </div>
+
+            <div class="support-banner-profile" onclick="openSupportModal()">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="support-avatar-box">🎧👩‍💼</div>
+                    <div>
+                        <div style="font-weight: bold; font-size: 0.95rem; color: white;">خدمة العملاء (موظف الاستقبال)</div>
+                        <div style="font-size: 0.78rem; color: #bae6fd;">تواصل مباشر عبر تليجرام</div>
+                    </div>
+                </div>
+                <div style="font-size: 1.2rem; color: white; background: rgba(0,0,0,0.2); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">➔</div>
+            </div>
+
+            <div class="daily-reward-card">
+                <div style="font-weight: bold; color: #c084fc; margin-bottom: 5px;">🎁 مكافأة التسجيل اليومية</div>
+                <div style="font-size: 0.8rem; color: #e9d5ff; margin-bottom: 10px;">احصل على 0.10$ مجاناً كل يوم عند الدخول! تتجدد منتصف الليل (12:00 ليلاً).</div>
+                <button class="btn btn-gold" id="claim-btn" onclick="claimDailyReward()" style="padding: 10px;">طلب 0.10$ اليومية</button>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button class="btn btn-green" style="flex:1;" onclick="openDepositModal()">💳 إيداع</button>
+                <button class="btn btn-red" style="flex:1;" onclick="openWithdrawModal()">💸 سحب</button>
+            </div>
+
+            <div class="menu-list">
+                <div class="menu-item" onclick="openSubPage('deposit-history-screen')">
+                    <span>💳 سجل الإيداع</span> <span>👈</span>
+                </div>
+                <div class="menu-item" onclick="openSubPage('withdraw-history-screen')">
+                    <span>📜 سجل السحوبات</span> <span>👈</span>
+                </div>
+                <div class="menu-item" onclick="openSubPage('reward-history-screen')">
+                    <span>🎁 سجل المكافآت</span> <span>👈</span>
+                </div>
+                <div class="menu-item" onclick="openSubPage('tx-history-screen')">
+                    <span>📊 المعاملات المالية</span> <span>👈</span>
+                </div>
+                <div class="menu-item">
+                    <span>🌐 لغة التطبيق (Language)</span>
+                    <select onchange="changeLanguage(this.value)">
+                        <option value="ar">العربية (AR)</option>
+                        <option value="fr">Français (FR)</option>
+                        <option value="en">English (EN)</option>
+                        <option value="es">Español (ES)</option>
+                        <option value="zh">中文 (ZH)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button class="btn" style="background-color: #451a03; color: #f87171;" onclick="logout()">🚪 تسجيل الخروج</button>
+        </div>
+
+        <!-- السجلات الفرعية -->
+        <div id="deposit-history-screen" class="screen">
+            <div class="subpage-header">
+                <h2 style="color: var(--text-white); font-size: 1.2rem;">💳 سجل الإيداع</h2>
+                <div class="back-btn-arrow" onclick="openSubPage('profile-screen')">➔</div>
+            </div>
+            <div id="deposit-history-list"></div>
+        </div>
+
+        <div id="reward-history-screen" class="screen">
+            <div class="subpage-header">
+                <h2 style="color: var(--text-white); font-size: 1.2rem;">🎁 سجل المكافآت اليومية</h2>
+                <div class="back-btn-arrow" onclick="openSubPage('profile-screen')">➔</div>
+            </div>
+            <div id="reward-history-list"></div>
+        </div>
+
+        <div id="withdraw-history-screen" class="screen">
+            <div class="subpage-header">
+                <h2 style="color: var(--text-white); font-size: 1.2rem;">📜 سجل طلبات السحب</h2>
+                <div class="back-btn-arrow" onclick="openSubPage('profile-screen')">➔</div>
+            </div>
+            <div id="withdraw-history-list"></div>
+        </div>
+
+        <div id="tx-history-screen" class="screen">
+            <div class="subpage-header">
+                <h2 style="color: var(--text-white); font-size: 1.2rem;">📊 سجل المعاملات المالية</h2>
+                <div class="back-btn-arrow" onclick="openSubPage('profile-screen')">➔</div>
+            </div>
+            <div id="tx-history-list"></div>
+        </div>
+    </div>
+
+    <!-- النوافذ المنبثقة Modal -->
+    <div id="withdraw-success-modal" class="modal">
+        <div class="modal-content" style="padding: 25px;">
+            <div class="success-icon-box" style="margin-bottom: 12px; width: 75px; height: 75px; font-size: 2.8rem;">
+                <i class="fa-solid fa-circle-check" style="color: #34d399;"></i>
+            </div>
+            <h3 style="color: #34d399; margin-bottom: 8px; font-size: 1.25rem;">تم تأكيد طلب السحب</h3>
+            <p id="withdraw-success-msg" style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6;">
+                لقد تم تأكيد طلب السحب بنجاح، وهو الآن قيد المراجعة وسيتم تحويل المبلغ فور معالجته.
+            </p>
+            <button class="btn btn-primary" onclick="closeWithdrawSuccessModal()">حسناً</button>
+        </div>
+    </div>
+
+    <div id="deposit-success-modal" class="modal">
+        <div class="modal-content" style="padding: 25px;">
+            <div class="success-icon-box" style="margin-bottom: 12px; width: 75px; height: 75px; font-size: 2.8rem;">
+                <i class="fa-solid fa-circle-check" style="color: #34d399;"></i>
+            </div>
+            <h3 style="color: #34d399; margin-bottom: 8px; font-size: 1.25rem;">تم إرسال طلب الإيداع</h3>
+            <p id="deposit-success-msg" style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6;">
+                تم تسجيل طلب الإيداع بنجاح وهو الآن قيد التحقق من قِبل الإدارة وسيتم إضافته لرصيدك فور تأكيد التحويل.
+            </p>
+            <button class="btn btn-primary" onclick="closeDepositSuccessModal()">حسناً</button>
+        </div>
+    </div>
+
+    <div id="task-success-modal" class="modal">
+        <div class="modal-content" style="padding: 25px;">
+            <div class="success-icon-box" style="margin-bottom: 12px; width: 75px; height: 75px; font-size: 2.8rem;">
+                <i class="fa-solid fa-circle-check" style="color: #34d399;"></i>
+            </div>
+            <h3 style="color: #34d399; margin-bottom: 8px; font-size: 1.25rem;">ألف مبروك!</h3>
+            <p id="task-success-msg" style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6;"></p>
+            <button class="btn btn-primary" onclick="closeTaskSuccessModal()">حسناً</button>
+        </div>
+    </div>
+
+    <div id="wheel-result-modal" class="modal">
+        <div class="modal-content">
+            <div id="wheel-result-icon" style="font-size: 3.5rem; margin-bottom: 10px;">🎁</div>
+            <h2 id="wheel-result-title" style="color: var(--accent-green); margin-bottom: 8px;">نتيجة عجلة الحظ</h2>
+            <p id="wheel-result-msg" style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6;"></p>
+            <button class="btn btn-primary" onclick="closeWheelModal()">رائع، استمرار 🚀</button>
+        </div>
+    </div>
+
+    <div id="copy-toast-modal" class="modal">
+        <div class="modal-content" style="padding: 25px;">
+            <div class="success-icon-box" style="margin-bottom: 10px;">📋</div>
+            <h3 id="copy-toast-title" style="color: var(--accent-green); margin-bottom: 6px;">تم النسخ بنجاح!</h3>
+            <p id="copy-toast-msg" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 18px;"></p>
+            <button class="btn btn-primary" onclick="closeCopyToast()">حسناً</button>
+        </div>
+    </div>
+
+    <div id="login-success-modal" class="modal">
+        <div class="modal-content">
+            <div class="success-icon-box">👋</div>
+            <h2 style="color: var(--accent-green); margin-bottom: 8px;">مرحباً بك مجدداً!</h2>
+            <p style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6;">
+                تم تسجيل دخولك إلى حسابك بنجاح.<br>نتمنى لك رحلة استثمارية موفقة مع SECURO!
+            </p>
+            <button class="btn btn-primary" onclick="closeLoginSuccessModal()">دخول المنصة 🚀</button>
+        </div>
+    </div>
+
+    <div id="login-error-modal" class="modal">
+        <div class="modal-content">
+            <div class="error-icon-box">🔐</div>
+            <h3 style="color: #f87171; margin-bottom: 8px;">خطأ في تسجيل الدخول</h3>
+            <p id="login-error-msg" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6;">
+                البريد الإلكتروني غير مسجل في المنصة أو كلمة المرور خاطئة!
+            </p>
+            <button class="btn btn-primary" style="background: var(--bg-light-card);" onclick="closeLoginErrorModal()">حسناً، المحاولة مجدداً</button>
+        </div>
+    </div>
+
+    <div id="support-modal" class="modal">
+        <div class="modal-content">
+            <div style="font-size: 3rem; margin-bottom: 8px;">🎧👩‍💼</div>
+            <h3 style="color: var(--primary-blue); margin-bottom: 6px;">خدمة العملاء والإدارة</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 18px;">
+                للحصول على دعم سريع، شحن الحساب، أو الاستفسارات، يمكنك التواصل مباشرة مع خدمة العملاء أو الانضمام لقناتنا الرسمية:
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+                <a href="https://t.me/Yamno7" target="_blank" class="btn btn-telegram">
+                    💬 خدمة العملاء (موظف الاستقبال) - تليجرام
+                </a>
+                <a href="https://t.me/SecuroChannel" target="_blank" class="btn btn-telegram" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
+                    📢 قناة تليجرام الرسمية
+                </a>
+            </div>
+            <button class="btn" style="background: var(--bg-light-card); color: var(--text-white);" onclick="closeSupportModal()">إغلاق</button>
+        </div>
+    </div>
+
+    <!-- نافذة الإيداع المُعدلة والمطورة -->
+    <div id="deposit-modal" class="modal" style="align-items: flex-end; padding:0;">
+        <div class="modal-content" style="border-radius: 24px 24px 0 0; text-align: right; max-height: 90vh; overflow-y: auto;">
+            <div style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.15); border: 2px solid var(--accent-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin: 0 auto 10px auto;">
+                💳
+            </div>
+            <h3 style="color: var(--accent-green); margin-bottom: 12px; text-align: center;">شحن رصيد الحساب (USDT TRC20)</h3>
+            
+            <div class="form-group">
+                <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-white);">عنوان محفظة الإيداع الرسمية:</label>
+                <div class="copy-input-container">
+                    <input type="text" id="company-wallet-address" value="TKmr5pbXSEWSQ5EfFTtF5wjZRt4Y4KRKxE" readonly style="font-size: 0.78rem; text-align: center;">
+                    <button class="copy-btn" onclick="copyCompanyWallet()">نسخ العنوان</button>
+                </div>
+
+                <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-white); margin-top: 6px;">المبلغ المراد إيداعه ($):</label>
+                <input type="number" id="deposit-amount" placeholder="أدخل المبلغ (مثال: 10 أو أي مبلغ آخر)">
+
+                <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-white); margin-top: 6px;">معرف المعاملة (TxID / رقم التحويل):</label>
+                <input type="text" id="deposit-txid" placeholder="أدخل رقم أو كود المعاملة بعد التحويل">
+                
+                <div class="deposit-notice-box">
+                    ⚠️ الحد الأدنى للإيداع هو 10 دولار ($10). يرجى التأكد من إرسال المبلغ عبر شبكة TRC20 حصراً.
+                </div>
+
+                <button class="btn btn-green" onclick="submitDeposit()" style="margin-top: 5px;">تأكيد إرسال طلب الإيداع</button>
+                <button class="btn" style="background: var(--bg-light-card); color: var(--text-white);" onclick="closeDepositModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="congrats-modal" class="modal">
+        <div class="modal-content">
+            <div style="font-size: 3.5rem; margin-bottom: 10px;">🎉</div>
+            <h2 style="color: var(--primary-blue); margin-bottom: 8px;">تهانينا!</h2>
+            <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 15px;">تم تسجيل دخولك اليوم بنجاح وحصلت على:</p>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #34d399; background: rgba(16, 185, 129, 0.15); border-radius: 12px; padding: 10px; margin-bottom: 20px;">
+                +0.10 $
+            </div>
+            <button class="btn btn-primary" onclick="closeCongratsModal()">رائع، شكراً!</button>
+        </div>
+    </div>
+
+    <div id="already-claimed-modal" class="modal">
+        <div class="modal-content">
+            <div style="width: 70px; height: 70px; background: rgba(245, 158, 11, 0.15); border: 2px solid #f59e0b; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin: 0 auto 12px auto;">
+                ⏳
+            </div>
+            <h3 style="color: #fbbf24; margin-bottom: 8px;">تم الاستلام سابقاً!</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6;">
+                لقدحصلت على مكافأة تسجيل الدخول اليومية اليوم بالفعل.<br>تتجدد المكافأة تلقائياً عند الساعة <strong>12:00 منتصف الليل</strong>!
+            </p>
+            <button class="btn btn-primary" onclick="closeAlreadyClaimedModal()">حسناً، فهمت</button>
+        </div>
+    </div>
+
+    <div id="insufficient-modal" class="modal">
+        <div class="modal-content">
+            <div class="warning-icon-box"><span style="font-size: 2rem;">⚠️</span></div>
+            <h3 style="color: #f59e0b; margin-bottom: 8px;">رصيدكم غير كافٍ بالسحب</h3>
+            <p id="insufficient-msg" style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6;"></p>
+            <button class="btn btn-primary" onclick="closeInsufficientModal()">حسناً، فهمت</button>
+        </div>
+    </div>
+
+    <div id="vip-confirm-modal" class="modal">
+        <div class="modal-content">
+            <div id="vip-modal-icon" style="font-size: 3rem; margin-bottom: 8px;">🛍️</div>
+            <h3 id="vip-modal-title" style="color: var(--text-white); margin-bottom: 10px;">تأكيد شراء العضوية</h3>
+            <p id="vip-modal-msg" style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;"></p>
+            <div id="vip-modal-actions" style="display: flex; gap: 10px;">
+                <button class="btn btn-green" style="flex:1;" onclick="confirmBuyVip()">نعم</button>
+                <button class="btn btn-red" style="flex:1;" onclick="closeVipModal()">لا</button>
+            </div>
+            <button id="vip-modal-close-btn" class="btn btn-primary" style="display:none;" onclick="closeVipModal()">حسناً</button>
+        </div>
+    </div>
+
+    <div id="withdraw-modal" class="modal" style="align-items: flex-end; padding:0;">
+        <div class="modal-content" style="border-radius: 24px 24px 0 0; text-align: right; max-height: 90vh; overflow-y: auto;">
+            <h3 style="margin-bottom: 15px; text-align: center;">💸 اختيار طريقة السحب</h3>
+            <div class="form-group">
+                <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-white);">اختر المحفظة الرقمية:</label>
+                <select id="withdraw-bank">
+                    <option value="USDT">🪙 محفظة رقمية (USDT TRC20)</option>
+                    <option value="USDC">🪙 محفظة رقمية (USDC)</option>
+                </select>
+
+                <input type="text" id="withdraw-account" placeholder="أدخل عنوان المحفظة الرقمية (Wallet Address)">
+                <input type="number" id="withdraw-amount" placeholder="المبلغ المراد سحبه ($)">
+                
+                <button class="btn btn-red" onclick="submitWithdraw()">تأكيد طلب السحب</button>
+                <button class="btn" style="background: var(--bg-light-card); color: var(--text-white);" onclick="closeWithdrawModal()">إلغاء</button>
+            </div>
+
+            <div class="withdraw-info-box">
+                <div style="font-weight: bold; color: var(--text-white); margin-bottom: 4px;">📌 شروط وملاحظات السحب:</div>
+                • <strong>الحد الأدنى للسحب:</strong> هو 10 دولارات ($10) بالضبط.<br>
+                • <strong>الحد الأعلى للسحب:</strong> لا يوجد حد أعلى للسحب.<br>
+                • <strong>أيام وأوقات السحب:</strong> متاحة طيلة أيام الأسبوع من الساعة <strong>08:00 صباحاً</strong> إلى غاية الساعة <strong>05:00 مساءً</strong>.
+            </div>
+        </div>
+    </div>
+
+    <!-- شريط التنقل السفلي -->
+    <div id="bottom-nav" class="bottom-nav">
+        <div id="nav-home" class="nav-link active" onclick="switchTab('home')">
+            <span>🏠</span> الرئيسية
+        </div>
+        <div id="nav-vip" class="nav-link" onclick="switchTab('vip')">
+            <span>👑</span> VIP
+        </div>
+        <div id="nav-tasks" class="nav-link" onclick="switchTab('tasks')">
+            <span>⭐</span> مهامي
+        </div>
+        <div id="nav-team" class="nav-link" onclick="switchTab('team')">
+            <span>👥</span> فريقي
+        </div>
+        <div id="nav-profile" class="nav-link" onclick="switchTab('profile')">
+            <span>👤</span> ملكي
+        </div>
+    </div>
+</div>
+
+<script>
+    let isSignup = false;
+    let currentUser = null;
+    let balance = 0.00;
+    let isAdmin = false;
+    
+    let registeredUsers = JSON.parse(localStorage.getItem('securo_global_users')) || [
+        { email: "admin@securo.com", pass: "admin123", name: "مدير المنصة (Admin)", inviteCode: "100000", isAdmin: true, balance: 5000 },
+        { email: "test@securo.com", pass: "123456", name: "المستخدم التجريبي", inviteCode: "529993", balance: 15.00 }
+    ];
+
+    let teamMembers = [];
+    let referralEarnings = 0.00;
+
+    let availableSpins = 0; 
+    let isSpinning = false;
+    let currentWheelRotation = 0;
+
+    let depositLogs = [];
+    let rewardLogs = [];
+    let withdrawLogs = [];
+    let txLogs = [];
+    let lastClaimDate = null;
+    let pendingVip = null;
+
+    let userVip = null;
+    let completedTasksCount = 0;
+    let taskLastResetDate = null;
+    let currentTrialDay = 1;
+    let trialActive = false;
+    let trialUsed = false;
+
+    let activeTaskTimers = {};
+    let midnightTimerInterval = null;
+
+    const wheelSectors = [
+        { label: "حظ سعيد", val: 0, color: "#ef4444" },
+        { label: "$0.50", val: 0.5, color: "#3b82f6" },
+        { label: "$1.00", val: 1.0, color: "#10b981" },
+        { label: "$2.00", val: 2.0, color: "#f59e0b" },
+        { label: "حظ سعيد", val: 0, color: "#ef4444" },
+        { label: "$3.00", val: 3.0, color: "#8b5cf6" },
+        { label: "$50.00", val: 50.0, color: "#ec4899" },
+        { label: "$100.00", val: 100, color: "#eab308" }
+    ];
+
+    const hotelsList = [
+        { name: "فندق برج العرب - دبي", location: "الإمارات العربية المتحدة", img: "https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=600&q=80" },
+        { name: "فندق ذا ريتز كارلتون - نيويورك", location: "الولايات المتحدة الأمريكية", img: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80" },
+        { name: "فندق فور سيزونز - باريس", location: "فرنسا", img: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=600&q=80" },
+        { name: "منتجع ماريوت الفاخر - طوكيو", location: "اليابان", img: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=600&q=80" },
+        { name: "فندق أتلانتس البالم - دبي", location: "الإمارات العربية المتحدة", img: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=600&q=80" }
+    ];
+
+    window.onload = function() {
+        syncGlobalDatabase();
+        drawWheel();
+        
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slider-slide');
+        if (slides.length > 0) {
+            setInterval(() => {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }, 3500);
+        }
+    };
+
+    function syncGlobalDatabase() {
+        const stored = localStorage.getItem('securo_global_users');
+        if (stored) {
+            try {
+                registeredUsers = JSON.parse(stored);
+            } catch(e) {
+                console.error(e);
+            }
+        } else {
+            localStorage.setItem('securo_global_users', JSON.stringify(registeredUsers));
+        }
+    }
+
+    function changeLanguage(lang) {
+        if(lang === 'ar') {
+            document.documentElement.setAttribute('dir', 'rtl');
+            document.documentElement.setAttribute('lang', 'ar');
+        } else {
+            document.documentElement.setAttribute('dir', 'ltr');
+            document.documentElement.setAttribute('lang', lang);
+        }
+    }
+
+    function drawWheel() {
+        const canvas = document.getElementById('wheel-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const numSectors = wheelSectors.length;
+        const radius = canvas.width / 2;
+        const anglePerSector = (2 * Math.PI) / numSectors;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (let i = 0; i < numSectors; i++) {
+            const startAngle = i * anglePerSector;
+            const endAngle = startAngle + anglePerSector;
+
+            ctx.beginPath();
+            ctx.moveTo(radius, radius);
+            ctx.arc(radius, radius, radius, startAngle, endAngle);
+            ctx.fillStyle = wheelSectors[i].color;
+            ctx.fill();
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = "#ffffff";
+            ctx.stroke();
+
+            ctx.save();
+            ctx.translate(radius, radius);
+            ctx.rotate(startAngle + anglePerSector / 2);
+            ctx.textAlign = "right";
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 13px Segoe UI, sans-serif";
+            ctx.shadowColor = "rgba(0,0,0,0.6)";
+            ctx.shadowBlur = 4;
+            ctx.fillText(wheelSectors[i].label, radius - 15, 5);
+            ctx.restore();
+        }
+    }
+
+    function spinWheel() {
+        if (isSpinning) return;
+
+        if (availableSpins <= 0) {
+            showCopyToast("لا توجد محاولات حظ! 🎡", "تُمنح فرصة عجلة الحظ تلقائياً عند إجراء ترقية لحسابك، أو عند قيام شخص تمت دعوته بالإيداع.");
+            return;
+        }
+
+        isSpinning = true;
+        availableSpins--;
+        document.getElementById('wheel-spins-count').innerText = availableSpins;
+
+        const allowedSectorIndices = [0, 1, 2, 4, 5];
+        const selectedSectorIndex = allowedSectorIndices[Math.floor(Math.random() * allowedSectorIndices.length)];
+
+        const numSectors = wheelSectors.length;
+        const sectorDegree = 360 / numSectors;
+
+        const targetSectorCenter = (selectedSectorIndex * sectorDegree) + (sectorDegree / 2);
+        const stopAngle = (270 - targetSectorCenter + 360) % 360;
+
+        const extraRotations = 360 * 5; 
+        const totalRotation = currentWheelRotation + extraRotations + (stopAngle - (currentWheelRotation % 360));
+        currentWheelRotation = totalRotation;
+
+        const canvas = document.getElementById('wheel-canvas');
+        canvas.style.transform = `rotate(${totalRotation}deg)`;
+
+        setTimeout(() => {
+            isSpinning = false;
+            const wonSector = wheelSectors[selectedSectorIndex];
+            
+            const modal = document.getElementById('wheel-result-modal');
+            const icon = document.getElementById('wheel-result-icon');
+            const title = document.getElementById('wheel-result-title');
+            const msg = document.getElementById('wheel-result-msg');
+
+            if (wonSector.val > 0) {
+                balance += wonSector.val;
+                document.getElementById('user-balance').innerText = balance.toFixed(2);
+
+                const now = new Date();
+                const dateStr = `${now.toLocaleDateString('ar-DZ')} - ${now.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}`;
+                txLogs.unshift({ title: `جائزة عجلة الحظ`, amount: `+$${wonSector.val.toFixed(2)}`, date: dateStr, type: "إيداع" });
+
+                icon.innerText = "🎉";
+                title.innerText = "تهانينا! لقد فزت!";
+                title.style.color = "var(--accent-green)";
+                msg.innerHTML = `ربحت مبلغ <strong>$${wonSector.val.toFixed(2)}</strong> وتمت إضافته بنجاح إلى رصيد حسابك!`;
+            } else {
+                icon.innerText = "😔";
+                title.innerText = "حظ سعيد المرة القادمة!";
+                title.style.color = "#f59e0b";
+                msg.innerText = "لم تحالفك أرقام الحظ في هذه الدورة. قم بترقية حسابك أو ادعُ أصدقاء للإيداع للحصول على فرص إضافية آلياً!";
+            }
+
+            modal.style.display = "flex";
+            saveUserData();
+        }, 4000);
+    }
+
+    function closeWheelModal() {
+        document.getElementById('wheel-result-modal').style.display = "none";
+    }
+
+    function activateTrial() {
+        if (trialUsed) {
+            alert("⚠️ لقد استخدمت الفترة التجريبية سابقاً!");
+            return;
+        }
+
+        trialActive = true;
+        trialUsed = true;
+        currentTrialDay = 1;
+
+        userVip = {
+            name: "الفترة التجريبية (Trial)",
+            price: 0,
+            totalTasks: 2,
+            totalReward: 2.00,
+            isTrial: true
+        };
+
+        completedTasksCount = 0;
+        const now = new Date();
+        taskLastResetDate = now.toISOString().split('T')[0];
+
+        document.getElementById('btn-trial-activate').style.display = 'none';
+        document.getElementById('trial-success-section').style.display = 'block';
+        updateVipUIState();
+        saveUserData();
+    }
+
+    function toggleAuth() {
+        isSignup = !isSignup;
+        document.getElementById('reg-name').style.display = isSignup ? 'block' : 'none';
+        document.getElementById('invite-group').style.display = isSignup ? 'block' : 'none';
+        document.getElementById('auth-title').innerText = isSignup ? 'إنشاء حساب جديد' : 'تسجيل الدخول';
+        document.getElementById('auth-btn').innerText = isSignup ? '🚀 إنشاء الحساب' : '🚀 دخول';
+        document.getElementById('toggle-text').innerText = isSignup ? 'لديك حساب بالفعل؟ دخول' : 'ليس لديك حساب؟ إنشاء حساب جديد';
+    }
+
+    function openLoginErrorModal(msg) {
+        if(msg) document.getElementById('login-error-msg').innerText = msg;
+        document.getElementById('login-error-modal').style.display = 'flex';
+    }
+
+    function closeLoginErrorModal() {
+        document.getElementById('login-error-modal').style.display = 'none';
+    }
+
+    function closeLoginSuccessModal() {
+        document.getElementById('login-success-modal').style.display = 'none';
+        document.getElementById('auth-screen').classList.remove('active');
+        
+        if (isAdmin) {
+            document.getElementById('admin-screen').classList.add('active');
+            document.getElementById('header-title').innerText = "SECURO ADMIN";
+            renderAdminDashboard();
+        } else {
+            document.getElementById('bottom-nav').style.display = 'flex';
+            switchTab('home');
+        }
+    }
+
+    function handleAuth() {
+        const email = document.getElementById('auth-email').value.trim().toLowerCase();
+        const pass = document.getElementById('auth-pass').value.trim();
+        const name = document.getElementById('reg-name').value.trim();
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if(!emailRegex.test(email)) {
+            openLoginErrorModal('⚠️ يرجى كتابة بريد إلكتروني صحيح (مثال: name@..mail.com)');
+            return;
+        }
+
+        if(pass.length < 6) {
+            openLoginErrorModal('⚠️ كلمة المرور يجب ألا تقل عن 6 أحرف أو أرقام!');
+            return;
+        }
+
+        syncGlobalDatabase();
+
+        if(isSignup) {
+            if(!name) { 
+                openLoginErrorModal('⚠️ يرجى كتابة الاسم الكامل لتكملة التسجيل'); 
+                return; 
+            }
+            
+            const exist = registeredUsers.find(u => u.email === email);
+            if(exist) {
+                openLoginErrorModal('⚠️ هذا البريد الإلكتروني مسجل بالفعل! يمكنك تسجيل الدخول مباشرة.');
+                return;
+            }
+
+            const userCode = Math.floor(100000 + Math.random() * 900000);
+            const newUser = { 
+                email, pass, name, inviteCode: userCode, isAdmin: false,
+                balance: 0.00, userVip: null, completedTasksCount: 0,
+                taskLastResetDate: null, lastClaimDate: null, currentTrialDay: 1, trialActive: false, trialUsed: false,
+                availableSpins: 0,
+                depositLogs: [], rewardLogs: [], withdrawLogs: [], txLogs: []
+            };
+            
+            registeredUsers.push(newUser);
+            localStorage.setItem('securo_global_users', JSON.stringify(registeredUsers));
+
+            loadUserSession(newUser);
+            document.getElementById('login-success-modal').style.display = 'flex';
+        } else {
+            const foundUser = registeredUsers.find(u => u.email === email && u.pass === pass);
+            
+            if(!foundUser) {
+                openLoginErrorModal('البريد الإلكتروني غير مسجل في المنصة أو كلمة المرور خاطئة!');
+                return;
+            }
+
+            loadUserSession(foundUser);
+            document.getElementById('login-success-modal').style.display = 'flex';
+        }
+    }
+
+    function loadUserSession(userObj) {
+        currentUser = userObj;
+        isAdmin = userObj.isAdmin || false;
+        balance = userObj.balance || 0.00;
+        availableSpins = userObj.availableSpins || 0;
+        userVip = userObj.userVip || null;
+        completedTasksCount = userObj.completedTasksCount || 0;
+        taskLastResetDate = userObj.taskLastResetDate || null;
+        lastClaimDate = userObj.lastClaimDate || null;
+        currentTrialDay = userObj.currentTrialDay || 1;
+        trialActive = userObj.trialActive || false;
+        trialUsed = userObj.trialUsed || false;
+        depositLogs = userObj.depositLogs || [];
+        rewardLogs = userObj.rewardLogs || [];
+        withdrawLogs = userObj.withdrawLogs || [];
+        txLogs = userObj.txLogs || [];
+
+        checkMidnightReset();
+
+        if (!isAdmin) {
+            document.getElementById('user-balance').innerText = balance.toFixed(2);
+            document.getElementById('wheel-spins-count').innerText = availableSpins;
+            document.getElementById('user-display-email').innerText = currentUser.email;
+            setupUserInviteData();
+            updateVipUIState();
+            updateDailyRewardUI();
+
+            if (trialUsed) {
+                document.getElementById('btn-trial-activate').style.display = 'none';
+                document.getElementById('trial-success-section').style.display = 'block';
+            } else {
+                document.getElementById('btn-trial-activate').style.display = 'block';
+                document.getElementById('trial-success-section').style.display = 'none';
+            }
+        }
+    }
+
+    /* === وظائف المراقبة والتعديل الخاصة بالمشرف (Admin Control Panel) === */
+
+    function renderAdminDashboard() {
+        syncGlobalDatabase();
+        
+        let totalDeposits = 0;
+        let totalWithdraws = 0;
+
+        registeredUsers.forEach(u => {
+            if (u.depositLogs) {
+                u.depositLogs.forEach(d => {
+                    let val = parseFloat(d.amount.replace('+$', '')) || 0;
+                    totalDeposits += val;
+                });
+            }
+            if (u.withdrawLogs) {
+                u.withdrawLogs.forEach(w => {
+                    let val = parseFloat(w.amount.replace('-$', '')) || 0;
+                    totalWithdraws += val;
+                });
+            }
+        });
+
+        document.getElementById('admin-total-users').innerText = registeredUsers.length;
+        document.getElementById('admin-total-deposits').innerText = `$${totalDeposits.toFixed(2)}`;
+        document.getElementById('admin-total-withdraws').innerText = `$${totalWithdraws.toFixed(2)}`;
+
+        const container = document.getElementById('admin-users-list');
+        container.innerHTML = "";
+
+        registeredUsers.forEach((u, idx) => {
+            let vipName = u.userVip ? u.userVip.name : "بدون مستوى";
+            let roleBadge = u.isAdmin ? '<span class="level-badge lvl-1">أدمن</span>' : '<span class="level-badge lvl-2">مستخدم</span>';
+            
+            container.innerHTML += `
+                <div class="history-card" style="flex-direction: column; align-items: stretch; gap: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div class="history-info">
+                            <div class="history-title">👤 ${u.name || 'مستخدم'}</div>
+                            <div class="history-date">📧 ${u.email} | الرصيد: $${(u.balance || 0).toFixed(2)}</div>
+                        </div>
+                        <div style="text-align: left;">
+                            ${roleBadge}
+                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">${vipName}</div>
+                        </div>
+                    </div>
+
+                    <!-- أزرار العمليات الإدارية للمشرف فقط -->
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 5px; border-top: 1px solid var(--border-color); padding-top: 8px;">
+                        <button class="btn btn-green" style="flex:1; padding: 6px 10px; font-size: 0.75rem;" onclick="adminEditBalance(${idx})">✏️ تعديل الرصيد</button>
+                        <button class="btn btn-gold" style="flex:1; padding: 6px 10px; font-size: 0.75rem;" onclick="adminChangeVip(${idx})">👑 تغيير VIP</button>
+                        <button class="btn" style="flex:1; padding: 6px 10px; font-size: 0.75rem; background: #6366f1; color: white;" onclick="adminResetTasks(${idx})">🔄 تصفير المهام</button>
+                        ${!u.isAdmin ? `<button class="btn btn-red" style="flex:1; padding: 6px 10px; font-size: 0.75rem;" onclick="adminDeleteUser(${idx})">🗑️ حذف</button>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function adminEditBalance(index) {
+        let u = registeredUsers[index];
+        let newBal = prompt(`أدخل الرصيد الجديد للمستخدم (${u.email}):`, u.balance || 0);
+        if (newBal !== null && !isNaN(parseFloat(newBal))) {
+            u.balance = parseFloat(newBal);
+            localStorage.setItem('securo_global_users', JSON.stringify(registeredUsers));
+            renderAdminDashboard();
+            alert("✅ تم تعديل الرصيد بنجاح!");
+        }
+    }
+
+    function adminChangeVip(index) {
+        let u = registeredUsers[index];
+        let choice = prompt(`اختر مستوى VIP للمستخدم (${u.email}):\n0: إلغاء VIP\n1: VIP 1\n2: VIP 2\n3: VIP 3\n4: VIP 4`, "1");
+        
+        if (choice === "0") {
+            u.userVip = null;
+        } else if (choice === "1") {
+            u.userVip = { name: "VIP 1", price: 14, totalTasks: 3, totalReward: 1.20, isTrial: false };
+        } else if (choice === "2") {
+            u.userVip = { name: "VIP 2", price: 24, totalTasks: 6, totalReward: 2.50, isTrial: false };
+        } else if (choice === "3") {
+            u.userVip = { name: "VIP 3", price: 54, totalTasks: 8, totalReward: 7.00, isTrial: false };
+        } else if (choice === "4") {
+            u.userVip = { name: "VIP 4", price: 120, totalTasks: 10, totalReward: 18.00, isTrial: false };
+        } else {
+            return;
+        }
+
+        localStorage.setItem('securo_global_users', JSON.stringify(registeredUsers));
+        renderAdminDashboard();
+        alert("✅ تم تحديث مستوى VIP بنجاح!");
+    }
+
+    function adminResetTasks(index) {
+        let u = registeredUsers[index];
+        if (confirm(`هل أنت متأكد من إعادة تصفير المهام اليومية للمستخدم (${u.email})؟`)) {
+            u.completedTasksCount = 0;
+            localStorage.setItem('securo_global_users', JSON.stringify(registeredUsers));
+            renderAdminDashboard();
+            alert("✅ تم تصفير عدد المهام بنجاح!");
+        }
+    }
+
+    function adminDeleteUser(index) {
+        let u = registeredUsers[index];
+        if (confirm(`⚠️ هل أنت متأكد من حذف حساب (${u.email}) نهائياً؟`)) {
+            registeredUsers.splice(index, 1);
+            localStorage.setItem('securo_global_users', JSON.stringify(registeredUsers));
+            renderAdminDashboard();
+            alert("🗑️ تم حذف الحساب بنجاح!");
+        }
+    }
+
+    function saveUserData() {
+        if (!currentUser) return;
+        currentUser.balance = balance;
+        currentUser.availableSpins = availableSpins;
+        currentUser.userVip = userVip;
+        currentUser.completedTasksCount = completedTasksCount;
+        currentUser.taskLastResetDate = taskLastResetDate;
+        currentUser.lastClaimDate = lastClaimDate;
+        currentUser.currentTrialDay = currentTrialDay;
+        currentUser.trialActive = trialActive;
+        currentUser.trialUsed = trialUsed;
+        currentUser.depositLogs = depositLogs;
+        currentUser.rewardLogs = rewardLogs;
+        currentUser.withdrawLogs = withdrawLogs;
+        currentUser.txLogs = txLogs;
+
+        syncGlobalDatabase();
+        let index = registeredUsers.findIndex(u => u.email === currentUser.email);
+        if (index !== -1) {
+            registeredUsers[index] = currentUser;
+            localStorage.setItem('securo_global_users', JSON.stringify(registeredUsers));
+        }
+    }
+
+    function checkMidnightReset() {
+        const todayStr = new Date().toISOString().split('T')[0];
+        if (taskLastResetDate && taskLastResetDate !== todayStr) {
+            completedTasksCount = 0;
+            taskLastResetDate = todayStr;
+            if (userVip && userVip.isTrial) {
+                currentTrialDay++;
+            }
+            saveUserData();
+        }
+        updateDailyRewardUI();
+    }
+
+    function setupUserInviteData() {
+        const code = currentUser.inviteCode || 529993;
+        document.getElementById('my-invite-code').value = code;
+        document.getElementById('my-invite-link').value = `https://securo-vip.com/register?invite=${code}`;
+    }
+
+    function updateVipUIState() {
+        let priceMap = { 1: 14, 2: 24, 3: 54, 4: 120 };
+        for (let i = 1; i <= 4; i++) {
+            const btn = document.getElementById(`btn-buy-vip${i}`);
+            if (!btn) continue;
+            
+            const vipNameCode = `VIP ${i}`;
+            if (userVip && userVip.name === vipNameCode) {
+                btn.innerText = "✔ المستوى الحالي (تم الشراء)";
+                btn.className = "btn btn-disabled";
+                btn.disabled = true;
+            } else {
+                btn.innerText = `شراء العضوية ($${priceMap[i]})`;
+                btn.className = "btn btn-gold";
+                btn.disabled = false;
+            }
+        }
+    }
+
+    function logout() {
+        saveUserData();
+        currentUser = null;
+        isAdmin = false;
+        balance = 0.00;
+        userVip = null;
+        completedTasksCount = 0;
+        if(midnightTimerInterval) clearInterval(midnightTimerInterval);
+        
+        document.getElementById('bottom-nav').style.display = 'none';
+        document.getElementById('admin-screen').classList.remove('active');
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('auth-screen').classList.add('active');
+        document.getElementById('header-title').innerText = "SECURO";
+        document.getElementById('auth-email').value = '';
+        document.getElementById('auth-pass').value = '';
+        document.getElementById('reg-name').value = '';
+    }
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+
+        document.getElementById(tabName + '-screen').classList.add('active');
+        document.getElementById('nav-' + tabName).classList.add('active');
+
+        if(tabName === 'tasks') renderTasksScreen();
+        if(tabName === 'team') renderTeamScreen();
+        if(tabName === 'vip') updateVipUIState();
+        if(tabName === 'profile') updateDailyRewardUI();
+    }
+
+    function renderTeamScreen() {
+        let lvl1 = teamMembers.filter(m => m.level === 1).length;
+        let lvl2 = teamMembers.filter(m => m.level === 2).length;
+        let lvl3 = teamMembers.filter(m => m.level === 3).length;
+
+        document.getElementById('lvl1-count').innerText = `${lvl1} شخص`;
+        document.getElementById('lvl2-count').innerText = `${lvl2} شخص`;
+        document.getElementById('lvl3-count').innerText = `${lvl3} شخص`;
+        document.getElementById('total-team-count').innerText = teamMembers.length;
+        document.getElementById('total-referral-earnings').innerText = referralEarnings.toFixed(2);
+
+        const container = document.getElementById('team-members-list');
+        container.innerHTML = "";
+
+        if(teamMembers.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:30px 15px; color:var(--text-muted); background: rgba(15,23,42,0.4); border-radius:12px; border:1px dashed var(--border-color);">
+                    <div style="font-size:2.5rem; margin-bottom:8px;">👥</div>
+                    <div style="font-weight:bold; color:white; margin-bottom:4px;">عدد الدعوات حالياً هو 0</div>
+                    <div style="font-size:0.8rem;">شارِك رابط أو رمز الدعوة مع أصدقائك لبدء تكوين فريقك وكسب عمولات فورية ومحاولات آلية في عجلة الحظ عند إيداعهم!</div>
+                </div>`;
+            return;
+        }
+
+        teamMembers.forEach(m => {
+            let lvlClass = m.level === 1 ? 'lvl-1' : (m.level === 2 ? 'lvl-2' : 'lvl-3');
+            container.innerHTML += `
+                <div class="history-card">
+                    <div class="history-info">
+                        <div class="history-title">👤 ${m.name}</div>
+                        <div class="history-date">📅 تاريخ التسجيل: ${m.date}</div>
+                    </div>
+                    <div>
+                        <span class="level-badge ${lvlClass}">المستوى ${m.level}</span>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function showCopyToast(title, msg) {
+        document.getElementById('copy-toast-title').innerText = title;
+        document.getElementById('copy-toast-msg').innerText = msg;
+        document.getElementById('copy-toast-modal').style.display = 'flex';
+    }
+
+    function closeCopyToast() {
+        document.getElementById('copy-toast-modal').style.display = 'none';
+    }
+
+    function copyInviteCode() {
+        const input = document.getElementById('my-invite-code');
+        input.select();
+        navigator.clipboard.writeText(input.value);
+        showCopyToast('تم نسخ رمز الدعوة! 🔑', `تم نسخ رمز الدعوة الخاص بك (${input.value}) بنجاح إلى الحافظة.`);
+    }
+
+    function copyInviteLink() {
+        const input = document.getElementById('my-invite-link');
+        input.select();
+        navigator.clipboard.writeText(input.value);
+        showCopyToast('تم نسخ رابط الدعوة! 🔗', 'تم نسخ رابط الدعوة المباشر الخاص بك بنجاح. يمكنك الآن مشاركته مع أصدقائك!');
+    }
+
+    function copyCompanyWallet() {
+        const input = document.getElementById('company-wallet-address');
+        input.select();
+        navigator.clipboard.writeText(input.value);
+        showCopyToast('تم نسخ عنوان المحفظة! 📋', 'تم نسخ عنوان محفظة الشركة (USDT TRC20) بنجاح.');
+    }
+
+    function openSubPage(pageId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+
+        if(pageId === 'deposit-history-screen') renderDepositsList();
+        if(pageId === 'reward-history-screen') renderRewardsList();
+        if(pageId === 'withdraw-history-screen') renderWithdrawsList();
+        if(pageId === 'tx-history-screen') renderTxList();
+    }
+
+    function openSupportModal() { document.getElementById('support-modal').style.display = 'flex'; }
+    function closeSupportModal() { document.getElementById('support-modal').style.display = 'none'; }
+    function openDepositModal() { document.getElementById('deposit-modal').style.display = 'flex'; }
+    function closeDepositModal() { document.getElementById('deposit-modal').style.display = 'none'; }
+    function closeDepositSuccessModal() { document.getElementById('deposit-success-modal').style.display = 'none'; }
+
+    function submitDeposit() {
+        const amount = parseFloat(document.getElementById('deposit-amount').value);
+        const txid = document.getElementById('deposit-txid').value.trim();
+
+        if (isNaN(amount) || amount < 10) {
+            openLoginErrorModal('⚠️ الحد الأدنى للإيداع هو 10 دولارات ($10) !');
+            return;
+        }
+
+        if (!txid) {
+            openLoginErrorModal('⚠️ يرجى إدخال معرف المعاملة (TxID) للتحقق من التحويل!');
+            return;
+        }
+
+        closeDepositModal();
+
+        const now = new Date();
+        const dateStr = `${now.toLocaleDateString('ar-DZ')} - ${now.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}`;
+        
+        depositLogs.unshift({ title: `إيداع عبر USDT (مرجع: ${txid.substring(0, 8)}...)`, amount: `+$${amount.toFixed(2)}`, date: dateStr, status: "قيد المراجعة" });
+        txLogs.unshift({ title: `طلب إيداع رصيد`, amount: `+$${amount.toFixed(2)}`, date: dateStr, type: "إيداع" });
+
+        saveUserData();
+
+        document.getElementById('deposit-amount').value = '';
+        document.getElementById('deposit-txid').value = '';
+        document.getElementById('deposit-success-msg').innerHTML = `تم إرسال طلب إيداع بقيمة <strong>$${amount.toFixed(2)}</strong> بنجاح.<br>رقم المرجع (TxID): ${txid}<br>سيتم إضافة المبلغ لرصيدك فور مراجعة التحويل.`;
+        document.getElementById('deposit-success-modal').style.display = 'flex';
+    }
+
+    function buyVipProduct(name, price, totalTasks, totalReward) {
+        pendingVip = { name, price, totalTasks, totalReward, isTrial: false };
+        const modal = document.getElementById('vip-confirm-modal');
+        const actions = document.getElementById('vip-modal-actions');
+        const closeBtn = document.getElementById('vip-modal-close-btn');
+
+        if (balance >= price) {
+            document.getElementById('vip-modal-icon').innerText = "❓";
+            document.getElementById('vip-modal-title').innerText = "تأكيد شراء العضوية";
+            document.getElementById('vip-modal-msg').innerText = `هل أنت متأكد من شراء عضوية ${name} بسعر $${price} (مدة الصلاحية: 365 يوماً)؟`;
+            actions.style.display = "flex";
+            closeBtn.style.display = "none";
+        } else {
+            document.getElementById('vip-modal-icon').innerText = "⚠️";
+            document.getElementById('vip-modal-title').innerText = "الرصيد غير كافٍ";
+            document.getElementById('vip-modal-msg').innerText = `رصيدك الحالي ($${balance.toFixed(2)}) غير كافٍ لشراء عضوية ${name} بسعر ($${price}).\nيرجى إعادة شحن حسابك!`;
+            actions.style.display = "none";
+            closeBtn.style.display = "block";
+        }
+        modal.style.display = "flex";
+    }
+
+    function confirmBuyVip() {
+        if (!pendingVip) return;
+        balance -= pendingVip.price;
+        document.getElementById('user-balance').innerText = balance.toFixed(2);
+
+        userVip = { ...pendingVip };
+        trialActive = false; 
+        completedTasksCount = 0;
+        activeTaskTimers = {};
+
+        availableSpins++;
+        document.getElementById('wheel-spins-count').innerText = availableSpins;
+
+        const now = new Date();
+        taskLastResetDate = now.toISOString().split('T')[0];
+        const dateStr = `${now.toLocaleDateString('ar-DZ')} - ${now.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}`;
+        txLogs.unshift({ title: `شراء عضوية ${userVip.name}`, amount: `-$${userVip.price.toFixed(2)}`, date: dateStr, type: "شراء" });
+
+        closeVipModal();
+        updateVipUIState();
+        saveUserData();
+        alert(`🎉 تهانينا! تم تفعيل عضوية ${userVip.name} (صالحة لمدة 365 يوماً) بنجاح وحصلت آلياً على (+1) محاولة في عجلة الحظ.`);
+        switchTab('tasks');
+    }
+
+    function closeVipModal() { document.getElementById('vip-confirm-modal').style.display = "none"; }
+
+    function renderTasksScreen() {
+        const statusEl = document.getElementById('task-vip-status');
+        const progressEl = document.getElementById('task-progress-text');
+        const container = document.getElementById('tasks-container');
+        container.innerHTML = "";
+
+        checkMidnightReset();
+
+        if(!userVip) {
+            statusEl.innerText = "العضوية الحالية: غير مشترك";
+            progressEl.innerText = "المهام المنجزة: 0 / 0";
+            container.innerHTML = `
+                <div class="card" style="text-align: center; padding: 30px;">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">🔒</div>
+                    <h3 style="color: #fbbf24; margin-bottom: 8px;">لا توجد عضوية نشطة</h3>
+                    <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px;">
+                        يمكنك تفعيل **الفترة التجريبية** أو شراء عضوية مدفوعة من قسم <strong>VIP</strong> لتسليم تقييماتك واستلام أرباحك!
+                    </p>
+                    <button class="btn btn-gold" onclick="switchTab('vip')">👑 الانتقال لصفحة VIP</button>
+                </div>
+            `;
+            return;
+        }
+
+        const taskReward = userVip.totalReward / userVip.totalTasks;
+        statusEl.innerText = `العضوية النشطة: ${userVip.name} (دخل المهمة: $${taskReward.toFixed(2)})`;
+        progressEl.innerText = `المهام المنجزة اليوم: ${completedTasksCount} / ${userVip.totalTasks}`;
+
+        if (completedTasksCount >= userVip.totalTasks) {
+            let trialDayText = userVip.isTrial ? ` (اليوم التجريبي رقم ${currentTrialDay} من أصل 2 أيام)` : " (صالحة لمدة 365 يوماً)";
+            container.innerHTML = `
+                <div class="task-complete-card">
+                    <div class="task-complete-icon-box">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <h3 style="color: #34d399; font-size: 1.3rem; margin-bottom: 8px;">لقد قمت بمهام اليوم${trialDayText} بنجاح!</h3>
+                    <p style="color: #a7f3d0; font-size: 0.9rem; line-height: 1.5; margin-bottom: 10px;">
+                        يجب عليك العودة غداً للقيام بمهام الفترة الجديدة.
+                    </p>
+                    <div id="midnight-countdown" style="font-size: 0.9rem; font-weight: bold; color: #fbbf24; margin-bottom: 12px; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 8px;"></div>
+                    <div class="commission-badge-box">
+                        <span style="color: #94a3b8; font-size: 0.82rem; display: block; margin-bottom: 4px;">إجمالي العمولة المكتسبة لهذه الجلسة:</span>
+                        <span style="color: #fbbf24; font-size: 1.6rem; font-weight: 900;">+$${userVip.totalReward.toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+            startMidnightCountdown();
+            return;
+        }
+
+        const remainingTasks = userVip.totalTasks - completedTasksCount;
+        for (let i = 0; i < Math.min(remainingTasks, hotelsList.length); i++) {
+            const hotel = hotelsList[i];
+            const taskIndex = completedTasksCount + i;
+            
+            let isRunning = activeTaskTimers[taskIndex] && activeTaskTimers[taskIndex].running;
+            let currentSec = isRunning ? activeTaskTimers[taskIndex].timeLeft : 60;
+
+            container.innerHTML += `
+                <div class="hotel-card" id="hotel-card-${taskIndex}">
+                    <div class="hotel-img" style="background-image: linear-gradient(to top, rgba(15, 23, 42, 0.9), transparent), url('${hotel.img}');">
+                        <div class="hotel-badge">⭐ 5.0 عالمي</div>
+                        <div style="padding: 12px; width: 100%;">
+                            <div style="font-weight: bold; font-size: 1.05rem; color: white;">${hotel.name}</div>
+                            <div style="font-size: 0.78rem; color: #bae6fd;">📍 ${hotel.location}</div>
+                        </div>
+                    </div>
+                    <div class="hotel-info" id="hotel-info-${taskIndex}">
+                        <textarea id="comment-${taskIndex}" placeholder="اكتب تعليقاً إيجابياً مميزاً..." style="margin-top: 8px; font-size: 0.85rem; height: 60px;" ${isRunning ? 'disabled' : ''}>فندق ممتاز وخدمة راقية جداً!</textarea>
+                        <button class="btn ${isRunning ? 'btn-disabled' : 'btn-primary'}" id="btn-task-${taskIndex}" style="margin-top: 10px; padding: 10px;" ${isRunning ? 'disabled' : ''} onclick="submitHotelTask(${taskIndex})">
+                            ${isRunning ? `⏳ المهمة قيد المراجعة (${currentSec}ث)...` : `📤 إرسال التقييم واستلام العمولة ($${taskReward.toFixed(2)})`}
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            if (isRunning) {
+                let btn = document.getElementById(`btn-task-${taskIndex}`);
+                if(btn) {
+                    btn.style.backgroundColor = "#fef3c7";
+                    btn.style.color = "#d97706";
+                    btn.style.border = "1px solid #fde68a";
+                }
+            }
+        }
+    }
+
+    function startMidnightCountdown() {
+        if (midnightTimerInterval) clearInterval(midnightTimerInterval);
+        
+        midnightTimerInterval = setInterval(() => {
+            const now = new Date();
+            const midnight = new Date();
+            midnight.setHours(24, 0, 0, 0);
+            let timeLeftMs = midnight - now;
+
+            if (timeLeftMs <= 0) {
+                clearInterval(midnightTimerInterval);
+                checkMidnightReset();
+                renderTasksScreen();
+                return;
+            }
+
+            let hours = Math.floor((timeLeftMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            let minutes = Math.floor((timeLeftMs % (1000 * 60 * 60)) / (1000 * 60));
+            let seconds = Math.floor((timeLeftMs % (1000 * 60)) / 1000);
+
+            const timerEl = document.getElementById('midnight-countdown');
+            if (timerEl) {
+                timerEl.innerText = `⏳ الوقت المتبقي لتجديد المهام تلقائياً: ${hours}س ${minutes}د ${seconds}ث`;
+            }
+        }, 1000);
+    }
+
+    function submitHotelTask(taskIdx) {
+        if (activeTaskTimers[taskIdx] && activeTaskTimers[taskIdx].running) return;
+
+        const taskReward = userVip.totalReward / userVip.totalTasks;
+        const btn = document.getElementById(`btn-task-${taskIdx}`);
+        const textarea = document.getElementById(`comment-${taskIdx}`);
+        
+        if(textarea) textarea.disabled = true;
+        if(btn) {
+            btn.disabled = true;
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-disabled');
+            btn.style.backgroundColor = "#fef3c7";
+            btn.style.color = "#d97706";
+            btn.style.border = "1px solid #fde68a";
+        }
+
+        activeTaskTimers[taskIdx] = {
+            running: true,
+            timeLeft: 60
+        };
+
+        const timer = setInterval(() => {
+            if (!activeTaskTimers[taskIdx]) {
+                clearInterval(timer);
+                return;
+            }
+
+            activeTaskTimers[taskIdx].timeLeft--;
+            let timeLeft = activeTaskTimers[taskIdx].timeLeft;
+
+            let currentBtn = document.getElementById(`btn-task-${taskIdx}`);
+            if (currentBtn) {
+                currentBtn.innerHTML = `⏳ المهمة قيد المراجعة (${timeLeft}ث)...`;
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                delete activeTaskTimers[taskIdx];
+
+                balance += taskReward;
+                completedTasksCount++;
+                document.getElementById('user-balance').innerText = balance.toFixed(2);
+
+                const now = new Date();
+                const dateStr = `${now.toLocaleDateString('ar-DZ')} - ${now.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}`;
+                txLogs.unshift({ title: `عمولة تقييم فندق (${userVip.name})`, amount: `+$${taskReward.toFixed(2)}`, date: dateStr, type: "إيداع" });
+
+                saveUserData();
+
+                document.getElementById('task-success-msg').innerHTML = `لقد ربحت <strong>$${taskReward.toFixed(2)}</strong> عن إتمام المهمة بنجاح وتضافرت الأرباح إلى رصيدك.`;
+                document.getElementById('task-success-modal').style.display = 'flex';
+
+                renderTasksScreen();
+            }
+        }, 1000);
+    }
+
+    function closeTaskSuccessModal() {
+        document.getElementById('task-success-modal').style.display = 'none';
+    }
+
+    function updateDailyRewardUI() {
+        const claimBtn = document.getElementById('claim-btn');
+        if (!claimBtn) return;
+
+        const today = new Date().toISOString().split('T')[0];
+        
+        if (lastClaimDate === today) {
+            claimBtn.disabled = true;
+            claimBtn.className = "btn btn-disabled";
+            claimBtn.innerText = "✔ تم استلام مكافأة اليوم (تتجدد 12 ليلاً)";
+        } else {
+            claimBtn.disabled = false;
+            claimBtn.className = "btn btn-gold";
+            claimBtn.innerText = "طلب 0.10$ اليومية";
+        }
+    }
+
+    function claimDailyReward() {
+        const now = new Date();
+        const todayStr = now.toISOString().split('T')[0];
+        const dateDisplay = now.toLocaleDateString('ar-DZ');
+        const timeStr = now.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' });
+
+        if (lastClaimDate === todayStr) {
+            document.getElementById('already-claimed-modal').style.display = 'flex';
+            updateDailyRewardUI();
+            return;
+        }
+
+        balance += 0.10;
+        lastClaimDate = todayStr;
+        document.getElementById('user-balance').innerText = balance.toFixed(2);
+        
+        rewardLogs.unshift({ title: "مكافأة تسجيل الدخول اليومية", amount: "+0.10$", date: `${dateDisplay} - ${timeStr}`, status: "مكتملة" });
+        txLogs.unshift({ title: "استلام مكافأة يومية", amount: "+0.10$", date: `${dateDisplay} - ${timeStr}`, type: "إيداع" });
+
+        saveUserData();
+        updateDailyRewardUI();
+        document.getElementById('congrats-modal').style.display = 'flex';
+    }
+
+    function closeCongratsModal() { document.getElementById('congrats-modal').style.display = 'none'; }
+    function closeAlreadyClaimedModal() { document.getElementById('already-claimed-modal').style.display = 'none'; }
+
+    function renderDepositsList() {
+        const container = document.getElementById('deposit-history-list');
+        container.innerHTML = "";
+        if(depositLogs.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">لا توجد عمليات إيداع مسجلة بعد.</div>';
+            return;
+        }
+        depositLogs.forEach(item => {
+            container.innerHTML += `
+                <div class="history-card">
+                    <div class="history-info">
+                        <div class="history-title">💳 ${item.title}</div>
+                        <div class="history-date">📅 ${item.date}</div>
+                    </div>
+                    <div style="text-align:left;">
+                        <div style="font-weight:bold; color:#34d399;">${item.amount}</div>
+                        <span class="history-badge badge-orange">${item.status}</span>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function renderRewardsList() {
+        const container = document.getElementById('reward-history-list');
+        container.innerHTML = "";
+        if(rewardLogs.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">لا توجد مكافآت مسجلة بعد.</div>';
+            return;
+        }
+        rewardLogs.forEach(item => {
+            container.innerHTML += `
+                <div class="history-card">
+                    <div class="history-info">
+                        <div class="history-title">🎁 ${item.title}</div>
+                        <div class="history-date">📅 ${item.date}</div>
+                    </div>
+                    <div style="text-align:left;">
+                        <div style="font-weight:bold; color:#34d399;">${item.amount}</div>
+                        <span class="history-badge badge-green">${item.status}</span>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function renderWithdrawsList() {
+        const container = document.getElementById('withdraw-history-list');
+        container.innerHTML = "";
+        if(withdrawLogs.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">لا توجد عمليات سحب سابقة.</div>';
+            return;
+        }
+        withdrawLogs.forEach(item => {
+            container.innerHTML += `
+                <div class="history-card">
+                    <div class="history-info">
+                        <div class="history-title">🏦 ${item.bank} (${item.account})</div>
+                        <div class="history-date">📅 ${item.date}</div>
+                    </div>
+                    <div style="text-align:left;">
+                        <div style="font-weight:bold; color:#f87171;">${item.amount}</div>
+                        <span class="history-badge badge-orange">${item.status}</span>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function renderTxList() {
+        const container = document.getElementById('tx-history-list');
+        container.innerHTML = "";
+        if(txLogs.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">لا توجد معاملات مسجلة بعد.</div>';
+            return;
+        }
+        txLogs.forEach(item => {
+            let badgeClass = item.type === "إيداع" ? "badge-green" : "badge-orange";
+            container.innerHTML += `
+                <div class="history-card">
+                    <div class="history-info">
+                        <div class="history-title">${item.title}</div>
+                        <div class="history-date">📅 ${item.date}</div>
+                    </div>
+                    <div style="text-align:left;">
+                        <div style="font-weight:bold; color:${item.amount.startsWith('+') ? '#34d399' : '#f87171'};">${item.amount}</div>
+                        <span class="history-badge ${badgeClass}">${item.type}</span>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function openWithdrawModal() { document.getElementById('withdraw-modal').style.display = 'flex'; }
+    function closeWithdrawModal() { document.getElementById('withdraw-modal').style.display = 'none'; }
+    function closeInsufficientModal() { document.getElementById('insufficient-modal').style.display = 'none'; }
+    function closeWithdrawSuccessModal() { document.getElementById('withdraw-success-modal').style.display = 'none'; }
+
+    function submitWithdraw() {
+        const bank = document.getElementById('withdraw-bank').value;
+        const account = document.getElementById('withdraw-account').value.trim();
+        const amount = parseFloat(document.getElementById('withdraw-amount').value);
+
+        if (!account) {
+            alert('⚠️ يرجى إدخال عنوان المحفظة الرقمية بشكل صحيح!');
+            return;
+        }
+
+        if (isNaN(amount) || amount < 10) {
+            alert('⚠️ الحد الأدنى للسحب هو 10 دولارات ($10) !');
+            return;
+        }
+
+        if (amount > balance) {
+            closeWithdrawModal();
+            document.getElementById('insufficient-msg').innerText = `رصيدكم الحالي ($${balance.toFixed(2)}) أقل من المبلغ المطلوب سحبه ($${amount.toFixed(2)}). يرجى تحصيل المزيد من العمولات لإتمام العملية!`;
+            document.getElementById('insufficient-modal').style.display = 'flex';
+            return;
+        }
+
+        balance -= amount;
+        document.getElementById('user-balance').innerText = balance.toFixed(2);
+
+        const now = new Date();
+        const dateStr = `${now.toLocaleDateString('ar-DZ')} - ${now.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}`;
+
+        withdrawLogs.unshift({ bank, account, amount: `-$${amount.toFixed(2)}`, date: dateStr, status: "قيد المراجعة" });
+        txLogs.unshift({ title: `طلب سحب أرباح (${bank})`, amount: `-$${amount.toFixed(2)}`, date: dateStr, type: "سحب" });
+
+        saveUserData();
+        closeWithdrawModal();
+
+        document.getElementById('withdraw-amount').value = '';
+        document.getElementById('withdraw-account').value = '';
+        document.getElementById('withdraw-success-modal').style.display = 'flex';
+    }
+</script>
+</body>
+</html>

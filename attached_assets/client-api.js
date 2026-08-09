@@ -1,0 +1,377 @@
+(function () {
+  "use strict";
+
+  const statusLabels = {
+    pending: "قيد الانتظار",
+    accepted: "مقبول",
+    rejected: "مرفوض",
+  };
+
+  async function api(url, options) {
+    const response = await fetch(url, {
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json", ...(options && options.headers) },
+      ...options,
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.error || "حدث خطأ غير متوقع");
+    return body;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function dateText(value) {
+    if (!value) return "";
+    return new Date(value).toLocaleString("ar-DZ", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  }
+
+  function showApiError(error) {
+    if (typeof openLoginErrorModal === "function") {
+      openLoginErrorModal(error.message || "تعذر تنفيذ العملية");
+    } else {
+      alert(error.message || "تعذر تنفيذ العملية");
+    }
+  }
+
+  function hydrate(payload) {
+    currentUser = payload.user;
+    isAdmin = Boolean(payload.user.isAdmin);
+    balance = Number(payload.user.balance || 0);
+    availableSpins = Number(payload.user.availableSpins || 0);
+    userVip = payload.user.userVip || null;
+    completedTasksCount = Number(payload.user.completedTasksCount || 0);
+    taskLastResetDate = payload.user.taskLastResetDate || null;
+    lastClaimDate = payload.user.lastClaimDate || null;
+    currentTrialDay = Number(payload.user.currentTrialDay || 1);
+    trialActive = Boolean(payload.user.trialActive);
+    trialUsed = Boolean(payload.user.trialUsed);
+    depositLogs = payload.deposits || [];
+    withdrawLogs = payload.withdrawals || [];
+    txLogs = payload.transactions || [];
+    teamMembers = payload.teamMembers || [];
+    referralEarnings = Number(payload.referralEarnings || 0);
+
+    if (!isAdmin) {
+      document.getElementById("user-balance").innerText = balance.toFixed(2);
+      document.getElementById("wheel-spins-count").innerText = availableSpins;
+      document.getElementById("user-display-email").innerText = currentUser.email;
+      setupUserInviteData();
+      updateVipUIState();
+      updateDailyRewardUI();
+      const trialButton = document.getElementById("btn-trial-activate");
+      const trialSuccess = document.getElementById("trial-success-section");
+      if (trialButton && trialSuccess) {
+        trialButton.style.display = trialUsed ? "none" : "block";
+        trialSuccess.style.display = trialUsed ? "block" : "none";
+      }
+    }
+  }
+
+  function enterApp(payload) {
+    hydrate(payload);
+    document.querySelectorAll(".screen").forEach((screen) => screen.classList.remove("active"));
+    document.getElementById("auth-screen").classList.remove("active");
+    if (isAdmin) {
+      document.getElementById("admin-screen").classList.add("active");
+      document.getElementById("header-title").innerText = "SECURO ADMIN";
+      renderAdminDashboard();
+    } else {
+      document.getElementById("bottom-nav").style.display = "flex";
+      document.getElementById("header-title").innerText = "SECURO";
+      switchTab("home");
+    }
+  }
+
+  window.handleAuth = async function () {
+    const email = document.getElementById("auth-email").value.trim().toLowerCase();
+    const password = document.getElementById("auth-pass").value;
+    const name = document.getElementById("reg-name").value.trim();
+    const inviteCode = document.getElementById("invite-code-input").value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return showApiError(new Error("يرجى كتابة بريد إلكتروني صحيح"));
+    }
+    if (password.length < 6) {
+      return showApiError(new Error("كلمة المرور يجب ألا تقل عن 6 أحرف"));
+    }
+    const button = document.getElementById("auth-btn");
+    button.disabled = true;
+    try {
+      const result = await api(isSignup ? "/api/auth/register" : "/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify(
+          isSignup ? { name, email, password, inviteCode } : { email, password },
+        ),
+      });
+      const payload = await api("/api/me");
+      enterApp(payload);
+      if (isSignup) {
+        showCopyToast("تم إنشاء الحساب بنجاح ✅", "تم ربط حسابك بقاعدة البيانات ويمكنك الآن استخدام المنصة.");
+      }
+    } catch (error) {
+      showApiError(error);
+    } finally {
+      button.disabled = false;
+    }
+  };
+
+  window.setupUserInviteData = function () {
+    const code = currentUser && currentUser.inviteCode ? currentUser.inviteCode : "";
+    const codeInput = document.getElementById("my-invite-code");
+    const linkInput = document.getElementById("my-invite-link");
+    if (codeInput) codeInput.value = code;
+    if (linkInput) {
+      linkInput.value = `${window.location.origin}${window.location.pathname}?invite=${encodeURIComponent(code)}`;
+    }
+  };
+
+  window.saveUserData = async function () {
+    if (!currentUser || isAdmin) return;
+    try {
+      const result = await api("/api/me/state", {
+        method: "PATCH",
+        body: JSON.stringify({
+          userVip,
+          completedTasksCount,
+          taskLastResetDate,
+          lastClaimDate,
+          currentTrialDay,
+          trialActive,
+          trialUsed,
+          availableSpins,
+        }),
+      });
+      if (result.user) currentUser = { ...currentUser, ...result.user };
+    } catch (error) {
+      console.error("Failed to save account state", error);
+    }
+  };
+
+  window.submitDeposit = async function () {
+    const amount = Number(document.getElementById("deposit-amount").value);
+    const txid = document.getElementById("deposit-txid").value.trim();
+    if (!Number.isFinite(amount) || amount < 10) {
+      return showApiError(new Error("الحد الأدنى للإيداع هو 10 دولارات"));
+    }
+    if (!txid) return showApiError(new Error("يرجى إدخال معرف المعاملة"));
+    try {
+      await api("/api/deposit-requests", {
+        method: "POST",
+        body: JSON.stringify({ amount, txid }),
+      });
+      closeDepositModal();
+      document.getElementById("deposit-amount").value = "";
+      document.getElementById("deposit-txid").value = "";
+      document.getElementById("deposit-success-msg").innerHTML =
+        `تم إرسال طلب إيداع بقيمة <strong>$${amount.toFixed(2)}</strong> بنجاح.<br>رقم المرجع (TxID): ${escapeHtml(txid)}<br>سيتم إضافة المبلغ إلى رصيدك بعد قبول الإدارة.`;
+      document.getElementById("deposit-success-modal").style.display = "flex";
+      await refreshMe();
+    } catch (error) {
+      showApiError(error);
+    }
+  };
+
+  window.submitWithdraw = async function () {
+    const bank = document.getElementById("withdraw-bank").value;
+    const account = document.getElementById("withdraw-account").value.trim();
+    const amount = Number(document.getElementById("withdraw-amount").value);
+    if (!account) return showApiError(new Error("يرجى إدخال عنوان المحفظة الرقمية"));
+    if (!Number.isFinite(amount) || amount < 10) {
+      return showApiError(new Error("الحد الأدنى للسحب هو 10 دولارات"));
+    }
+    if (amount > balance) {
+      closeWithdrawModal();
+      document.getElementById("insufficient-msg").innerText =
+        `رصيدك الحالي ($${balance.toFixed(2)}) أقل من المبلغ المطلوب ($${amount.toFixed(2)}).`;
+      document.getElementById("insufficient-modal").style.display = "flex";
+      return;
+    }
+    try {
+      await api("/api/withdrawal-requests", {
+        method: "POST",
+        body: JSON.stringify({ bank, account, amount }),
+      });
+      closeWithdrawModal();
+      document.getElementById("withdraw-amount").value = "";
+      document.getElementById("withdraw-account").value = "";
+      document.getElementById("withdraw-success-modal").style.display = "flex";
+      await refreshMe();
+    } catch (error) {
+      showApiError(error);
+    }
+  };
+
+  async function refreshMe() {
+    if (!currentUser || isAdmin) return;
+    try {
+      enterApp(await api("/api/me"));
+    } catch (error) {
+      console.error("Failed to refresh account", error);
+    }
+  }
+
+  window.renderDepositsList = function () {
+    const container = document.getElementById("deposit-history-list");
+    container.innerHTML = depositLogs.length
+      ? depositLogs.map((item) => `
+        <div class="history-card">
+          <div class="history-info">
+            <div class="history-title">💳 ${escapeHtml(item.title)}</div>
+            <div class="history-date">📅 ${dateText(item.date)}</div>
+          </div>
+          <div style="text-align:left">
+            <div style="font-weight:bold;color:#34d399">${escapeHtml(item.amount)}</div>
+            <span class="history-badge badge-orange">${escapeHtml(item.status)}</span>
+          </div>
+        </div>`).join("")
+      : '<div style="text-align:center;padding:30px;color:var(--text-muted)">لا توجد عمليات إيداع مسجلة بعد.</div>';
+  };
+
+  window.renderWithdrawsList = function () {
+    const container = document.getElementById("withdraw-history-list");
+    container.innerHTML = withdrawLogs.length
+      ? withdrawLogs.map((item) => `
+        <div class="history-card">
+          <div class="history-info">
+            <div class="history-title">🏦 ${escapeHtml(item.bank)} (${escapeHtml(item.account)})</div>
+            <div class="history-date">📅 ${dateText(item.date)}</div>
+          </div>
+          <div style="text-align:left">
+            <div style="font-weight:bold;color:#f87171">${escapeHtml(item.amount)}</div>
+            <span class="history-badge badge-orange">${escapeHtml(item.status)}</span>
+          </div>
+        </div>`).join("")
+      : '<div style="text-align:center;padding:30px;color:var(--text-muted)">لا توجد عمليات سحب سابقة.</div>';
+  };
+
+  window.renderTxList = function () {
+    const container = document.getElementById("tx-history-list");
+    container.innerHTML = txLogs.length
+      ? txLogs.map((item) => `
+        <div class="history-card">
+          <div class="history-info">
+            <div class="history-title">${escapeHtml(item.title)}</div>
+            <div class="history-date">📅 ${dateText(item.date)}</div>
+          </div>
+          <div style="text-align:left">
+            <div style="font-weight:bold;color:${item.amount.startsWith("+") ? "#34d399" : "#f87171"}">${escapeHtml(item.amount)}</div>
+            <span class="history-badge badge-green">${escapeHtml(item.type)}</span>
+          </div>
+        </div>`).join("")
+      : '<div style="text-align:center;padding:30px;color:var(--text-muted)">لا توجد معاملات مسجلة بعد.</div>';
+  };
+
+  window.renderTeamScreen = function () {
+    const levels = [1, 2, 3].map((level) => teamMembers.filter((member) => member.level === level).length);
+    [1, 2, 3].forEach((level) => {
+      document.getElementById(`lvl${level}-count`).innerText = `${levels[level - 1]} شخص`;
+    });
+    document.getElementById("total-team-count").innerText = teamMembers.length;
+    document.getElementById("total-referral-earnings").innerText = referralEarnings.toFixed(2);
+    const container = document.getElementById("team-members-list");
+    container.innerHTML = teamMembers.length
+      ? teamMembers.map((member) => `
+        <div class="history-card">
+          <div class="history-info">
+            <div class="history-title">👤 ${escapeHtml(member.name)}</div>
+            <div class="history-date">📧 ${escapeHtml(member.email)} | 📅 ${dateText(member.date)}</div>
+          </div>
+          <span class="level-badge lvl-${member.level}">المستوى ${member.level}</span>
+        </div>`).join("")
+      : '<div style="text-align:center;padding:30px;color:var(--text-muted)">لا توجد إحالات مسجلة بعد.</div>';
+  };
+
+  async function adminReview(kind, id, status) {
+    try {
+      await api(`/api/admin/${kind}/${id}/review`, {
+        method: "POST",
+        body: JSON.stringify({ status }),
+      });
+      await renderAdminDashboard();
+    } catch (error) {
+      showApiError(error);
+    }
+  }
+
+  function adminRequestCard(item, kind) {
+    const isDeposit = kind === "deposits";
+    const amount = Number(item.amount).toFixed(2);
+    const detail = isDeposit
+      ? `TxID: ${escapeHtml(item.txid)} | ${escapeHtml(item.network)}`
+      : `${escapeHtml(item.bank)} | ${escapeHtml(item.account)}`;
+    const buttons = item.status === "pending"
+      ? `<div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn btn-green" style="padding:8px;font-size:.78rem" onclick="adminReview('${kind}',${item.id},'accepted')">✅ قبول</button>
+          <button class="btn btn-red" style="padding:8px;font-size:.78rem" onclick="adminReview('${kind}',${item.id},'rejected')">❌ رفض</button>
+        </div>`
+      : "";
+    return `<div class="history-card" style="display:block">
+      <div style="display:flex;justify-content:space-between;gap:8px">
+        <div class="history-info">
+          <div class="history-title">${isDeposit ? "💳" : "💸"} ${escapeHtml(item.name)} — ${escapeHtml(item.email)}</div>
+          <div class="history-date">📅 ${dateText(item.created_at)}<br>${detail}</div>
+        </div>
+        <div style="text-align:left;white-space:nowrap">
+          <div style="font-weight:bold;color:${isDeposit ? "#34d399" : "#f87171"}">$${amount}</div>
+          <span class="history-badge ${item.status === "accepted" ? "badge-green" : "badge-orange"}">${statusLabels[item.status]}</span>
+        </div>
+      </div>${buttons}</div>`;
+  }
+
+  window.renderAdminDashboard = async function () {
+    try {
+      const data = await api("/api/admin/overview");
+      document.getElementById("admin-total-users").innerText = data.stats.users;
+      document.getElementById("admin-total-deposits").innerText = `$${Number(data.stats.deposits).toFixed(2)}`;
+      document.getElementById("admin-total-withdraws").innerText = `$${Number(data.stats.withdrawals).toFixed(2)}`;
+      document.getElementById("admin-users-list").innerHTML = data.users.map((user) => `
+        <div class="history-card">
+          <div class="history-info">
+            <div class="history-title">👤 ${escapeHtml(user.name)} ${user.isAdmin ? "👑" : ""}</div>
+            <div class="history-date">📧 ${escapeHtml(user.email)} | رمز الإحالة: ${escapeHtml(user.inviteCode)}</div>
+          </div>
+          <div style="text-align:left"><strong>$${Number(user.balance).toFixed(2)}</strong><br><small>${dateText(user.createdAt)}</small></div>
+        </div>`).join("") || '<div class="history-date">لا توجد حسابات.</div>';
+      document.getElementById("admin-deposit-requests").innerHTML = data.deposits.map((item) => adminRequestCard(item, "deposits")).join("")
+        || '<div class="history-date">لا توجد طلبات إيداع.</div>';
+      document.getElementById("admin-withdrawal-requests").innerHTML = data.withdrawals.map((item) => adminRequestCard(item, "withdrawals")).join("")
+        || '<div class="history-date">لا توجد طلبات سحب.</div>';
+    } catch (error) {
+      showApiError(error);
+    }
+  };
+  window.adminReview = adminReview;
+
+  window.logout = async function () {
+    await api("/api/auth/logout", { method: "POST" }).catch(() => {});
+    currentUser = null;
+    isAdmin = false;
+    document.getElementById("bottom-nav").style.display = "none";
+    document.querySelectorAll(".screen").forEach((screen) => screen.classList.remove("active"));
+    document.getElementById("auth-screen").classList.add("active");
+    document.getElementById("header-title").innerText = "SECURO";
+    document.getElementById("auth-email").value = "";
+    document.getElementById("auth-pass").value = "";
+    document.getElementById("reg-name").value = "";
+  };
+
+  window.addEventListener("load", async () => {
+    const invite = new URLSearchParams(window.location.search).get("invite");
+    if (invite) document.getElementById("invite-code-input").value = invite;
+    try {
+      const payload = await api("/api/me");
+      enterApp(payload);
+    } catch {
+      // لا توجد جلسة حالية، وتبقى شاشة الدخول ظاهرة.
+    }
+  });
+})();

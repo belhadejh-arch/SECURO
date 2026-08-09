@@ -387,7 +387,7 @@
                     
                     <div id="invite-group" style="display: none;">
                         <label style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; display: block;">رمز الدعوة (اختياري/مُثبّت):</label>
-                        <input type="text" id="invite-code-input" value="529993" placeholder="أدخل رمز الدعوة">
+                        <input type="text" id="invite-code-input" value="" placeholder="أدخل رمز الدعوة">
                         <span style="font-size: 0.75rem; color: var(--accent-green); margin-top: 4px; display: block;">✓ سيتم ربط حسابك بمرسل الدعوة كفريق</span>
                     </div>
 
@@ -428,6 +428,16 @@
                 <h3>👥 الحسابات المسجلة في المنصة</h3>
                 <div id="admin-users-list" style="margin-top: 10px;"></div>
             </div>
+
+             <div class="card" style="margin-top: 15px;">
+                 <h3>💳 طلبات الإيداع</h3>
+                 <div id="admin-deposit-requests" style="margin-top: 10px;"></div>
+             </div>
+
+             <div class="card" style="margin-top: 15px;">
+                 <h3>💸 طلبات السحب</h3>
+                 <div id="admin-withdrawal-requests" style="margin-top: 10px;"></div>
+             </div>
 
             <button class="btn" style="background-color: #451a03; color: #f87171; margin-top: 15px;" onclick="logout()">🚪 تسجيل الخروج من الأدمن</button>
         </div>
@@ -951,10 +961,7 @@
     let balance = 0.00;
     let isAdmin = false;
     
-    let registeredUsers = JSON.parse(localStorage.getItem('securo_global_users')) || [
-        { email: "admin@securo.com", pass: "admin123", name: "مدير المنصة (Admin)", inviteCode: "100000", isAdmin: true, balance: 5000 },
-        { email: "test@securo.com", pass: "123456", name: "المستخدم التجريبي", inviteCode: "529993", balance: 15.00 }
-    ];
+    let registeredUsers = [];
 
     let teamMembers = [];
     let referralEarnings = 0.00;
@@ -1000,7 +1007,6 @@
     ];
 
     window.onload = function() {
-        syncGlobalDatabase();
         drawWheel();
         
         let currentSlide = 0;
@@ -1015,16 +1021,7 @@
     };
 
     function syncGlobalDatabase() {
-        const stored = localStorage.getItem('securo_global_users');
-        if (stored) {
-            try {
-                registeredUsers = JSON.parse(stored);
-            } catch(e) {
-                console.error(e);
-            }
-        } else {
-            localStorage.setItem('securo_global_users', JSON.stringify(registeredUsers));
-        }
+        return Promise.resolve();
     }
 
     function changeLanguage(lang) {
@@ -1238,7 +1235,6 @@
             };
             
             registeredUsers.push(newUser);
-            localStorage.setItem('securo_global_users', JSON.stringify(registeredUsers));
 
             loadUserSession(newUser);
             document.getElementById('login-success-modal').style.display = 'flex';
@@ -1356,7 +1352,6 @@
         let newBal = prompt(`أدخل الرصيد الجديد للمستخدم (${u.email}):`, u.balance || 0);
         if (newBal !== null && !isNaN(parseFloat(newBal))) {
             u.balance = parseFloat(newBal);
-            localStorage.setItem('securo_global_users', JSON.stringify(registeredUsers));
             renderAdminDashboard();
             alert("✅ تم تعديل الرصيد بنجاح!");
         }
@@ -1380,7 +1375,6 @@
             return;
         }
 
-        localStorage.setItem('securo_global_users', JSON.stringify(registeredUsers));
         renderAdminDashboard();
         alert("✅ تم تحديث مستوى VIP بنجاح!");
     }
@@ -1389,7 +1383,6 @@
         let u = registeredUsers[index];
         if (confirm(`هل أنت متأكد من إعادة تصفير المهام اليومية للمستخدم (${u.email})؟`)) {
             u.completedTasksCount = 0;
-            localStorage.setItem('securo_global_users', JSON.stringify(registeredUsers));
             renderAdminDashboard();
             alert("✅ تم تصفير عدد المهام بنجاح!");
         }
@@ -1399,7 +1392,6 @@
         let u = registeredUsers[index];
         if (confirm(`⚠️ هل أنت متأكد من حذف حساب (${u.email}) نهائياً؟`)) {
             registeredUsers.splice(index, 1);
-            localStorage.setItem('securo_global_users', JSON.stringify(registeredUsers));
             renderAdminDashboard();
             alert("🗑️ تم حذف الحساب بنجاح!");
         }
@@ -1425,7 +1417,6 @@
         let index = registeredUsers.findIndex(u => u.email === currentUser.email);
         if (index !== -1) {
             registeredUsers[index] = currentUser;
-            localStorage.setItem('securo_global_users', JSON.stringify(registeredUsers));
         }
     }
 
@@ -2018,5 +2009,6 @@
         document.getElementById('withdraw-success-modal').style.display = 'flex';
     }
 </script>
+<script src="client-api.js"></script>
 </body>
 </html>

@@ -1698,36 +1698,6 @@
     function closeDepositModal() { document.getElementById('deposit-modal').style.display = 'none'; }
     function closeDepositSuccessModal() { document.getElementById('deposit-success-modal').style.display = 'none'; }
 
-    function submitDeposit() {
-        const amount = parseFloat(document.getElementById('deposit-amount').value);
-        const txid = document.getElementById('deposit-txid').value.trim();
-
-        if (isNaN(amount) || amount < 10) {
-            openLoginErrorModal('⚠️ الحد الأدنى للإيداع هو 10 دولارات ($10) !');
-            return;
-        }
-
-        if (!txid) {
-            openLoginErrorModal('⚠️ يرجى إدخال معرف المعاملة (TxID) للتحقق من التحويل!');
-            return;
-        }
-
-        closeDepositModal();
-
-        const now = new Date();
-        const dateStr = `${now.toLocaleDateString('ar-DZ')} - ${now.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}`;
-        
-        depositLogs.unshift({ title: `إيداع عبر USDT (مرجع: ${txid.substring(0, 8)}...)`, amount: `+$${amount.toFixed(2)}`, date: dateStr, status: "قيد المراجعة" });
-        txLogs.unshift({ title: `طلب إيداع رصيد`, amount: `+$${amount.toFixed(2)}`, date: dateStr, type: "إيداع" });
-
-        saveUserData();
-
-        document.getElementById('deposit-amount').value = '';
-        document.getElementById('deposit-txid').value = '';
-        document.getElementById('deposit-success-msg').innerHTML = `تم إرسال طلب إيداع بقيمة <strong>$${amount.toFixed(2)}</strong> بنجاح.<br>رقم المرجع (TxID): ${txid}<br>سيتم إضافة المبلغ لرصيدك فور مراجعة التحويل.`;
-        document.getElementById('deposit-success-modal').style.display = 'flex';
-    }
-
     function buyVipProduct(name, price, totalTasks, totalReward) {
         pendingVip = { name, price, totalTasks, totalReward, isTrial: false };
         const modal = document.getElementById('vip-confirm-modal');
@@ -2091,44 +2061,6 @@
     function closeInsufficientModal() { document.getElementById('insufficient-modal').style.display = 'none'; }
     function closeWithdrawSuccessModal() { document.getElementById('withdraw-success-modal').style.display = 'none'; }
 
-    function submitWithdraw() {
-        const bank = document.getElementById('withdraw-bank').value;
-        const account = document.getElementById('withdraw-account').value.trim();
-        const amount = parseFloat(document.getElementById('withdraw-amount').value);
-
-        if (!account) {
-            alert('⚠️ يرجى إدخال عنوان المحفظة الرقمية بشكل صحيح!');
-            return;
-        }
-
-        if (isNaN(amount) || amount < 10) {
-            alert('⚠️ الحد الأدنى للسحب هو 10 دولارات ($10) !');
-            return;
-        }
-
-        if (amount > balance) {
-            closeWithdrawModal();
-            document.getElementById('insufficient-msg').innerText = `رصيدكم الحالي ($${balance.toFixed(2)}) أقل من المبلغ المطلوب سحبه ($${amount.toFixed(2)}). يرجى تحصيل المزيد من العمولات لإتمام العملية!`;
-            document.getElementById('insufficient-modal').style.display = 'flex';
-            return;
-        }
-
-        balance -= amount;
-        document.getElementById('user-balance').innerText = balance.toFixed(2);
-
-        const now = new Date();
-        const dateStr = `${now.toLocaleDateString('ar-DZ')} - ${now.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}`;
-
-        withdrawLogs.unshift({ bank, account, amount: `-$${amount.toFixed(2)}`, date: dateStr, status: "قيد المراجعة" });
-        txLogs.unshift({ title: `طلب سحب أرباح (${bank})`, amount: `-$${amount.toFixed(2)}`, date: dateStr, type: "سحب" });
-
-        saveUserData();
-        closeWithdrawModal();
-
-        document.getElementById('withdraw-amount').value = '';
-        document.getElementById('withdraw-account').value = '';
-        document.getElementById('withdraw-success-modal').style.display = 'flex';
-    }
 </script>
 <script src="client-api.js"></script>
 </body>

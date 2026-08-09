@@ -412,23 +412,24 @@ app.post("/api/withdrawal-requests", requireAuth, async (req, res) => {
         "SELECT balance FROM users WHERE id = $1 FOR UPDATE",
         [req.session.userId],
       );
-      if (!locked.rowCount || Number(locked.rows[0].balance) < amount) {
+      if (!locked.rowCount) {
+        throw Object.assign(new Error("الحساب غير موجود"), { status: 404 });
+      }
+      const pending = await client.query(
+        `SELECT COALESCE(SUM(amount), 0) AS amount
+         FROM withdrawal_requests
+         WHERE user_id = $1 AND status = 'pending'`,
+        [req.session.userId],
+      );
+      const availableBalance =
+        Number(locked.rows[0].balance) - Number(pending.rows[0].amount);
+      if (availableBalance < amount) {
         throw Object.assign(new Error("رصيدك غير كافٍ"), { status: 400 });
       }
       const request = await client.query(
         `INSERT INTO withdrawal_requests (user_id, bank, account, amount)
          VALUES ($1, $2, $3, $4) RETURNING id`,
         [req.session.userId, bank, account, amount.toFixed(2)],
-      );
-      await client.query(
-        "UPDATE users SET balance = balance - $1, updated_at = NOW() WHERE id = $2",
-        [amount.toFixed(2), req.session.userId],
-      );
-      await client.query(
-        `INSERT INTO transactions
-          (user_id, type, amount, direction, description, reference_type, reference_id)
-         VALUES ($1, 'سحب', $2, 'debit', $3, 'withdrawal_request', $4)`,
-        [req.session.userId, amount.toFixed(2), `حجز طلب سحب (${bank})`, request.rows[0].id],
       );
       return request.rows[0].id;
     });
@@ -569,22 +570,32 @@ app.post("/api/admin/withdrawals/:id/review", requireAdmin, async (req, res) => 
       if (request.status !== "pending") {
         throw Object.assign(new Error("تمت مراجعة هذا الطلب سابقاً"), { status: 409 });
       }
+      if (status === "accepted") {
+        const updatedUser = await client.query(
+          `UPDATE users
+           SET balance = balance - $1, updated_at = NOW()
+           WHERE id = $2 AND balance >= $1
+           RETURNING id`,
+          [request.amount, request.user_id],
+        );
+        if (!updatedUser.rowCount) {
+          throw Object.assign(new Error("رصيد المستخدم غير كافٍ لقبول طلب السحب"), { status: 409 });
+        }
+        await client.query(
+          `INSERT INTO transactions
+            (user_id, type, amount, direction, description, reference_type, reference_id)
+           VALUES ($1, 'سحب', $2, 'debit', 'قبول وتنفيذ طلب السحب', 'withdrawal_request', $3)`,
+          [request.user_id, request.amount, id],
+        );
+      }
       await client.query(
         `UPDATE withdrawal_requests SET status = $1, reviewed_by = $2, reviewed_at = NOW()
          WHERE id = $3`,
         [status, req.session.userId, id],
       );
       if (status === "rejected") {
-        await client.query(
-          "UPDATE users SET balance = balance + $1, updated_at = NOW() WHERE id = $2",
-          [request.amount, request.user_id],
-        );
-        await client.query(
-          `INSERT INTO transactions
-            (user_id, type, amount, direction, description, reference_type, reference_id)
-           VALUES ($1, 'استرجاع', $2, 'credit', 'استرجاع طلب السحب المرفوض', 'withdrawal_request', $3)`,
-          [request.user_id, request.amount, id],
-        );
+        // No balance change is needed: pending withdrawals are only reserved
+        // logically and are deducted when an admin accepts the request.
       }
     });
     res.json({ ok: true });

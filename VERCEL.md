@@ -79,6 +79,10 @@ Output Directory: .
 Install Command: npm ci
 ```
 
+يجب أن تكون نسخة Node.js للواجهة `24.x` لأن Vercel لم يعد يقبل
+`20.x` للمشاريع الجديدة. الملف `attached_assets/package.json` يحدد ذلك
+تلقائياً، كما يثبت `attached_assets/.node-version` الإصدار `24.14.1`.
+
 ### أمر التشغيل في Vercel
 
 لا يوجد **Start Command** للواجهة هنا؛ فهي ملفات HTML/CSS/JavaScript ثابتة،

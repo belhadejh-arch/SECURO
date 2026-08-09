@@ -1,0 +1,8 @@
+{
+  "name": "securo-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node --check client-api.js && node -e \"const fs=require('fs'); for (const file of ['index.html','client-api.js']) { if (!fs.existsSync(file)) throw new Error(file + ' is missing'); }\""
+  }
+}

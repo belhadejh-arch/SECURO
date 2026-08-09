@@ -1,292 +1,144 @@
-# تشغيل ونشر SECURO
+# نشر SECURO على Render وVercel
 
-هذا المشروع مقسوم للنشر إلى خدمتين:
+تم تجهيز المشروع ليُنشر كخدمتين منفصلتين:
 
-1. **Backend على Render** من جذر المستودع.
-2. **Frontend على Vercel** من المجلد `attached_assets` كموقع static.
+1. **Backend على Render Web Service** من جذر المستودع.
+2. **Frontend على Vercel** من مجلد `attached_assets`.
 
-يجب نشر الـ Backend أولاً، لأن رابط Render سيُستخدم في إعداد الـ Frontend.
+## أولاً: قاعدة البيانات
 
-## 1. تجهيز قاعدة البيانات
+يحتاج الـ Backend إلى PostgreSQL. أضف رابط قاعدة البيانات إلى Render باسم:
 
-يحتاج الـ Backend إلى PostgreSQL. يمكن استخدام Neon كما هو موضح في هذا المشروع.
-بعد الحصول على رابط الاتصال، خزّنه في متغير:
-
-```bash
-export NEON_DATABASE_URL='postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require'
+```text
+NEON_DATABASE_URL=postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require
 ```
 
-تهيئة الجداول مرة واحدة فقط:
+هيّئ الجداول مرة واحدة فقط، محلياً أو من Shell في Render:
 
 ```bash
 npm ci
 npm run db:init
 ```
 
-إنشاء حساب المدير:
+## Backend على Render
 
-```bash
-ADMIN_EMAIL='admin@example.com' \
-ADMIN_NAME='مدير منصة SECURO' \
-ADMIN_PASSWORD='ضع-كلمة-مرور-قوية-هنا' \
-npm run admin:create
-```
+### الإعداد
 
-لا تضع كلمة المرور أو رابط قاعدة البيانات داخل Git.
-
-## 2. نشر Backend على Render
-
-### الطريقة الأولى: باستخدام `render.yaml`
-
-1. ارفع المستودع إلى GitHub.
-2. في Render اختر **New → Blueprint**.
-3. اختر المستودع ثم وافق على `render.yaml`.
-4. أدخل قيمة `NEON_DATABASE_URL` عندما يطلبها Render.
-5. بعد إنشاء الخدمة، انسخ رابطها، مثل:
-   `https://securo-backend.onrender.com`.
-6. اترك `SESSION_SECRET` بالقيمة التي يولدها Render.
-7. عدّل `FRONTEND_URL` لاحقاً بعد نشر Vercel، أو ضع رابط Vercel المتوقع مؤقتاً.
-
-### الطريقة الثانية: إعداد الخدمة يدوياً
-
-أنشئ **Web Service** من المستودع، ثم استخدم:
+أنشئ **New → Web Service**، ثم اختر المستودع واضبط:
 
 ```text
-Root Directory: اتركه فارغاً
-Environment: Node
+Root Directory: (فارغ — جذر المستودع)
+Runtime: Node
 Build Command: npm ci && npm run build
 Start Command: npm start
 Health Check Path: /api/health
 ```
 
-أضف متغيرات البيئة التالية في Render:
+يمكنك أيضاً اختيار **Blueprint** وسيستخدم Render ملف `render.yaml` الموجود في
+المشروع.
+
+### متغيرات البيئة
+
+أضف هذه المتغيرات في Render:
 
 ```text
 NODE_ENV=production
-NEON_DATABASE_URL=رابط اتصال PostgreSQL
+NEON_DATABASE_URL=رابط PostgreSQL الحقيقي
 SESSION_SECRET=قيمة عشوائية طويلة
 FRONTEND_URL=https://اسم-مشروعك.vercel.app
 COOKIE_SAME_SITE=none
 ```
 
-اختبر الـ Backend بعد النشر:
+`SESSION_SECRET` يجب ألا يُحفظ في Git. استخدم قيمة مختلفة للإنتاج.
 
-```bash
-curl https://اسم-خدمة-Render.onrender.com/api/health
-```
-
-يجب أن تحصل على استجابة JSON ناجحة. أوامر التشغيل والبناء محلياً هي:
-
-```bash
-npm install
-npm run build
-npm start
-```
-
-وللتطوير:
-
-```bash
-npm run dev
-```
-
-## 3. نشر Frontend على Vercel
-
-الـ Frontend الحالي هو ملفات HTML/CSS/JavaScript عادية، لذلك لا يحتاج إلى
-React أو خطوة bundling. استخدم المجلد `attached_assets` كجذر مشروع Vercel:
-
-### من لوحة Vercel
-
-1. اختر **Add New → Project** واربط مستودع GitHub.
-2. في **Root Directory** اختر `attached_assets`.
-3. اختر **Other** كإطار العمل.
-4. اترك **Build Command** فارغاً.
-5. اترك **Output Directory** فارغاً.
-6. اضغط **Deploy**.
-
-### من الطرفية
-
-من جذر المستودع:
-
-```bash
-npm install -g vercel
-vercel login
-vercel --cwd attached_assets
-vercel --cwd attached_assets --prod
-```
-
-بعد أول نشر، انسخ رابط Vercel النهائي، ثم حدّث في Render:
+### أوامر Backend المطلوبة
 
 ```text
-FRONTEND_URL=https://اسم-مشروعك.vercel.app
+Build Command: npm ci && npm run build
+Start Command: npm start
 ```
 
-ثم أعد تشغيل خدمة Render. الكود يستخدم هذا الرابط للسماح بطلبات CORS ولحفظ
-جلسة تسجيل الدخول بين نطاق Vercel ونطاق Render.
+يشغّل `npm start` الملف `server.js`، ويستمع على المنفذ الذي يقدمه Render عبر
+`PORT`.
 
-## 4. ربط Frontend بالـ Backend
+بعد النشر، اختبر:
 
-تمت إضافة `attached_assets/vercel.json` ليحوّل تلقائياً كل طلب يبدأ بـ
-`/api/` من Vercel إلى:
+```bash
+curl -i https://اسم-خدمة-render.onrender.com/api/health
+```
+
+## Frontend على Vercel
+
+أنشئ مشروع Vercel من نفس المستودع واضبط:
+
+```text
+Root Directory: attached_assets
+Framework Preset: Other
+Build Command: npm run build
+Output Directory: .
+Install Command: npm install
+```
+
+### أمر التشغيل في Vercel
+
+لا يوجد **Start Command** للواجهة هنا؛ فهي ملفات HTML/CSS/JavaScript ثابتة،
+وVercel يخدمها تلقائياً بعد البناء. لذلك يكون الإعداد الصحيح:
+
+```text
+Build Command: npm run build
+Start Command: غير مطلوب / غير مستخدم في Vercel Static Hosting
+```
+
+الـ build الموجود في `attached_assets/package.json` يتحقق من ملفات الواجهة
+وصحة JavaScript ولا يحتاج إلى bundler.
+
+## ربط الواجهة بالـ Backend
+
+قبل نشر Vercel، افتح:
+
+```text
+attached_assets/vercel.json
+```
+
+واستبدل:
 
 ```text
 https://securo-backend.onrender.com
 ```
 
-إذا استخدمت اسم خدمة مختلفاً في Render، افتح هذا الملف وعدّل قيمة
-`destination` إلى رابط خدمة Render الحقيقي، ثم أعد النشر:
-
-```bash
-vercel --cwd attached_assets --prod
-```
-
-بهذا لا تحتاج إلى تغيير كود الواجهة في كل مرة. سيبقى `client-api.js` يستخدم
-المسارات النسبية مثل `/api/auth/login`، وVercel سيتولى تمريرها إلى Render.
-
-### خيار بديل: الاتصال المباشر
-
-إذا أردت أن يتصل المتصفح مباشرة بـ Render بدلاً من استخدام rewrite، ضع رابط
-Render في أول الملف:
-
-قبل النشر، يجب أن يعرف `client-api.js` رابط Render. في ملف:
+برابط خدمة Render الحقيقي، مثل:
 
 ```text
-attached_assets/client-api.js
+https://اسم-خدمة-render.onrender.com
 ```
 
-استبدل:
+بعدها أعد نشر Vercel. ملف `vercel.json` يمرر تلقائياً كل طلب يبدأ بـ `/api/`
+إلى Render، لذلك لا نضع رابطاً ثابتاً داخل كود المتصفح.
 
-```js
-    "__BACKEND_URL__";
-```
+## الترتيب الصحيح للنشر
 
-برابط خدمة Render:
+1. أنشئ PostgreSQL.
+2. شغّل `npm run db:init` مرة واحدة.
+3. انشر Backend على Render.
+4. انسخ رابط Render.
+5. حدّث `attached_assets/vercel.json` برابط Render.
+6. انشر `attached_assets` على Vercel.
+7. حدّث `FRONTEND_URL` في Render إلى رابط Vercel النهائي.
+8. أعد تشغيل Render واختبر تسجيل الدخول.
 
-```js
-    "https://اسم-خدمة-Render.onrender.com";
-```
+## أوامر التحقق
 
-ثم ادفع التعديل إلى GitHub وأعد نشر Vercel. إذا كان الـ Frontend والـ Backend
-يعملان على نفس النطاق، يمكن ترك القيمة فارغة، لكن في هذا التقسيم يجب استخدام
-رابط Render الكامل.
-
-## 5. أوامر التحقق
-
-فحص JavaScript:
+من جذر المشروع:
 
 ```bash
+npm ci
 npm run build
 ```
 
-فحص صحة الـ Backend:
+للتحقق من Frontend فقط:
 
 ```bash
-curl -i https://اسم-خدمة-Render.onrender.com/api/health
-```
-
-تشغيل محلي مع قاعدة البيانات:
-
-```bash
-NEON_DATABASE_URL='postgresql://...' \
-SESSION_SECRET='سر-محلي-طويل' \
-FRONTEND_URL='http://localhost:5000' \
-npm start
-```
-
-ثم افتح:
-
-```text
-http://localhost:5000
-```
-
-## ملاحظات مهمة
-
-- شغّل `npm run db:init` مرة واحدة فقط لكل قاعدة بيانات، وليس مع كل Deploy.
-- لا تستخدم `localhost` كرابط Backend داخل Vercel.
-- يجب أن تكون `FRONTEND_URL` مطابقة تماماً لرابط Vercel، بدون `/` في النهاية.
-- عند استخدام Preview URL مختلف من Vercel، أضفه إلى `FRONTEND_URL` مفصولاً بفاصلة
-  مع الرابط الأساسي.
-
-## التشغيل المحلي
-
-ثبّت الحزم:
-
-```bash
+cd attached_assets
 npm install
-```
-
-جهّز الجداول في Neon مرة واحدة:
-
-```bash
-npm run db:init
-```
-
-شغّل نسخة التطوير:
-
-```bash
-npm run dev
-```
-
-ثم افتح:
-
-```text
-http://localhost:5000
-```
-
-## إنشاء أو تحديث حساب الأدمن
-
-لا تضع كلمة المرور داخل الملفات. نفّذ الأمر مع متغيرات مؤقتة في الطرفية:
-
-```bash
-ADMIN_EMAIL=admin@securo.com \
-ADMIN_NAME="مدير منصة SECURO" \
-ADMIN_PASSWORD="ضع-كلمة-مرور-قوية-هنا" \
-npm run admin:create
-```
-
-## فحص البناء
-
-```bash
 npm run build
-```
-
-## إعداد Vercel
-
-اربط المستودع أو المشروع في Vercel، ثم أضف متغيرات البيئة التالية في
-`Settings → Environment Variables` لكل من `Preview` و`Production`:
-
-```text
-NEON_DATABASE_URL=رابط اتصال Neon
-SESSION_SECRET=سر عشوائي طويل
-```
-
-إعدادات المشروع الموجودة في `vercel.json` تستخدم:
-
-```text
-Build command: npm run build
-Function entry: api/index.js
-```
-
-بعد إضافة المتغيرات اضغط Deploy. لا تشغّل `npm run db:init` في كل Deploy؛
-نفّذه مرة واحدة فقط على قاعدة Neon المطلوبة قبل النشر.
-
-## النشر من Vercel CLI
-
-```bash
-npm i -g vercel
-vercel login
-vercel
-vercel --prod
-```
-
-أضف المتغيرات من لوحة Vercel أو باستخدام:
-
-```bash
-vercel env add NEON_DATABASE_URL production
-vercel env add SESSION_SECRET production
-```
-
-ثم أعد النشر:
-
-```bash
-vercel --prod
 ```

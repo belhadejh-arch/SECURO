@@ -321,6 +321,18 @@ async function withTransaction(callback) {
   }
 }
 
+function regenerateSession(req) {
+  return new Promise((resolve, reject) => {
+    req.session.regenerate((error) => (error ? reject(error) : resolve()));
+  });
+}
+
+function saveSession(req) {
+  return new Promise((resolve, reject) => {
+    req.session.save((error) => (error ? reject(error) : resolve()));
+  });
+}
+
 app.get("/api/health", async (_req, res) => {
   try {
     await pool.query("SELECT 1");
@@ -383,11 +395,10 @@ app.post("/api/auth/register", async (req, res) => {
       return user;
     });
 
-    await new Promise((resolve, reject) =>
-      req.session.regenerate((error) => (error ? reject(error) : resolve())),
-    );
+    await regenerateSession(req);
     req.session.userId = result.id;
     req.session.isAdmin = false;
+    await saveSession(req);
     res.status(201).json({ user: publicUser(result) });
   } catch (error) {
     if (error.code === "23505" && error.constraint === "users_email_key") {
@@ -406,19 +417,41 @@ app.post("/api/auth/login", async (req, res) => {
     if (!user || !(await bcrypt.compare(password, user.password_hash))) {
       return appError(res, 401, "البريد الإلكتروني غير مسجل أو كلمة المرور خاطئة");
     }
-    await new Promise((resolve, reject) =>
-      req.session.regenerate((error) => (error ? reject(error) : resolve())),
-    );
+    await regenerateSession(req);
     req.session.userId = user.id;
     req.session.isAdmin = Boolean(user.is_admin);
+    await saveSession(req);
     res.json({ user: publicUser(user) });
-  } catch {
+  } catch (error) {
+    console.error("Login failed:", error.code || error.message);
     appError(res, 500, "تعذر تسجيل الدخول");
   }
 });
 
 app.post("/api/auth/logout", (req, res) => {
-  req.session.destroy(() => res.json({ ok: true }));
+  req.session.destroy((error) => {
+    res.clearCookie("connect.sid", { path: "/" });
+    if (error) {
+      console.error("Logout failed:", error.code || error.message);
+      return appError(res, 500, "تعذر تسجيل الخروج");
+    }
+    res.json({ ok: true });
+  });
+});
+
+app.get("/api/auth/session", async (req, res) => {
+  if (!req.session.userId) return res.json({ authenticated: false });
+  try {
+    const user = await getUserById(req.session.userId);
+    if (!user) {
+      req.session.destroy(() => {});
+      return res.json({ authenticated: false });
+    }
+    res.json({ authenticated: true, user: publicUser(user) });
+  } catch (error) {
+    console.error("Session check failed:", error.code || error.message);
+    appError(res, 503, "تعذر التحقق من الجلسة");
+  }
 });
 
 app.get("/api/me", requireAuth, async (req, res) => {

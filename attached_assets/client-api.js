@@ -389,10 +389,10 @@
     const invite = new URLSearchParams(window.location.search).get("invite");
     if (invite) document.getElementById("invite-code-input").value = invite;
     try {
-      const payload = await api("/api/me");
-      enterApp(payload);
+      const session = await api("/api/auth/session");
+      if (session.authenticated) enterApp(await api("/api/me"));
     } catch {
-      // لا توجد جلسة حالية، وتبقى شاشة الدخول ظاهرة.
+      // تبقى شاشة الدخول ظاهرة إذا تعذر فحص الجلسة.
     }
   });
 })();

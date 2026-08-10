@@ -37,6 +37,17 @@ app.disable("x-powered-by");
 app.set("trust proxy", 1);
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: "32kb" }));
+
+function requestOriginIsAllowed(req, origin) {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  const forwardedProtocol = String(req.headers["x-forwarded-proto"] || "")
+    .split(",")[0]
+    .trim();
+  const protocol = forwardedProtocol || req.protocol;
+  return origin === `${protocol}://${req.get("host")}`;
+}
+
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (origin && allowedOrigins.includes(origin)) {
@@ -47,9 +58,16 @@ app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, OPTIONS");
   }
   if (req.method === "OPTIONS") {
-    return origin && allowedOrigins.includes(origin)
+    return origin && requestOriginIsAllowed(req, origin)
       ? res.sendStatus(204)
       : res.sendStatus(403);
+  }
+  if (
+    origin &&
+    ["POST", "PUT", "PATCH", "DELETE"].includes(req.method) &&
+    !requestOriginIsAllowed(req, origin)
+  ) {
+    return appError(res, 403, "مصدر الطلب غير مسموح");
   }
   next();
 });
@@ -169,12 +187,27 @@ async function syncDailyTaskState(clientOrPool, userId) {
   );
 }
 
+async function syncVipState(clientOrPool, userId) {
+  await clientOrPool.query(
+    `UPDATE users
+     SET user_vip = NULL,
+         vip_expires_at = NULL,
+         trial_active = FALSE,
+         updated_at = NOW()
+     WHERE id = $1
+       AND vip_expires_at IS NOT NULL
+       AND vip_expires_at <= NOW()`,
+    [userId],
+  );
+}
+
 async function loadUserPayload(userId) {
+  await syncVipState(pool, userId);
   await syncDailyTaskState(pool, userId);
   const user = await getUserById(userId);
   if (!user) return null;
 
-  const [deposits, withdrawals, transactions, team, commissions] =
+  const [deposits, withdrawals, transactions, team, commissions, commissionsByLevel] =
     await Promise.all([
       pool.query(
         `SELECT id, amount, txid, network, status, created_at
@@ -192,9 +225,10 @@ async function loadUserPayload(userId) {
         [userId],
       ),
       pool.query(
-        `WITH RECURSIVE tree AS (
+          `WITH RECURSIVE tree AS (
            SELECT u.id, u.name, u.email, 1 AS level, u.created_at
-           FROM users u WHERE u.referred_by = $1
+           FROM users u
+           WHERE u.referred_by = $1
            UNION ALL
            SELECT child.id, child.name, child.email, tree.level + 1, child.created_at
            FROM users child JOIN tree ON child.referred_by = tree.id
@@ -207,6 +241,13 @@ async function loadUserPayload(userId) {
       pool.query(
         `SELECT COALESCE(SUM(amount), 0) AS total
          FROM referral_commissions WHERE beneficiary_id = $1`,
+        [userId],
+      ),
+      pool.query(
+        `SELECT level, COALESCE(SUM(amount), 0) AS total
+         FROM referral_commissions
+         WHERE beneficiary_id = $1
+         GROUP BY level`,
         [userId],
       ),
     ]);
@@ -241,6 +282,9 @@ async function loadUserPayload(userId) {
       date: item.created_at,
     })),
     referralEarnings: money(commissions.rows[0].total),
+    referralEarningsByLevel: Object.fromEntries(
+      commissionsByLevel.rows.map((item) => [item.level, money(item.total)]),
+    ),
   };
 }
 
@@ -301,7 +345,7 @@ app.post("/api/auth/register", async (req, res) => {
       let referrer = null;
       if (inviteCode) {
         const ref = await client.query(
-          "SELECT id FROM users WHERE referral_code = $1",
+          "SELECT id FROM users WHERE referral_code = $1 FOR SHARE",
           [inviteCode],
         );
         if (!ref.rowCount) throw Object.assign(new Error("رمز الدعوة غير صالح"), { status: 400 });
@@ -311,7 +355,7 @@ app.post("/api/auth/register", async (req, res) => {
       const hash = await bcrypt.hash(password, 12);
       let referralCode;
       for (let attempt = 0; attempt < 10; attempt += 1) {
-        const candidate = String(Math.floor(100000 + Math.random() * 900000));
+        const candidate = String(randomInt(100000, 1000000));
         const exists = await client.query(
           "SELECT 1 FROM users WHERE referral_code = $1",
           [candidate],
@@ -429,14 +473,17 @@ app.post("/api/rewards/daily", requireAuth, async (req, res) => {
 app.post("/api/vip/trial", requireAuth, async (req, res) => {
   try {
     const result = await withTransaction(async (client) => {
+      await syncVipState(client, req.session.userId);
       const locked = await client.query("SELECT * FROM users WHERE id = $1 FOR UPDATE", [req.session.userId]);
       if (!locked.rowCount) throw Object.assign(new Error("الحساب غير موجود"), { status: 404 });
       const user = locked.rows[0];
       if (user.trial_used) throw Object.assign(new Error("لقد استخدمت الفترة التجريبية سابقاً"), { status: 409 });
+      if (user.user_vip) throw Object.assign(new Error("لديك عضوية VIP نشطة حالياً"), { status: 409 });
       const vip = { name: "الفترة التجريبية (Trial)", price: 0, totalTasks: 2, totalReward: 2, isTrial: true };
       const updated = await client.query(
         `UPDATE users SET user_vip = $1::jsonb, trial_active = TRUE, trial_used = TRUE,
           current_trial_day = 1, completed_tasks_count = 0, task_last_reset_date = CURRENT_DATE,
+           vip_expires_at = NOW() + INTERVAL '2 days',
           updated_at = NOW() WHERE id = $2 RETURNING *`,
         [JSON.stringify(vip), req.session.userId],
       );
@@ -454,17 +501,22 @@ app.post("/api/vip/purchase", requireAuth, async (req, res) => {
   if (!product) return appError(res, 400, "عضوية VIP غير صالحة");
   try {
     const result = await withTransaction(async (client) => {
+      await syncVipState(client, req.session.userId);
       const locked = await client.query("SELECT * FROM users WHERE id = $1 FOR UPDATE", [req.session.userId]);
       if (!locked.rowCount) throw Object.assign(new Error("الحساب غير موجود"), { status: 404 });
       const user = locked.rows[0];
       if (Number(user.balance) - Number(user.reserved_balance) < product.price) {
         throw Object.assign(new Error("رصيدك المتاح غير كافٍ"), { status: 400 });
       }
+      if (user.user_vip) {
+        throw Object.assign(new Error("لديك عضوية VIP نشطة حالياً"), { status: 409 });
+      }
       const vip = { name, ...product, isTrial: false };
       const updated = await client.query(
         `UPDATE users SET balance = balance - $1, user_vip = $2::jsonb,
           trial_active = FALSE, completed_tasks_count = 0, task_last_reset_date = CURRENT_DATE,
-          available_spins = available_spins + 1, updated_at = NOW()
+           vip_expires_at = NOW() + INTERVAL '365 days',
+           available_spins = available_spins + 1, updated_at = NOW()
          WHERE id = $3 RETURNING *`,
         [product.price.toFixed(2), JSON.stringify(vip), req.session.userId],
       );
@@ -517,8 +569,11 @@ app.post("/api/wheel/spin", requireAuth, async (req, res) => {
 app.post("/api/tasks/:taskIndex/start", requireAuth, async (req, res) => {
   const taskIndex = Number(req.params.taskIndex);
   if (!Number.isInteger(taskIndex) || taskIndex < 0) return appError(res, 400, "مهمة غير صالحة");
+  const comment = String(req.body.comment || "").trim();
+  if (comment.length < 5 || comment.length > 2000) return appError(res, 400, "يرجى كتابة تعليق صحيح");
   try {
     const result = await withTransaction(async (client) => {
+      await syncVipState(client, req.session.userId);
       await syncDailyTaskState(client, req.session.userId);
       const locked = await client.query("SELECT * FROM users WHERE id = $1 FOR UPDATE", [req.session.userId]);
       const user = locked.rows[0];
@@ -538,7 +593,7 @@ app.post("/api/tasks/:taskIndex/start", requireAuth, async (req, res) => {
       const inserted = await client.query(
         `INSERT INTO task_attempts (user_id, task_day, task_index, comment)
          VALUES ($1, CURRENT_DATE, $2, $3) RETURNING started_at`,
-        [req.session.userId, taskIndex, String(req.body.comment || "").trim()],
+        [req.session.userId, taskIndex, comment],
       );
       return { startedAt: inserted.rows[0].started_at, completed: false };
     });
@@ -555,6 +610,7 @@ app.post("/api/tasks/:taskIndex/complete", requireAuth, async (req, res) => {
   if (comment.length < 5 || comment.length > 2000) return appError(res, 400, "يرجى كتابة تعليق صحيح");
   try {
     const result = await withTransaction(async (client) => {
+      await syncVipState(client, req.session.userId);
       await syncDailyTaskState(client, req.session.userId);
       const locked = await client.query("SELECT * FROM users WHERE id = $1 FOR UPDATE", [req.session.userId]);
       const user = locked.rows[0];
@@ -571,10 +627,21 @@ app.post("/api/tasks/:taskIndex/complete", requireAuth, async (req, res) => {
       );
       if (!attempt.rowCount) throw Object.assign(new Error("يجب بدء المهمة أولاً"), { status: 400 });
       if (attempt.rows[0].completed_at) throw Object.assign(new Error("تم إكمال المهمة مسبقاً"), { status: 409 });
+      if (attempt.rows[0].comment !== comment) {
+        throw Object.assign(new Error("تعليق المهمة لا يطابق التعليق المسجل عند البدء"), { status: 400 });
+      }
       if (Number(attempt.rows[0].elapsed_seconds) * 1000 < taskMinimumDurationMs) {
         throw Object.assign(new Error("يجب الانتظار دقيقة كاملة قبل إكمال المهمة"), { status: 400 });
       }
-      const reward = Number(vip.totalReward) / Number(vip.totalTasks);
+      const totalRewardCents = Math.round(Number(vip.totalReward) * 100);
+      const taskCount = Number(vip.totalTasks);
+      const completedBefore = Number(user.completed_tasks_count);
+      const baseRewardCents = Math.floor(totalRewardCents / taskCount);
+      const rewardCents =
+        completedBefore === taskCount - 1
+          ? totalRewardCents - baseRewardCents * (taskCount - 1)
+          : baseRewardCents;
+      const reward = rewardCents / 100;
       const updated = await client.query(
         `UPDATE users SET balance = balance + $1, completed_tasks_count = completed_tasks_count + 1,
           updated_at = NOW() WHERE id = $2 RETURNING *`,
@@ -622,18 +689,12 @@ app.post("/api/withdrawal-requests", requireAuth, async (req, res) => {
   try {
     const result = await withTransaction(async (client) => {
       const locked = await client.query(
-        "SELECT balance FROM users WHERE id = $1 FOR UPDATE",
+        "SELECT balance, reserved_balance FROM users WHERE id = $1 FOR UPDATE",
         [req.session.userId],
       );
       if (!locked.rowCount) {
         throw Object.assign(new Error("الحساب غير موجود"), { status: 404 });
       }
-      const pending = await client.query(
-        `SELECT COALESCE(SUM(amount), 0) AS amount
-         FROM withdrawal_requests
-         WHERE user_id = $1 AND status = 'pending'`,
-        [req.session.userId],
-      );
       const availableBalance =
         Number(locked.rows[0].balance) - Number(locked.rows[0].reserved_balance);
       if (availableBalance < amount) {

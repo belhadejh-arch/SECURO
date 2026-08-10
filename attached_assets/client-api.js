@@ -71,6 +71,7 @@
     txLogs = payload.transactions || [];
     teamMembers = payload.teamMembers || [];
     referralEarnings = Number(payload.referralEarnings || 0);
+     referralEarningsByLevel = payload.referralEarningsByLevel || {};
 
     if (!isAdmin) {
       document.getElementById("user-balance").innerText = balance.toFixed(2);
@@ -293,6 +294,10 @@
     });
     document.getElementById("total-team-count").innerText = teamMembers.length;
     document.getElementById("total-referral-earnings").innerText = referralEarnings.toFixed(2);
+     [1, 2, 3].forEach((level) => {
+       const element = document.getElementById(`lvl${level}-earnings`);
+       if (element) element.innerText = `$${Number(referralEarningsByLevel[level] || 0).toFixed(2)}`;
+     });
     const container = document.getElementById("team-members-list");
     container.innerHTML = teamMembers.length
       ? teamMembers.map((member) => `

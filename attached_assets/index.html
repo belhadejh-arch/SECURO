@@ -740,18 +740,21 @@
                     <span class="level-badge lvl-1">المستوى 1</span>
                     <div style="font-size: 1.1rem; font-weight: 800; color: #fbbf24; margin: 4px 0;">10%</div>
                     <div style="font-size: 0.7rem; color: var(--text-muted);">مكافأة الإيداع</div>
+                    <div style="font-size: 0.7rem; color: #a7f3d0;">المكتسب: <span id="lvl1-earnings">$0.00</span></div>
                     <div style="font-size: 0.75rem; font-weight: bold; color: white; margin-top: 6px;" id="lvl1-count">0 شخص</div>
                 </div>
                 <div class="level-card">
                     <span class="level-badge lvl-2">المستوى 2</span>
                     <div style="font-size: 1.1rem; font-weight: 800; color: #60a5fa; margin: 4px 0;">5%</div>
                     <div style="font-size: 0.7rem; color: var(--text-muted);">مكافأة الإيداع</div>
+                    <div style="font-size: 0.7rem; color: #bfdbfe;">المكتسب: <span id="lvl2-earnings">$0.00</span></div>
                     <div style="font-size: 0.75rem; font-weight: bold; color: white; margin-top: 6px;" id="lvl2-count">0 شخص</div>
                 </div>
                 <div class="level-card">
                     <span class="level-badge lvl-3">المستوى 3</span>
                     <div style="font-size: 1.1rem; font-weight: 800; color: #34d399; margin: 4px 0;">1%</div>
                     <div style="font-size: 0.7rem; color: var(--text-muted);">مكافأة الإيداع</div>
+                    <div style="font-size: 0.7rem; color: #a7f3d0;">المكتسب: <span id="lvl3-earnings">$0.00</span></div>
                     <div style="font-size: 0.75rem; font-weight: bold; color: white; margin-top: 6px;" id="lvl3-count">0 شخص</div>
                 </div>
             </div>
@@ -1085,6 +1088,7 @@
 
     let teamMembers = [];
     let referralEarnings = 0.00;
+    let referralEarningsByLevel = {};
 
     let availableSpins = 0; 
     let isSpinning = false;

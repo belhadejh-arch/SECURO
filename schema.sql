@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   balance NUMERIC(14, 2) NOT NULL DEFAULT 0 CHECK (balance >= 0),
   reserved_balance NUMERIC(14, 2) NOT NULL DEFAULT 0 CHECK (reserved_balance >= 0),
   user_vip JSONB,
+  vip_expires_at TIMESTAMPTZ,
   completed_tasks_count INTEGER NOT NULL DEFAULT 0,
   task_last_reset_date DATE,
   last_claim_date DATE,
@@ -22,6 +23,22 @@ CREATE TABLE IF NOT EXISTS users (
 
 ALTER TABLE users
   ADD COLUMN IF NOT EXISTS reserved_balance NUMERIC(14, 2) NOT NULL DEFAULT 0;
+
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS vip_expires_at TIMESTAMPTZ;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'users_referred_by_not_self'
+  ) THEN
+    ALTER TABLE users
+      ADD CONSTRAINT users_referred_by_not_self
+      CHECK (referred_by IS NULL OR referred_by <> id);
+  END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS users_referred_by_idx ON users(referred_by);
 

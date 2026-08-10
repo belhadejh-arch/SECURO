@@ -1,4 +1,4 @@
-modules = ["web", "nodejs-20", "python-base-3.13"]
+modules = ["web", "nodejs-20"]
 [workflows]
 runButton = "Project"
 

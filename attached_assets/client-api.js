@@ -17,11 +17,17 @@
 
   async function api(url, options) {
     const requestUrl = /^https?:\/\//i.test(url) ? url : `${apiBaseUrl}${url}`;
-    const response = await fetch(requestUrl, {
-      credentials: "include",
-      headers: { "Content-Type": "application/json", ...(options && options.headers) },
-      ...options,
-    });
+    let response;
+    try {
+      response = await fetch(requestUrl, {
+        credentials: "include",
+        headers: { "Content-Type": "application/json", ...(options && options.headers) },
+        ...options,
+      });
+    } catch (error) {
+      console.error("API request failed:", requestUrl, error);
+      throw new Error("تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى.");
+    }
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.error || "حدث خطأ غير متوقع");
     return body;

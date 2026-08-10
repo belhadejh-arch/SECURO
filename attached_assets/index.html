@@ -678,7 +678,7 @@
                   </div>
                   <div style="width:42px;height:42px;border-radius:14px;background:rgba(59,130,246,.14);display:grid;place-items:center;color:#60a5fa;"><i class="fa-solid fa-arrow-right-to-bracket"></i></div>
                 </div>
-                <form class="form-group" id="auth-form" onsubmit="event.preventDefault(); handleAuth();">
+                <form class="form-group" id="auth-form" onsubmit="event.preventDefault(); window.handleAuth();">
                     <label class="field-label" id="reg-name-label" for="reg-name" style="display:none;">الاسم الكامل</label>
                     <input type="text" id="reg-name" placeholder="اكتب اسمك الكامل" style="display: none;">
                     <label class="field-label" for="auth-email">البريد الإلكتروني</label>
@@ -1320,7 +1320,7 @@
         { name: "فندق أتلانتس البالم - دبي", location: "الإمارات العربية المتحدة", img: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=600&q=80" }
     ];
 
-    window.onload = function() {
+    window.addEventListener('load', function() {
         drawWheel();
         
         let currentSlide = 0;
@@ -1332,7 +1332,7 @@
                 slides[currentSlide].classList.add('active');
             }, 3500);
         }
-    };
+    });
 
     function syncGlobalDatabase() {
         return Promise.resolve();
@@ -1482,62 +1482,6 @@
         } else {
             document.getElementById('bottom-nav').style.display = 'flex';
             switchTab('home');
-        }
-    }
-
-    function handleAuth() {
-        const email = document.getElementById('auth-email').value.trim().toLowerCase();
-        const pass = document.getElementById('auth-pass').value.trim();
-        const name = document.getElementById('reg-name').value.trim();
-
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if(!emailRegex.test(email)) {
-            openLoginErrorModal('⚠️ يرجى كتابة بريد إلكتروني صحيح (مثال: name@..mail.com)');
-            return;
-        }
-
-        if(pass.length < 6) {
-            openLoginErrorModal('⚠️ كلمة المرور يجب ألا تقل عن 6 أحرف أو أرقام!');
-            return;
-        }
-
-        syncGlobalDatabase();
-
-        if(isSignup) {
-            if(!name) { 
-                openLoginErrorModal('⚠️ يرجى كتابة الاسم الكامل لتكملة التسجيل'); 
-                return; 
-            }
-            
-            const exist = registeredUsers.find(u => u.email === email);
-            if(exist) {
-                openLoginErrorModal('⚠️ هذا البريد الإلكتروني مسجل بالفعل! يمكنك تسجيل الدخول مباشرة.');
-                return;
-            }
-
-            const userCode = Math.floor(100000 + Math.random() * 900000);
-            const newUser = { 
-                email, pass, name, inviteCode: userCode, isAdmin: false,
-                balance: 0.00, userVip: null, completedTasksCount: 0,
-                taskLastResetDate: null, lastClaimDate: null, currentTrialDay: 1, trialActive: false, trialUsed: false,
-                availableSpins: 0,
-                depositLogs: [], rewardLogs: [], withdrawLogs: [], txLogs: []
-            };
-            
-            registeredUsers.push(newUser);
-
-            loadUserSession(newUser);
-            document.getElementById('login-success-modal').style.display = 'flex';
-        } else {
-            const foundUser = registeredUsers.find(u => u.email === email && u.pass === pass);
-            
-            if(!foundUser) {
-                openLoginErrorModal('البريد الإلكتروني غير مسجل في المنصة أو كلمة المرور خاطئة!');
-                return;
-            }
-
-            loadUserSession(foundUser);
-            document.getElementById('login-success-modal').style.display = 'flex';
         }
     }
 

@@ -1664,6 +1664,7 @@
     let withdrawLogs = [];
     let txLogs = [];
     let lastClaimDate = null;
+    let isClaimingDailyReward = false;
     let pendingVip = null;
 
     let userVip = null;
@@ -2364,7 +2365,11 @@
         if (!claimBtn) return;
 
         const today = new Date().toISOString().split('T')[0];
-        
+        if (isClaimingDailyReward) {
+            claimBtn.disabled = true;
+            return;
+        }
+
         if (lastClaimDate === today) {
             claimBtn.disabled = true;
             claimBtn.className = "btn btn-disabled";
@@ -2377,6 +2382,9 @@
     }
 
     async function claimDailyReward() {
+        if (isClaimingDailyReward) return;
+        isClaimingDailyReward = true;
+        updateDailyRewardUI();
         try {
             const result = await window.securoApi("/api/rewards/daily", { method: "POST" });
             window.syncServerUser(result.user);
@@ -2384,11 +2392,19 @@
             document.getElementById('congrats-modal').style.display = 'flex';
         } catch (error) {
             if (error.message.includes("مسبقاً")) {
+                try {
+                    const payload = await window.securoApi("/api/me");
+                    window.syncServerUser(payload.user);
+                } catch (syncError) {
+                    console.error("Failed to sync daily reward state", syncError);
+                }
                 document.getElementById('already-claimed-modal').style.display = 'flex';
-                updateDailyRewardUI();
                 return;
             }
             showApiError(error);
+        } finally {
+            isClaimingDailyReward = false;
+            updateDailyRewardUI();
         }
     }
 

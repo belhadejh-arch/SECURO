@@ -97,6 +97,7 @@ const statusNames = {
   rejected: "مرفوض",
 };
 const rates = [0.1, 0.05, 0.01];
+const dailyRewardAmount = 0.1;
 const vipProducts = {
   "VIP 1": { price: 14, totalTasks: 3, totalReward: 1.2 },
   "VIP 2": { price: 24, totalTasks: 6, totalReward: 2.5 },
@@ -473,31 +474,30 @@ app.patch("/api/me/state", requireAuth, (_req, res) =>
 app.post("/api/rewards/daily", requireAuth, async (req, res) => {
   try {
     const result = await withTransaction(async (client) => {
-      const locked = await client.query(
-        "SELECT * FROM users WHERE id = $1 FOR UPDATE",
-        [req.session.userId],
-      );
-      if (!locked.rowCount) throw Object.assign(new Error("الحساب غير موجود"), { status: 404 });
-      const user = locked.rows[0];
-      const claimedToday =
-        user.last_claim_date &&
-        new Date(user.last_claim_date).toISOString().slice(0, 10) ===
-          new Date().toISOString().slice(0, 10);
-      if (claimedToday) throw Object.assign(new Error("تم استلام مكافأة اليوم مسبقاً"), { status: 409 });
       const updated = await client.query(
-        `UPDATE users SET balance = balance + 0.10, last_claim_date = CURRENT_DATE, updated_at = NOW()
-         WHERE id = $1 RETURNING *`,
-        [req.session.userId],
+        `UPDATE users
+         SET balance = balance + $1,
+             last_claim_date = CURRENT_DATE,
+             updated_at = NOW()
+         WHERE id = $2
+           AND (last_claim_date IS NULL OR last_claim_date <> CURRENT_DATE)
+         RETURNING *`,
+        [dailyRewardAmount, req.session.userId],
       );
+      if (!updated.rowCount) {
+        const exists = await client.query("SELECT 1 FROM users WHERE id = $1", [req.session.userId]);
+        if (!exists.rowCount) throw Object.assign(new Error("الحساب غير موجود"), { status: 404 });
+        throw Object.assign(new Error("تم استلام مكافأة اليوم مسبقاً"), { status: 409 });
+      }
       await client.query(
         `INSERT INTO transactions
           (user_id, type, amount, direction, description, reference_type, reference_id)
-         VALUES ($1, 'مكافأة', 0.10, 'credit', 'مكافأة تسجيل الدخول اليومية', 'daily_reward', NULL)`,
-        [req.session.userId],
+          VALUES ($1, 'مكافأة', $2, 'credit', 'مكافأة تسجيل الدخول اليومية', 'daily_reward', NULL)`,
+        [req.session.userId, dailyRewardAmount],
       );
       return publicUser(updated.rows[0]);
     });
-    res.json({ user: result, amount: 0.1 });
+    res.json({ user: result, amount: dailyRewardAmount });
   } catch (error) {
     appError(res, error.status || 500, error.status ? error.message : "تعذر استلام المكافأة اليومية");
   }

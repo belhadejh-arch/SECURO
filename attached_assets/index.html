@@ -694,6 +694,334 @@
             .trust-pill { padding-block: 6px; }
             .auth-card { padding-block: 14px; }
         }
+
+        /* Responsive foundation: keep every generated card and control inside its
+           available width, including content rendered later by JavaScript. */
+        html {
+            min-width: 0;
+            overflow-x: clip;
+            -webkit-text-size-adjust: 100%;
+        }
+        body {
+            width: 100%;
+            min-width: 0;
+            overflow-x: clip;
+            line-height: 1.45;
+        }
+        button, input, select, textarea {
+            font: inherit;
+            max-width: 100%;
+            touch-action: manipulation;
+        }
+        button, .btn, .action-item, .menu-item, .nav-link, .copy-btn,
+        .back-btn-arrow {
+            -webkit-tap-highlight-color: transparent;
+        }
+        button, .btn, .action-item, .menu-item, .copy-btn {
+            min-height: 48px;
+        }
+        img, canvas, svg, video {
+            max-width: 100%;
+        }
+        p, h1, h2, h3, h4, span, label, a {
+            overflow-wrap: anywhere;
+        }
+        .content {
+            width: 100%;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+        .screen > * {
+            max-width: 100%;
+        }
+        .form-group > * {
+            min-width: 0;
+        }
+        textarea {
+            min-height: 60px;
+            line-height: 1.55;
+        }
+        .subpage-header {
+            gap: 12px;
+        }
+        .subpage-header h2, .subpage-header h3 {
+            min-width: 0;
+            line-height: 1.35;
+        }
+        .back-btn-arrow {
+            flex: 0 0 42px;
+            width: 42px;
+            height: 42px;
+        }
+        .slider-container {
+            height: clamp(150px, 25vw, 230px);
+        }
+        .slide-caption {
+            line-height: 1.45;
+            overflow-wrap: anywhere;
+        }
+        .action-item {
+            min-width: 0;
+            min-height: 88px;
+        }
+        .action-title {
+            line-height: 1.3;
+        }
+        .wheel-card p {
+            max-width: 620px;
+            margin-inline: auto;
+            line-height: 1.55;
+        }
+        .stats-bar {
+            min-width: 0;
+        }
+        .stats-bar .stat-box {
+            min-width: 0;
+        }
+        .stat-num {
+            overflow-wrap: anywhere;
+        }
+        .balance-card, .referral-earnings-card, .task-progress-box,
+        .task-complete-card, .daily-reward-card, .deposit-notice-box,
+        .withdraw-info-box {
+            overflow-wrap: anywhere;
+        }
+        .support-banner-profile > * {
+            min-width: 0;
+        }
+        .support-banner-profile .btn {
+            flex: 0 1 auto;
+            width: auto;
+            min-width: 110px;
+        }
+        .hotel-info > * {
+            max-width: 100%;
+        }
+        .hotel-img {
+            height: clamp(135px, 28vw, 190px);
+        }
+        .hotel-img > div {
+            min-width: 0;
+        }
+        .hotel-img > div > div {
+            overflow-wrap: anywhere;
+        }
+        .vip-card h3, .vip-card p, .vip-card .btn,
+        .hotel-card h3, .hotel-card p, .hotel-card textarea {
+            max-width: 100%;
+        }
+        .history-card {
+            min-height: 64px;
+        }
+        .history-card > div {
+            min-width: 0;
+        }
+        .history-card .history-info {
+            overflow-wrap: anywhere;
+        }
+        .history-card [style*="text-align:left"],
+        .history-card [style*="text-align: left"] {
+            max-width: 100%;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+        .modal {
+            min-width: 0;
+            overscroll-behavior: contain;
+        }
+        .modal-content h2, .modal-content h3, .modal-content p,
+        .modal-content label, .modal-content span {
+            overflow-wrap: anywhere;
+        }
+        .modal-content .form-group {
+            min-width: 0;
+        }
+        #withdraw-modal {
+            padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)) !important;
+            align-items: flex-end !important;
+        }
+        #withdraw-modal .modal-content {
+            width: min(100%, 520px);
+            max-height: min(90dvh, 720px);
+            border-radius: 22px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 761px) and (max-width: 1020px) {
+            .content {
+                padding-inline: clamp(18px, 4vw, 32px);
+            }
+            .auth-layout {
+                grid-template-columns: minmax(0, 1fr) minmax(300px, 390px);
+                gap: clamp(18px, 4vw, 30px);
+            }
+            .auth-brand {
+                padding-inline: 4px;
+            }
+            .admin-hero {
+                padding: 22px;
+            }
+            .admin-panel {
+                padding: 18px;
+            }
+            .quick-actions {
+                gap: 12px;
+            }
+        }
+
+        @media (min-width: 1021px) {
+            .content {
+                padding-inline: clamp(24px, 4vw, 46px);
+            }
+            .screen:not(.admin-screen) {
+                max-width: 960px;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .app-container {
+                isolation: isolate;
+            }
+            .screen {
+                max-width: none;
+            }
+            .content {
+                min-height: 0;
+                padding-bottom: calc(84px + env(safe-area-inset-bottom));
+            }
+            .card, .vip-card, .hotel-card, .wheel-card {
+                border-radius: 15px;
+            }
+            .card {
+                padding: clamp(14px, 4vw, 18px);
+            }
+            .card h3 {
+                line-height: 1.4;
+            }
+            .slider-container {
+                height: clamp(148px, 43vw, 205px);
+                border-radius: 15px;
+            }
+            .slide-caption {
+                padding: 10px 9px;
+                font-size: clamp(.72rem, 2.8vw, .85rem);
+            }
+            .wheel-container-wrapper {
+                margin-block: 12px 16px;
+            }
+            .spin-center-btn {
+                width: 58px;
+                height: 58px;
+            }
+            .stats-bar {
+                justify-content: center;
+            }
+            .stats-bar > .stat-box {
+                flex: 1 1 30%;
+            }
+            .balance-card {
+                padding: 18px 14px;
+            }
+            .balance-amount {
+                font-size: clamp(1.75rem, 9vw, 2.2rem);
+                overflow-wrap: anywhere;
+            }
+            .support-banner-profile {
+                align-items: flex-start;
+            }
+            .support-banner-profile .btn {
+                min-width: 0;
+                width: auto;
+                padding-inline: 12px;
+            }
+            .history-card {
+                width: 100%;
+            }
+            .history-card .history-badge {
+                margin-inline-start: auto;
+            }
+            .menu-item {
+                padding: 13px 14px;
+            }
+            .menu-item select {
+                min-height: 40px;
+                max-width: 48%;
+            }
+            .modal-content {
+                width: 100%;
+                max-width: 520px;
+            }
+            .modal-content .btn {
+                min-height: 50px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .auth-card .auth-note {
+                font-size: .72rem;
+            }
+            .quick-actions {
+                gap: 7px;
+            }
+            .action-item {
+                min-height: 82px;
+            }
+            .action-icon {
+                width: 38px;
+                height: 38px;
+                font-size: 1.15rem;
+            }
+            .stats-bar {
+                gap: 5px;
+                padding-inline: 7px;
+            }
+            .stats-bar > .stat-box {
+                min-width: 0;
+            }
+            .stat-num {
+                font-size: .98rem;
+            }
+            .stat-lbl {
+                font-size: .64rem;
+            }
+            .support-banner-profile {
+                flex-wrap: wrap;
+            }
+            .support-banner-profile .btn {
+                flex: 1 1 100%;
+                width: 100%;
+            }
+            .history-card {
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 340px) {
+            .content {
+                padding-inline: 7px;
+            }
+            .auth-card {
+                padding-inline: 11px;
+            }
+            .quick-actions {
+                grid-template-columns: 1fr 1fr;
+            }
+            .levels-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats-bar > .stat-box {
+                flex-basis: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: .01ms !important;
+            }
+        }
     </style>
 </head>
 <body>

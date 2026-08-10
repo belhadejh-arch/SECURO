@@ -1016,6 +1016,150 @@
             }
         }
 
+        /* واجهة المصادقة الجديدة: نفس التدفق الوظيفي مع تخطيط مطابق للمرجع */
+        .auth-layout {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 22px;
+            min-height: calc(100dvh - 82px);
+            max-width: 560px;
+            padding: 8px 0 36px;
+        }
+        .auth-brand {
+            width: 100%;
+            padding: 0;
+            text-align: center;
+        }
+        .auth-brand .brand-mark,
+        .auth-brand h2,
+        .auth-brand p,
+        .auth-brand .trust-row {
+            display: none;
+        }
+        .auth-brand::before {
+            content: "SECURO";
+            display: block;
+            color: #3f8cff;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: clamp(1.45rem, 4vw, 1.8rem);
+            font-weight: 900;
+            letter-spacing: .14em;
+            text-shadow: 0 0 20px rgba(59, 130, 246, .22);
+        }
+        .auth-card {
+            width: min(100%, 430px);
+            max-width: 430px;
+            justify-self: auto;
+            margin: 0;
+            padding: 25px 22px 20px;
+            background: #1d293d;
+            border: 1px solid rgba(148, 163, 184, .16);
+            border-radius: 17px;
+            box-shadow: 0 18px 42px rgba(0, 0, 0, .22);
+        }
+        .auth-card > div:first-child {
+            justify-content: center !important;
+            margin-bottom: 17px !important;
+        }
+        .auth-card > div:first-child > div:last-child {
+            display: none;
+        }
+        .auth-card > div:first-child > div:first-child > div {
+            display: none;
+        }
+        .auth-card #auth-title {
+            margin: 0 !important;
+            color: #f8fafc !important;
+            font-size: clamp(1.45rem, 5vw, 1.75rem);
+            line-height: 1.35;
+            text-align: center;
+            font-weight: 800;
+        }
+        .auth-card .form-group {
+            gap: 10px;
+            margin-top: 0;
+        }
+        .auth-card .field-label {
+            display: none !important;
+        }
+        .auth-card input {
+            height: 46px;
+            min-height: 46px;
+            padding: 0 16px;
+            border: 1px solid rgba(148, 163, 184, .17);
+            border-radius: 12px;
+            background: #202d42;
+            color: #f8fafc;
+            font-size: .88rem;
+            text-align: right;
+        }
+        .auth-card input::placeholder {
+            color: #778399;
+            opacity: 1;
+        }
+        .auth-card input:focus {
+            border-color: #2f6ff2;
+            box-shadow: 0 0 0 3px rgba(47, 111, 242, .12);
+        }
+        .auth-card #reg-name,
+        .auth-card #invite-group {
+            margin-bottom: 0;
+        }
+        .auth-card #invite-group span {
+            display: none !important;
+        }
+        .auth-card .btn-primary {
+            height: 52px;
+            min-height: 52px;
+            margin-top: 1px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #2d6ff2, #2459df);
+            box-shadow: 0 9px 20px rgba(37, 99, 235, .32);
+            font-size: 1rem;
+        }
+        .auth-card .auth-note {
+            display: none;
+        }
+        .auth-card #toggle-text {
+            color: #4d8df8 !important;
+            font-size: .78rem !important;
+            font-weight: 600 !important;
+        }
+        .auth-card #admin-login-toggle {
+            color: #8794aa !important;
+            font-size: .72rem !important;
+        }
+        .app-container:has(#auth-screen.active) > header {
+            display: none;
+        }
+        @media (max-width: 760px) {
+            .content {
+                padding: 15px 14px 30px;
+            }
+            .auth-layout {
+                min-height: calc(100dvh - 64px);
+                gap: 23px;
+                padding: 8px 0 28px;
+            }
+            .auth-brand::before {
+                font-size: 1.45rem;
+            }
+            .auth-card {
+                max-width: 430px;
+                padding: 24px 14px 19px;
+            }
+        }
+        @media (max-width: 380px) {
+            .content {
+                padding-inline: 14px;
+            }
+            .auth-card {
+                padding-inline: 13px;
+            }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
                 animation-duration: .01ms !important;
@@ -1037,16 +1181,7 @@
         <!-- 1. شاشة تسجيل الدخول وإنشاء حساب -->
         <div id="auth-screen" class="screen active">
             <div class="auth-layout">
-              <div class="auth-brand">
-                <div class="brand-mark"><i class="fa-solid fa-shield-halved"></i></div>
-                <h2>إدارة أموالك<br><span>بذكاء وأمان.</span></h2>
-                <p>منصة SECURO تجمع لك إدارة الحساب، متابعة الأرباح، ونظام الإحالة في تجربة عربية بسيطة ومصممة للموبايل.</p>
-                <div class="trust-row">
-                  <div class="trust-pill"><i class="fa-solid fa-lock"></i> جلسات مشفّرة</div>
-                  <div class="trust-pill"><i class="fa-solid fa-database"></i> بيانات موثوقة</div>
-                  <div class="trust-pill"><i class="fa-solid fa-headset"></i> دعم مباشر</div>
-                </div>
-              </div>
+              <div class="auth-brand" aria-label="SECURO"></div>
               <div class="card auth-card">
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;">
                   <div>

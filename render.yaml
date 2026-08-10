@@ -15,6 +15,6 @@ services:
       - key: NEON_DATABASE_URL
         sync: false
       - key: FRONTEND_URL
-        sync: false
+        value: https://securo-m9ei-seven.vercel.app
       - key: COOKIE_SAME_SITE
         value: none

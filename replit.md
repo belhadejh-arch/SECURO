@@ -24,7 +24,7 @@ Required environment variables:
 - `NODE_ENV=production`
 - `NEON_DATABASE_URL` — PostgreSQL/Neon connection string
 - `SESSION_SECRET` — long random session secret
-- `FRONTEND_URL` — the exact Vercel URL, without a trailing slash
+- `FRONTEND_URL` — `https://securo-m9ei-seven.vercel.app`
 - `COOKIE_SAME_SITE=none`
 
 Run database initialization once before first use:
@@ -48,8 +48,8 @@ Vercel.
 
 The frontend package has a validation-only build, so no bundling step is needed.
 `attached_assets/vercel.json` forwards `/api/*` to the Render backend and sets
-no-cache headers. Replace `https://securo-backend.onrender.com` in that file
-with the final Render service URL before deploying the frontend.
+no-cache headers. The current Render service URL in that file is
+`https://securo-jmd1.onrender.com`.
 
 ## Deployment order
 

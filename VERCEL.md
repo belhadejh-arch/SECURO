@@ -45,7 +45,7 @@ Health Check Path: /api/health
 NODE_ENV=production
 NEON_DATABASE_URL=رابط PostgreSQL الحقيقي
 SESSION_SECRET=قيمة عشوائية طويلة
-FRONTEND_URL=https://اسم-مشروعك.vercel.app
+FRONTEND_URL=https://securo-m9ei-seven.vercel.app
 COOKIE_SAME_SITE=none
 ```
 
@@ -107,13 +107,13 @@ attached_assets/vercel.json
 واستبدل:
 
 ```text
-https://securo-backend.onrender.com
+https://securo-jmd1.onrender.com
 ```
 
 برابط خدمة Render الحقيقي، مثل:
 
 ```text
-https://اسم-خدمة-render.onrender.com
+https://securo-jmd1.onrender.com
 ```
 
 > إذا كان اسم خدمة Render مختلفاً، يجب استبدال الرابط الموجود في
@@ -128,9 +128,9 @@ https://اسم-خدمة-render.onrender.com
 2. شغّل `npm run db:init` مرة واحدة.
 3. انشر Backend على Render.
 4. انسخ رابط Render.
-5. حدّث `attached_assets/vercel.json` برابط Render.
+5. استخدم رابط Render الصحيح `https://securo-jmd1.onrender.com` في `attached_assets/vercel.json`.
 6. انشر `attached_assets` على Vercel.
-7. حدّث `FRONTEND_URL` في Render إلى رابط Vercel النهائي.
+7. اضبط `FRONTEND_URL` في Render على `https://securo-m9ei-seven.vercel.app`.
 8. أعد تشغيل Render واختبر تسجيل الدخول.
 
 ## أوامر التحقق

@@ -34,3 +34,4 @@ channel = "stable-25_05"
 
 [userenv.shared]
 ADMIN_EMAIL = "admin@securo.com"
+ADMIN_PASSWORD = "rekin81942@dnsink.com"

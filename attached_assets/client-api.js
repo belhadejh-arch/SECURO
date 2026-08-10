@@ -136,6 +136,7 @@
     const password = document.getElementById("auth-pass").value;
     const name = document.getElementById("reg-name").value.trim();
     const inviteCode = document.getElementById("invite-code-input").value.trim();
+    const adminLogin = typeof window.isAdminLoginMode === "function" && window.isAdminLoginMode();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return showApiError(new Error("يرجى كتابة بريد إلكتروني صحيح"));
     }
@@ -145,15 +146,24 @@
     const button = document.getElementById("auth-btn");
     button.disabled = true;
     try {
-      const result = await api(isSignup ? "/api/auth/register" : "/api/auth/login", {
+      const endpoint = adminLogin
+        ? "/api/auth/admin-login"
+        : isSignup
+          ? "/api/auth/register"
+          : "/api/auth/login";
+      const result = await api(endpoint, {
         method: "POST",
         body: JSON.stringify(
-          isSignup ? { name, email, password, inviteCode } : { email, password },
+          adminLogin
+            ? { email, password }
+            : isSignup
+              ? { name, email, password, inviteCode }
+              : { email, password },
         ),
       });
       const payload = await api("/api/me");
       enterApp(payload);
-      if (isSignup) {
+      if (isSignup && !adminLogin) {
         showCopyToast("تم إنشاء الحساب بنجاح ✅", "تم ربط حسابك بقاعدة البيانات ويمكنك الآن استخدام المنصة.");
       }
     } catch (error) {
@@ -382,6 +392,7 @@
     await api("/api/auth/logout", { method: "POST" }).catch(() => {});
     currentUser = null;
     isAdmin = false;
+    if (typeof window.setAuthMode === "function") window.setAuthMode("user");
     document.getElementById("bottom-nav").style.display = "none";
     document.querySelectorAll(".screen").forEach((screen) => screen.classList.remove("active"));
     document.getElementById("auth-screen").classList.add("active");
@@ -391,7 +402,7 @@
     document.getElementById("reg-name").value = "";
   };
 
-  function showInviteRegistration(invite) {
+  async function showInviteRegistration(invite) {
     const inviteInput = document.getElementById("invite-code-input");
     const authScreen = document.getElementById("auth-screen");
     const bottomNav = document.getElementById("bottom-nav");
@@ -400,6 +411,9 @@
 
     // An invitation link always starts a fresh registration flow. Do not let a
     // previously saved session route this browser into an existing account.
+    await api("/api/auth/logout", { method: "POST" }).catch(() => {});
+    currentUser = null;
+    isAdmin = false;
     if (!isSignup && typeof window.toggleAuth === "function") window.toggleAuth();
     inviteInput.value = normalizedInvite;
     inviteInput.readOnly = true;
@@ -411,7 +425,7 @@
 
   window.addEventListener("load", async () => {
     const invite = new URLSearchParams(window.location.search).get("invite");
-    if (showInviteRegistration(invite)) return;
+    if (await showInviteRegistration(invite)) return;
     try {
       const session = await api("/api/auth/session");
       if (session.authenticated) enterApp(await api("/api/me"));

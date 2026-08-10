@@ -294,6 +294,12 @@ function requireAuth(req, res, next) {
   next();
 }
 
+function requireUser(req, res, next) {
+  if (!req.session.userId) return appError(res, 401, "يجب تسجيل الدخول أولاً");
+  if (req.session.isAdmin) return appError(res, 403, "هذه العملية متاحة لحسابات المستخدمين فقط");
+  next();
+}
+
 function requireAdmin(req, res, next) {
   if (!req.session.userId) {
     return appError(res, 403, "ليس لديك صلاحية المشرف");
@@ -418,14 +424,40 @@ app.post("/api/auth/login", async (req, res) => {
     if (!user || !(await bcrypt.compare(password, user.password_hash))) {
       return appError(res, 401, "البريد الإلكتروني غير مسجل أو كلمة المرور خاطئة");
     }
+    if (user.is_admin) {
+      return appError(res, 403, "هذا حساب إداري. استخدم صفحة دخول الإدارة");
+    }
     await regenerateSession(req);
     req.session.userId = user.id;
-    req.session.isAdmin = Boolean(user.is_admin);
+    req.session.isAdmin = false;
     await saveSession(req);
     res.json({ user: publicUser(user) });
   } catch (error) {
     console.error("Login failed:", error.code || error.message);
     appError(res, 500, "تعذر تسجيل الدخول");
+  }
+});
+
+app.post("/api/auth/admin-login", async (req, res) => {
+  const email = normalizeEmail(req.body.email);
+  const password = String(req.body.password || "");
+  try {
+    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
+    const user = result.rows[0];
+    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+      return appError(res, 401, "البريد الإلكتروني غير مسجل أو كلمة المرور خاطئة");
+    }
+    if (!user.is_admin) {
+      return appError(res, 403, "هذا الحساب لا يملك صلاحيات الإدارة");
+    }
+    await regenerateSession(req);
+    req.session.userId = user.id;
+    req.session.isAdmin = true;
+    await saveSession(req);
+    res.json({ user: publicUser(user) });
+  } catch (error) {
+    console.error("Admin login failed:", error.code || error.message);
+    appError(res, 500, "تعذر تسجيل دخول الإدارة");
   }
 });
 
@@ -467,11 +499,11 @@ app.get("/api/me", requireAuth, async (req, res) => {
 
 // Account state is server-owned. Never accept a client-supplied balance,
 // reward, task count, VIP object, or spin count.
-app.patch("/api/me/state", requireAuth, (_req, res) =>
+app.patch("/api/me/state", requireUser, (_req, res) =>
   appError(res, 405, "لا يمكن تعديل حالة الحساب مباشرة"),
 );
 
-app.post("/api/rewards/daily", requireAuth, async (req, res) => {
+app.post("/api/rewards/daily", requireUser, async (req, res) => {
   try {
     const result = await withTransaction(async (client) => {
       const updated = await client.query(
@@ -503,7 +535,7 @@ app.post("/api/rewards/daily", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/vip/trial", requireAuth, async (req, res) => {
+app.post("/api/vip/trial", requireUser, async (req, res) => {
   try {
     const result = await withTransaction(async (client) => {
       await syncVipState(client, req.session.userId);
@@ -528,7 +560,7 @@ app.post("/api/vip/trial", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/vip/purchase", requireAuth, async (req, res) => {
+app.post("/api/vip/purchase", requireUser, async (req, res) => {
   const name = String(req.body.name || "").trim();
   const product = vipProducts[name];
   if (!product) return appError(res, 400, "عضوية VIP غير صالحة");
@@ -567,7 +599,7 @@ app.post("/api/vip/purchase", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/wheel/spin", requireAuth, async (req, res) => {
+app.post("/api/wheel/spin", requireUser, async (req, res) => {
   try {
     const result = await withTransaction(async (client) => {
       const locked = await client.query("SELECT * FROM users WHERE id = $1 FOR UPDATE", [req.session.userId]);
@@ -599,7 +631,7 @@ app.post("/api/wheel/spin", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/tasks/:taskIndex/start", requireAuth, async (req, res) => {
+app.post("/api/tasks/:taskIndex/start", requireUser, async (req, res) => {
   const taskIndex = Number(req.params.taskIndex);
   if (!Number.isInteger(taskIndex) || taskIndex < 0) return appError(res, 400, "مهمة غير صالحة");
   const comment = String(req.body.comment || "").trim();
@@ -636,7 +668,7 @@ app.post("/api/tasks/:taskIndex/start", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/tasks/:taskIndex/complete", requireAuth, async (req, res) => {
+app.post("/api/tasks/:taskIndex/complete", requireUser, async (req, res) => {
   const taskIndex = Number(req.params.taskIndex);
   if (!Number.isInteger(taskIndex) || taskIndex < 0) return appError(res, 400, "مهمة غير صالحة");
   const comment = String(req.body.comment || "").trim();
@@ -695,7 +727,7 @@ app.post("/api/tasks/:taskIndex/complete", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/deposit-requests", requireAuth, async (req, res) => {
+app.post("/api/deposit-requests", requireUser, async (req, res) => {
   const amount = Number(req.body.amount);
   const txid = String(req.body.txid || "").trim();
   if (!Number.isFinite(amount) || amount < 10) return appError(res, 400, "الحد الأدنى للإيداع هو 10 دولارات");
@@ -713,7 +745,7 @@ app.post("/api/deposit-requests", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/withdrawal-requests", requireAuth, async (req, res) => {
+app.post("/api/withdrawal-requests", requireUser, async (req, res) => {
   const bank = String(req.body.bank || "").trim();
   const account = String(req.body.account || "").trim();
   const amount = Number(req.body.amount);

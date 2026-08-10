@@ -39,7 +39,7 @@
             height: 100vh; height: 100dvh;
             background-color: var(--bg-body);
             display: flex; flex-direction: column; position: relative;
-            overflow: hidden; color: var(--text-white);
+            overflow-x: hidden; overflow-y: hidden; color: var(--text-white);
             box-shadow: 0 0 80px rgba(15, 23, 42, 0.55);
         }
 
@@ -60,8 +60,9 @@
         }
 
         .content {
-            flex: 1; min-height: 0; overflow-y: auto; padding: 24px; padding-bottom: 90px;
-            overscroll-behavior-y: contain;
+            flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
+            -webkit-overflow-scrolling: touch; touch-action: pan-y;
+            padding: 24px; padding-bottom: 90px; overscroll-behavior-y: contain;
         }
         .screen { display: none; }
         .screen.active { display: block; animation: fadeIn 0.3s ease-in-out; }
@@ -464,9 +465,10 @@
 
         /* طبقة ضبط الواجهة: تحافظ على نفس الوظائف وتمنع التداخل */
         html, body { overflow-x: hidden; }
+        body { overflow-y: hidden; }
         .app-container, .content, .screen, .card, .admin-panel,
         .history-card, .auth-card, .vip-card, .hotel-card { min-width: 0; }
-        .content { scrollbar-gutter: stable; }
+        .content { scrollbar-gutter: stable; overflow-y: auto !important; }
         .screen { width: 100%; max-width: 1120px; margin-inline: auto; }
         .auth-layout {
             grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
@@ -1073,6 +1075,9 @@
                 <div style="text-align: center; margin-top: 18px;">
                     <span id="toggle-text" style="color: #60a5fa; cursor: pointer; font-size: 0.88rem; font-weight: bold;" onclick="toggleAuth()">ليس لديك حساب؟ إنشاء حساب جديد</span>
                 </div>
+                <div style="text-align: center; margin-top: 12px;">
+                    <span id="admin-login-toggle" style="color: #fbbf24; cursor: pointer; font-size: 0.82rem; font-weight: bold;" onclick="toggleAdminLogin()">🔐 دخول الإدارة</span>
+                </div>
               </div>
                 </div>
             </div>
@@ -1645,6 +1650,7 @@
 
 <script>
     let isSignup = false;
+    let isAdminLogin = false;
     let currentUser = null;
     let balance = 0.00;
     let isAdmin = false;
@@ -1665,6 +1671,7 @@
     let txLogs = [];
     let lastClaimDate = null;
     let isClaimingDailyReward = false;
+    let dailyRewardTimerInterval = null;
     let pendingVip = null;
 
     let userVip = null;
@@ -1829,13 +1836,43 @@
     }
 
     function toggleAuth() {
+        isAdminLogin = false;
         isSignup = !isSignup;
+        updateAuthModeUI();
+    }
+
+    function toggleAdminLogin() {
+        isAdminLogin = !isAdminLogin;
+        isSignup = false;
+        updateAuthModeUI();
+    }
+
+    function isAdminLoginMode() {
+        return isAdminLogin;
+    }
+    window.isAdminLoginMode = isAdminLoginMode;
+    window.setAuthMode = function(mode) {
+        isAdminLogin = mode === 'admin';
+        isSignup = false;
+        updateAuthModeUI();
+    };
+
+    function updateAuthModeUI() {
         document.getElementById('reg-name').style.display = isSignup ? 'block' : 'none';
         document.getElementById('reg-name-label').style.display = isSignup ? 'block' : 'none';
         document.getElementById('invite-group').style.display = isSignup ? 'block' : 'none';
-        document.getElementById('auth-title').innerText = isSignup ? 'إنشاء حساب جديد' : 'تسجيل الدخول';
-        document.getElementById('auth-btn').innerText = isSignup ? '🚀 إنشاء الحساب' : '🚀 دخول';
-        document.getElementById('toggle-text').innerText = isSignup ? 'لديك حساب بالفعل؟ دخول' : 'ليس لديك حساب؟ إنشاء حساب جديد';
+        document.getElementById('auth-title').innerText = isAdminLogin ? 'دخول الإدارة' : (isSignup ? 'إنشاء حساب جديد' : 'تسجيل الدخول');
+        document.getElementById('auth-btn').innerText = isAdminLogin ? '🔐 دخول Admin' : (isSignup ? '🚀 إنشاء الحساب' : '🚀 دخول');
+        document.getElementById('toggle-text').innerText = isAdminLogin ? 'العودة إلى دخول المستخدم' : (isSignup ? 'لديك حساب بالفعل؟ دخول' : 'ليس لديك حساب؟ إنشاء حساب جديد');
+        document.getElementById('toggle-text').setAttribute('onclick', isAdminLogin ? 'toggleAdminLogin()' : 'toggleAuth()');
+        document.getElementById('admin-login-toggle').innerText = isAdminLogin ? '👤 العودة إلى دخول المستخدم' : '🔐 دخول الإدارة';
+    }
+
+    function startDailyRewardClock() {
+        if (dailyRewardTimerInterval) return;
+        dailyRewardTimerInterval = setInterval(() => {
+            if (currentUser && !isAdmin) updateDailyRewardUI();
+        }, 1000);
     }
 
     function openLoginErrorModal(msg) {
@@ -2363,6 +2400,7 @@
     function updateDailyRewardUI() {
         const claimBtn = document.getElementById('claim-btn');
         if (!claimBtn) return;
+        startDailyRewardClock();
 
         const today = new Date().toISOString().split('T')[0];
         if (isClaimingDailyReward) {

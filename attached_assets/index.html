@@ -457,6 +457,196 @@
             .admin-stats { grid-template-columns: 1fr; gap: 10px; }
             .admin-stats .stat-box { text-align: center; }
         }
+
+        /* طبقة ضبط الواجهة: تحافظ على نفس الوظائف وتمنع التداخل */
+        html, body { overflow-x: hidden; }
+        .app-container, .content, .screen, .card, .admin-panel,
+        .history-card, .auth-card, .vip-card, .hotel-card { min-width: 0; }
+        .content { scrollbar-gutter: stable; }
+        .screen { width: 100%; max-width: 1120px; margin-inline: auto; }
+        .auth-layout {
+            grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
+            width: 100%;
+        }
+        .auth-brand, .auth-card { min-width: 0; }
+        .auth-card {
+            justify-self: stretch;
+            width: 100%;
+            padding: clamp(18px, 2.4vw, 26px);
+        }
+        .auth-card form { width: 100%; }
+        .auth-card .field-label {
+            margin: 0;
+            line-height: 1.35;
+        }
+        .auth-card input,
+        .auth-card .btn {
+            width: 100%;
+            min-height: 52px;
+            height: 52px;
+            margin: 0;
+        }
+        .auth-card input { flex: 0 0 52px; }
+        .auth-card #invite-group {
+            width: 100%;
+            min-width: 0;
+        }
+        .auth-card #invite-group input {
+            margin-top: 10px;
+        }
+        .auth-card #invite-group span {
+            line-height: 1.45;
+            overflow-wrap: anywhere;
+        }
+        .auth-note {
+            align-items: flex-start;
+            overflow-wrap: anywhere;
+        }
+
+        .admin-screen { width: 100%; }
+        .admin-hero { min-width: 0; }
+        .admin-hero-copy { min-width: 0; }
+        .admin-hero-copy > div:last-child { min-width: 0; }
+        .admin-hero h2, .admin-hero p,
+        .admin-panel h3 { overflow-wrap: anywhere; }
+        .admin-panel { overflow: hidden; }
+        .admin-panel > [id$="-list"],
+        .admin-panel > [id$="-requests"] {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .admin-panel .history-card {
+            margin-bottom: 0;
+            width: 100%;
+        }
+        .admin-panel .history-info,
+        .admin-panel .history-card > div:first-child {
+            min-width: 0;
+        }
+        .admin-panel .history-title,
+        .admin-panel .history-date {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        .card, .vip-card, .hotel-card, .wheel-card, .history-card {
+            overflow: hidden;
+        }
+        .card h3, .history-title, .history-date,
+        .menu-item, .support-banner-profile, .action-item {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+        .history-card { gap: 12px; }
+        .history-info { min-width: 0; }
+        .history-card > * { max-width: 100%; }
+        .history-badge { white-space: nowrap; }
+        .copy-input-container { align-items: stretch; }
+        .copy-input-container input { min-width: 0; }
+        .copy-btn { min-height: 48px; }
+        .levels-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .level-card { min-width: 0; overflow: hidden; }
+        .level-card span { overflow-wrap: anywhere; }
+        .wheel-container-wrapper { max-width: 100%; }
+        .wheel-canvas { max-width: 100%; height: auto; aspect-ratio: 1; }
+        .modal { overflow-y: auto; }
+        .modal-content { max-height: calc(100dvh - 32px); overflow-y: auto; }
+
+        @media (max-width: 760px) {
+            .content { padding: 14px 12px 84px; }
+            .auth-layout {
+                display: flex;
+                flex-direction: column;
+                gap: 18px;
+                padding: 16px 0 24px;
+            }
+            .auth-brand {
+                width: 100%;
+                padding: 8px 4px 0;
+            }
+            .auth-brand h2 {
+                font-size: clamp(1.8rem, 9vw, 2.35rem);
+                margin-bottom: 10px;
+            }
+            .auth-brand p { line-height: 1.7; }
+            .trust-row { gap: 7px; margin-top: 16px; }
+            .trust-pill { padding: 8px 10px; font-size: .72rem; }
+            .auth-card {
+                max-width: 100%;
+                padding: 18px 16px;
+                border-radius: 18px;
+            }
+            .auth-card .form-group { gap: 10px; margin-top: 18px; }
+            .auth-card input, .auth-card .btn {
+                min-height: 50px;
+                height: 50px;
+            }
+            .admin-hero {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+                padding: 18px;
+                border-radius: 18px;
+            }
+            .admin-hero-copy { align-items: center; }
+            .admin-hero h2 { font-size: 1.18rem; }
+            .admin-refresh { width: 100%; }
+            .admin-panel { padding: 14px; }
+            .admin-panel h3 { line-height: 1.45; }
+            .admin-panel .history-card {
+                align-items: stretch;
+                flex-direction: column;
+            }
+            .admin-panel .history-card > div:first-child {
+                width: 100%;
+            }
+            .admin-panel .history-card > div:first-child > div:last-child,
+            .admin-panel .history-card > div:last-child {
+                text-align: start !important;
+                white-space: normal !important;
+            }
+            .quick-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+            .action-item { min-height: 86px; padding: 10px 6px; }
+            .stats-bar { flex-wrap: wrap; gap: 8px; padding: 10px; }
+            .stats-bar > .stat-box {
+                flex: 1 1 28%;
+                min-width: 78px;
+            }
+            .stats-bar > div[style*="height: 25px"] { display: none !important; }
+            .support-banner-profile { gap: 10px; padding: 13px; }
+            .support-banner-profile > div:first-child { min-width: 0; }
+            .balance-amount { font-size: 2rem; }
+            .copy-input-container { flex-direction: column; gap: 8px; }
+            .copy-btn { width: 100%; padding: 12px 16px; }
+            .levels-grid { gap: 7px; }
+            .level-card { padding: 10px 5px; }
+            .level-card > div { font-size: .68rem !important; }
+            .wheel-card { padding: 14px 10px; }
+            .wheel-container-wrapper { width: min(230px, 68vw); height: min(230px, 68vw); }
+            .history-card { align-items: flex-start; flex-wrap: wrap; }
+            .history-card > .history-info { flex: 1 1 65%; }
+            .history-card > div:last-child { max-width: 100%; }
+            .menu-item { gap: 10px; min-height: 54px; }
+            .menu-item > span:first-child { min-width: 0; }
+            .vip-card, .hotel-card { margin-bottom: 12px; }
+            .vip-card p { line-height: 1.55; }
+        }
+
+        @media (max-width: 380px) {
+            header { padding-inline: 12px; }
+            header h1 { font-size: 1.25rem; }
+            .content { padding-inline: 9px; }
+            .auth-card { padding-inline: 13px; }
+            .auth-card > div:first-child { gap: 8px !important; }
+            .auth-card > div:first-child h2 { font-size: 1.25rem !important; }
+            .trust-pill { font-size: .68rem; padding-inline: 8px; }
+            .levels-grid { grid-template-columns: 1fr; }
+            .level-card { padding: 12px; }
+            .level-card > div { font-size: .78rem !important; }
+            .nav-link { font-size: .62rem; }
+            .nav-link span { font-size: 1.1rem; }
+        }
     </style>
 </head>
 <body>

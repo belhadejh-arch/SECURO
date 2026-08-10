@@ -143,3 +143,7 @@ ALTER TABLE task_attempts
 
 CREATE INDEX IF NOT EXISTS task_attempts_user_day_idx
   ON task_attempts(user_id, task_day, task_index);
+
+CREATE UNIQUE INDEX IF NOT EXISTS transactions_task_attempt_unique
+  ON transactions(user_id, reference_type, reference_id)
+  WHERE reference_type = 'task_attempt' AND reference_id IS NOT NULL;

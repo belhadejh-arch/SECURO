@@ -1677,6 +1677,8 @@
     let userVip = null;
     let completedTasksCount = 0;
     let taskLastResetDate = null;
+    let taskStatuses = [];
+    let taskDaySyncInterval = null;
     let currentTrialDay = 1;
     let trialActive = false;
     let trialUsed = false;
@@ -2016,16 +2018,25 @@
     }
 
     function checkMidnightReset() {
-        const todayStr = new Date().toISOString().split('T')[0];
-        if (taskLastResetDate && taskLastResetDate !== todayStr) {
-            completedTasksCount = 0;
-            taskLastResetDate = todayStr;
-            if (userVip && userVip.isTrial) {
-                currentTrialDay++;
-            }
-            saveUserData();
-        }
         updateDailyRewardUI();
+    }
+
+    function startTaskDaySync() {
+        if (taskDaySyncInterval) return;
+        taskDaySyncInterval = setInterval(async () => {
+            const today = new Date().toISOString().split('T')[0];
+            if (!taskLastResetDate || taskLastResetDate === today || !currentUser || isAdmin) return;
+            try {
+                const payload = await window.securoApi("/api/me");
+                taskStatuses = payload.taskStatuses || [];
+                window.syncServerUser(payload.user);
+                if (document.getElementById('tasks-screen')?.classList.contains('active')) {
+                    renderTasksScreen();
+                }
+            } catch (error) {
+                console.error("Failed to refresh daily task state", error);
+            }
+        }, 30000);
     }
 
     function setupUserInviteData() {
@@ -2061,6 +2072,8 @@
         userVip = null;
         completedTasksCount = 0;
         if(midnightTimerInterval) clearInterval(midnightTimerInterval);
+        if(taskDaySyncInterval) clearInterval(taskDaySyncInterval);
+        taskDaySyncInterval = null;
         
         document.getElementById('bottom-nav').style.display = 'none';
         document.getElementById('admin-screen').classList.remove('active');
@@ -2219,8 +2232,6 @@
         const container = document.getElementById('tasks-container');
         container.innerHTML = "";
 
-        checkMidnightReset();
-
         if(!userVip) {
             statusEl.innerText = "العضوية الحالية: غير مشترك";
             progressEl.innerText = "المهام المنجزة: 0 / 0";
@@ -2263,13 +2274,26 @@
             return;
         }
 
-        const remainingTasks = userVip.totalTasks - completedTasksCount;
-        for (let i = 0; i < Math.min(remainingTasks, hotelsList.length); i++) {
+        const taskCount = Math.min(Number(userVip.totalTasks), hotelsList.length);
+        for (let taskIndex = 0; taskIndex < taskCount; taskIndex++) {
+            const i = taskIndex;
             const hotel = hotelsList[i];
-            const taskIndex = completedTasksCount + i;
-            
-            let isRunning = activeTaskTimers[taskIndex] && activeTaskTimers[taskIndex].running;
-            let currentSec = isRunning ? activeTaskTimers[taskIndex].timeLeft : 60;
+            const status = taskStatuses.find((item) => Number(item.taskIndex) === taskIndex);
+            const isCompleted = Boolean(status && status.completed);
+            const isRunning = Boolean(!isCompleted && (
+                activeTaskTimers[taskIndex]?.running || status?.startedAt
+            ));
+            const elapsed = status?.startedAt
+                ? Math.floor((Date.now() - new Date(status.startedAt).getTime()) / 1000)
+                : 0;
+            const currentSec = isRunning
+                ? Math.max(0, activeTaskTimers[taskIndex]?.timeLeft ?? (60 - elapsed))
+                : 60;
+            const buttonText = isCompleted
+                ? "✅ مكتملة اليوم — المكافأة مستلمة"
+                : isRunning
+                    ? `⏳ المهمة قيد المراجعة (${currentSec}ث)...`
+                    : `📤 إرسال التقييم واستلام العمولة ($${taskReward.toFixed(2)})`;
 
             container.innerHTML += `
                 <div class="hotel-card" id="hotel-card-${taskIndex}">
@@ -2281,21 +2305,24 @@
                         </div>
                     </div>
                     <div class="hotel-info" id="hotel-info-${taskIndex}">
-                        <textarea id="comment-${taskIndex}" placeholder="اكتب تعليقاً إيجابياً مميزاً..." style="margin-top: 8px; font-size: 0.85rem; height: 60px;" ${isRunning ? 'disabled' : ''}>فندق ممتاز وخدمة راقية جداً!</textarea>
-                        <button class="btn ${isRunning ? 'btn-disabled' : 'btn-primary'}" id="btn-task-${taskIndex}" style="margin-top: 10px; padding: 10px;" ${isRunning ? 'disabled' : ''} onclick="submitHotelTask(${taskIndex})">
-                            ${isRunning ? `⏳ المهمة قيد المراجعة (${currentSec}ث)...` : `📤 إرسال التقييم واستلام العمولة ($${taskReward.toFixed(2)})`}
+                        <textarea id="comment-${taskIndex}" placeholder="اكتب تعليقاً إيجابياً مميزاً..." style="margin-top: 8px; font-size: 0.85rem; height: 60px;" ${isRunning || isCompleted ? 'disabled' : ''}>${status?.comment || 'فندق ممتاز وخدمة راقية جداً!'}</textarea>
+                        <button class="btn ${isRunning || isCompleted ? 'btn-disabled' : 'btn-primary'}" id="btn-task-${taskIndex}" style="margin-top: 10px; padding: 10px;" ${isRunning || isCompleted ? 'disabled' : ''} onclick="submitHotelTask(${taskIndex})">
+                            ${buttonText}
                         </button>
                     </div>
                 </div>
             `;
 
-            if (isRunning) {
+            if (isRunning || isCompleted) {
                 let btn = document.getElementById(`btn-task-${taskIndex}`);
                 if(btn) {
                     btn.style.backgroundColor = "#fef3c7";
                     btn.style.color = "#d97706";
                     btn.style.border = "1px solid #fde68a";
                 }
+            }
+            if (isRunning && status?.startedAt && !activeTaskTimers[taskIndex]) {
+                startTaskTimer(taskIndex, status.comment || "", status.startedAt);
             }
         }
     }
@@ -2311,8 +2338,7 @@
 
             if (timeLeftMs <= 0) {
                 clearInterval(midnightTimerInterval);
-                checkMidnightReset();
-                renderTasksScreen();
+                window.refreshServerMe?.().finally(() => renderTasksScreen());
                 return;
             }
 
@@ -2327,8 +2353,59 @@
         }, 1000);
     }
 
+    function startTaskTimer(taskIdx, comment, startedAtValue) {
+        if (activeTaskTimers[taskIdx]?.running) return;
+        const startedAt = new Date(startedAtValue).getTime();
+        activeTaskTimers[taskIdx] = {
+            running: true,
+            timeLeft: Math.max(0, 60 - Math.floor((Date.now() - startedAt) / 1000))
+        };
+
+        const timer = setInterval(() => {
+            if (!activeTaskTimers[taskIdx]) {
+                clearInterval(timer);
+                return;
+            }
+
+            activeTaskTimers[taskIdx].timeLeft--;
+            const timeLeft = activeTaskTimers[taskIdx].timeLeft;
+            const currentBtn = document.getElementById(`btn-task-${taskIdx}`);
+            if (currentBtn) {
+                currentBtn.innerHTML = `⏳ المهمة قيد المراجعة (${Math.max(0, timeLeft)}ث)...`;
+            }
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                delete activeTaskTimers[taskIdx];
+                window.securoApi(`/api/tasks/${taskIdx}/complete`, {
+                    method: "POST",
+                    body: JSON.stringify({ comment }),
+                }).then((result) => {
+                    window.syncServerUser(result.user);
+                    taskStatuses = [
+                        ...taskStatuses.filter((item) => Number(item.taskIndex) !== Number(taskIdx)),
+                        { taskIndex: Number(result.taskIndex ?? taskIdx), completed: true },
+                    ];
+                    if (result.alreadyCompleted) {
+                        renderTasksScreen();
+                        return;
+                    }
+                    document.getElementById('task-success-msg').innerHTML =
+                        `لقد ربحت <strong>$${Number(result.reward).toFixed(2)}</strong> عن إتمام المهمة بنجاح وتضافرت الأرباح إلى رصيدك.`;
+                    document.getElementById('task-success-modal').style.display = 'flex';
+                    renderTasksScreen();
+                }).catch((error) => {
+                    showApiError(error);
+                    renderTasksScreen();
+                });
+            }
+        }, 1000);
+    }
+
     async function submitHotelTask(taskIdx) {
         if (activeTaskTimers[taskIdx] && activeTaskTimers[taskIdx].running) return;
+        const existingStatus = taskStatuses.find((item) => Number(item.taskIndex) === Number(taskIdx));
+        if (existingStatus?.completed) return;
         const btn = document.getElementById(`btn-task-${taskIdx}`);
         const textarea = document.getElementById(`comment-${taskIdx}`);
         const comment = textarea ? textarea.value.trim() : "";
@@ -2346,6 +2423,13 @@
             showApiError(error);
             return;
         }
+        if (started.completed) {
+            taskStatuses = taskStatuses.map((item) =>
+                Number(item.taskIndex) === Number(taskIdx) ? { ...item, completed: true } : item
+            );
+            renderTasksScreen();
+            return;
+        }
         if(textarea) textarea.disabled = true;
         if(btn) {
             btn.disabled = true;
@@ -2356,41 +2440,16 @@
             btn.style.border = "1px solid #fde68a";
         }
 
-        const startedAt = new Date(started.startedAt).getTime();
-        activeTaskTimers[taskIdx] = { running: true, timeLeft: Math.max(0, 60 - Math.floor((Date.now() - startedAt) / 1000)) };
-
-        const timer = setInterval(() => {
-            if (!activeTaskTimers[taskIdx]) {
-                clearInterval(timer);
-                return;
-            }
-
-            activeTaskTimers[taskIdx].timeLeft--;
-            let timeLeft = activeTaskTimers[taskIdx].timeLeft;
-
-            let currentBtn = document.getElementById(`btn-task-${taskIdx}`);
-            if (currentBtn) {
-                currentBtn.innerHTML = `⏳ المهمة قيد المراجعة (${timeLeft}ث)...`;
-            }
-
-            if (timeLeft <= 0) {
-                clearInterval(timer);
-                delete activeTaskTimers[taskIdx];
-                window.securoApi(`/api/tasks/${taskIdx}/complete`, {
-                    method: "POST",
-                    body: JSON.stringify({ comment }),
-                }).then((result) => {
-                    window.syncServerUser(result.user);
-                    document.getElementById('task-success-msg').innerHTML =
-                        `لقد ربحت <strong>$${Number(result.reward).toFixed(2)}</strong> عن إتمام المهمة بنجاح وتضافرت الأرباح إلى رصيدك.`;
-                    document.getElementById('task-success-modal').style.display = 'flex';
-                    renderTasksScreen();
-                }).catch((error) => {
-                    showApiError(error);
-                    renderTasksScreen();
-                });
-            }
-        }, 1000);
+        taskStatuses = [
+            ...taskStatuses.filter((item) => Number(item.taskIndex) !== Number(taskIdx)),
+            {
+                taskIndex: Number(started.taskIndex ?? taskIdx),
+                comment,
+                startedAt: started.startedAt,
+                completed: false
+            },
+        ];
+        startTaskTimer(taskIdx, comment, started.startedAt);
     }
 
     function closeTaskSuccessModal() {

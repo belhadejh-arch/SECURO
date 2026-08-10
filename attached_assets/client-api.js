@@ -68,6 +68,7 @@
     userVip = payload.user.userVip || null;
     completedTasksCount = Number(payload.user.completedTasksCount || 0);
     taskLastResetDate = payload.user.taskLastResetDate || null;
+    taskStatuses = payload.taskStatuses || [];
     lastClaimDate = payload.user.lastClaimDate || null;
     currentTrialDay = Number(payload.user.currentTrialDay || 1);
     trialActive = Boolean(payload.user.trialActive);
@@ -92,6 +93,7 @@
         trialButton.style.display = trialUsed ? "none" : "block";
         trialSuccess.style.display = trialUsed ? "block" : "none";
       }
+      if (typeof startTaskDaySync === "function") startTaskDaySync();
     }
   }
 

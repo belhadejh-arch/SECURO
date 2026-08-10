@@ -129,6 +129,12 @@ function money(value) {
   return Number(Number(value || 0).toFixed(2));
 }
 
+function dateOnly(value) {
+  if (!value) return null;
+  const parsed = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(parsed.getTime()) ? String(value).slice(0, 10) : parsed.toISOString().slice(0, 10);
+}
+
 function publicUser(row) {
   if (!row) return null;
   return {
@@ -142,8 +148,8 @@ function publicUser(row) {
     availableBalance: money(Number(row.balance) - Number(row.reserved_balance)),
     userVip: row.user_vip || null,
     completedTasksCount: row.completed_tasks_count || 0,
-    taskLastResetDate: row.task_last_reset_date,
-    lastClaimDate: row.last_claim_date,
+    taskLastResetDate: dateOnly(row.task_last_reset_date),
+    lastClaimDate: dateOnly(row.last_claim_date),
     currentTrialDay: row.current_trial_day || 1,
     trialActive: Boolean(row.trial_active),
     trialUsed: Boolean(row.trial_used),
@@ -208,7 +214,7 @@ async function loadUserPayload(userId) {
   const user = await getUserById(userId);
   if (!user) return null;
 
-  const [deposits, withdrawals, transactions, team, commissions, commissionsByLevel] =
+  const [deposits, withdrawals, transactions, taskAttempts, team, commissions, commissionsByLevel] =
     await Promise.all([
       pool.query(
         `SELECT id, amount, txid, network, status, created_at
@@ -223,6 +229,13 @@ async function loadUserPayload(userId) {
       pool.query(
         `SELECT id, type, amount, direction, description, created_at
          FROM transactions WHERE user_id = $1 ORDER BY created_at DESC LIMIT 200`,
+        [userId],
+      ),
+      pool.query(
+        `SELECT task_index, comment, started_at, completed_at
+         FROM task_attempts
+         WHERE user_id = $1 AND task_day = CURRENT_DATE
+         ORDER BY task_index`,
         [userId],
       ),
       pool.query(
@@ -275,6 +288,13 @@ async function loadUserPayload(userId) {
       amount: `${item.direction === "credit" ? "+" : "-"}$${money(item.amount).toFixed(2)}`,
       date: item.created_at,
       type: item.type,
+    })),
+    taskStatuses: taskAttempts.rows.map((item) => ({
+      taskIndex: Number(item.task_index),
+      comment: item.comment,
+      startedAt: item.started_at,
+      completedAt: item.completed_at,
+      completed: Boolean(item.completed_at),
     })),
     teamMembers: team.rows.map((item) => ({
       name: item.name,
@@ -644,23 +664,35 @@ app.post("/api/tasks/:taskIndex/start", requireUser, async (req, res) => {
       const user = locked.rows[0];
       const vip = user && user.user_vip;
       if (!user || !vip) throw Object.assign(new Error("لا توجد عضوية نشطة"), { status: 400 });
-      if (taskIndex >= Number(vip.totalTasks) || taskIndex !== Number(user.completed_tasks_count)) {
-        throw Object.assign(new Error("ترتيب المهمة غير صالح"), { status: 400 });
-      }
+       if (taskIndex >= Number(vip.totalTasks)) {
+         throw Object.assign(new Error("رقم المهمة غير صالح لهذه العضوية"), { status: 400 });
+       }
       const existing = await client.query(
-        `SELECT started_at, completed_at FROM task_attempts
+         `SELECT task_index, started_at, completed_at FROM task_attempts
          WHERE user_id = $1 AND task_day = CURRENT_DATE AND task_index = $2`,
         [req.session.userId, taskIndex],
       );
       if (existing.rowCount) {
-        return { startedAt: existing.rows[0].started_at, completed: Boolean(existing.rows[0].completed_at) };
+         return {
+           taskIndex: Number(existing.rows[0].task_index),
+           startedAt: existing.rows[0].started_at,
+           completed: Boolean(existing.rows[0].completed_at),
+         };
       }
+       if (taskIndex !== Number(user.completed_tasks_count)) {
+         throw Object.assign(new Error("يجب تنفيذ المهام بالترتيب"), { status: 400 });
+       }
       const inserted = await client.query(
-        `INSERT INTO task_attempts (user_id, task_day, task_index, comment)
-         VALUES ($1, CURRENT_DATE, $2, $3) RETURNING started_at`,
+         `INSERT INTO task_attempts (user_id, task_day, task_index, comment)
+          VALUES ($1, CURRENT_DATE, $2, $3)
+          RETURNING task_index, started_at`,
         [req.session.userId, taskIndex, comment],
       );
-      return { startedAt: inserted.rows[0].started_at, completed: false };
+       return {
+         taskIndex: Number(inserted.rows[0].task_index),
+         startedAt: inserted.rows[0].started_at,
+         completed: false,
+       };
     });
     res.json({ ...result, minimumDurationSeconds: 60 });
   } catch (error) {
@@ -681,17 +713,30 @@ app.post("/api/tasks/:taskIndex/complete", requireUser, async (req, res) => {
       const user = locked.rows[0];
       const vip = user && user.user_vip;
       if (!user || !vip) throw Object.assign(new Error("لا توجد عضوية نشطة"), { status: 400 });
-      if (taskIndex >= Number(vip.totalTasks) || taskIndex !== Number(user.completed_tasks_count)) {
-        throw Object.assign(new Error("ترتيب المهمة غير صالح"), { status: 400 });
-      }
+       if (taskIndex >= Number(vip.totalTasks)) {
+         throw Object.assign(new Error("رقم المهمة غير صالح لهذه العضوية"), { status: 400 });
+       }
       const attempt = await client.query(
-        `SELECT *, EXTRACT(EPOCH FROM (NOW() - started_at)) AS elapsed_seconds
+         `SELECT *, EXTRACT(EPOCH FROM (NOW() - started_at)) AS elapsed_seconds
          FROM task_attempts
          WHERE user_id = $1 AND task_day = CURRENT_DATE AND task_index = $2 FOR UPDATE`,
         [req.session.userId, taskIndex],
       );
       if (!attempt.rowCount) throw Object.assign(new Error("يجب بدء المهمة أولاً"), { status: 400 });
-      if (attempt.rows[0].completed_at) throw Object.assign(new Error("تم إكمال المهمة مسبقاً"), { status: 409 });
+       if (Number(attempt.rows[0].task_index) !== taskIndex) {
+         throw Object.assign(new Error("معرّف المهمة لا يطابق المهمة المسجلة"), { status: 400 });
+       }
+       if (attempt.rows[0].completed_at) {
+         return {
+           user: publicUser(user),
+           reward: 0,
+           alreadyCompleted: true,
+           taskIndex,
+         };
+       }
+       if (taskIndex !== Number(user.completed_tasks_count)) {
+         throw Object.assign(new Error("يجب تنفيذ المهام بالترتيب"), { status: 400 });
+       }
       if (attempt.rows[0].comment !== comment) {
         throw Object.assign(new Error("تعليق المهمة لا يطابق التعليق المسجل عند البدء"), { status: 400 });
       }
@@ -707,19 +752,28 @@ app.post("/api/tasks/:taskIndex/complete", requireUser, async (req, res) => {
           ? totalRewardCents - baseRewardCents * (taskCount - 1)
           : baseRewardCents;
       const reward = rewardCents / 100;
-      const updated = await client.query(
+       const updated = await client.query(
         `UPDATE users SET balance = balance + $1, completed_tasks_count = completed_tasks_count + 1,
           updated_at = NOW() WHERE id = $2 RETURNING *`,
         [reward.toFixed(2), req.session.userId],
       );
-      await client.query("UPDATE task_attempts SET completed_at = NOW() WHERE id = $1", [attempt.rows[0].id]);
+       const completedAttempt = await client.query(
+         `UPDATE task_attempts
+          SET completed_at = NOW()
+          WHERE id = $1 AND completed_at IS NULL
+          RETURNING id, completed_at`,
+         [attempt.rows[0].id],
+       );
+       if (!completedAttempt.rowCount) {
+         throw Object.assign(new Error("تم إكمال المهمة مسبقاً"), { status: 409 });
+       }
       await client.query(
         `INSERT INTO transactions
           (user_id, type, amount, direction, description, reference_type, reference_id)
          VALUES ($1, 'مهمة', $2, 'credit', $3, 'task_attempt', $4)`,
         [req.session.userId, reward.toFixed(2), `عمولة تقييم فندق (${vip.name})`, attempt.rows[0].id],
       );
-      return { user: publicUser(updated.rows[0]), reward };
+       return { user: publicUser(updated.rows[0]), reward, taskIndex, alreadyCompleted: false };
     });
     res.json(result);
   } catch (error) {

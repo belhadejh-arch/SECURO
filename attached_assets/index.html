@@ -1190,20 +1190,19 @@
         }
     }
 
-    function spinWheel() {
+    async function spinWheel() {
         if (isSpinning) return;
-
-        if (availableSpins <= 0) {
-            showCopyToast("لا توجد محاولات حظ! 🎡", "تُمنح فرصة عجلة الحظ تلقائياً عند إجراء ترقية لحسابك، أو عند قيام شخص تمت دعوته بالإيداع.");
+        isSpinning = true;
+        let result;
+        try {
+            result = await window.securoApi("/api/wheel/spin", { method: "POST" });
+            if (result.user) window.syncServerUser(result.user);
+        } catch (error) {
+            isSpinning = false;
+            showApiError(error);
             return;
         }
-
-        isSpinning = true;
-        availableSpins--;
-        document.getElementById('wheel-spins-count').innerText = availableSpins;
-
-        const allowedSectorIndices = [0, 1, 2, 4, 5];
-        const selectedSectorIndex = allowedSectorIndices[Math.floor(Math.random() * allowedSectorIndices.length)];
+        const selectedSectorIndex = result.sectorIndex;
 
         const numSectors = wheelSectors.length;
         const sectorDegree = 360 / numSectors;
@@ -1227,18 +1226,11 @@
             const title = document.getElementById('wheel-result-title');
             const msg = document.getElementById('wheel-result-msg');
 
-            if (wonSector.val > 0) {
-                balance += wonSector.val;
-                document.getElementById('user-balance').innerText = balance.toFixed(2);
-
-                const now = new Date();
-                const dateStr = `${now.toLocaleDateString('ar-DZ')} - ${now.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}`;
-                txLogs.unshift({ title: `جائزة عجلة الحظ`, amount: `+$${wonSector.val.toFixed(2)}`, date: dateStr, type: "إيداع" });
-
+            if (result.amount > 0) {
                 icon.innerText = "🎉";
                 title.innerText = "تهانينا! لقد فزت!";
                 title.style.color = "var(--accent-green)";
-                msg.innerHTML = `ربحت مبلغ <strong>$${wonSector.val.toFixed(2)}</strong> وتمت إضافته بنجاح إلى رصيد حسابك!`;
+                msg.innerHTML = `ربحت مبلغ <strong>$${Number(result.amount).toFixed(2)}</strong> وتمت إضافته بنجاح إلى رصيد حسابك!`;
             } else {
                 icon.innerText = "😔";
                 title.innerText = "حظ سعيد المرة القادمة!";
@@ -1247,7 +1239,6 @@
             }
 
             modal.style.display = "flex";
-            saveUserData();
         }, 4000);
     }
 
@@ -1255,32 +1246,16 @@
         document.getElementById('wheel-result-modal').style.display = "none";
     }
 
-    function activateTrial() {
-        if (trialUsed) {
-            alert("⚠️ لقد استخدمت الفترة التجريبية سابقاً!");
-            return;
+    async function activateTrial() {
+        try {
+            const result = await window.securoApi("/api/vip/trial", { method: "POST" });
+            window.syncServerUser(result.user);
+            document.getElementById('btn-trial-activate').style.display = 'none';
+            document.getElementById('trial-success-section').style.display = 'block';
+            updateVipUIState();
+        } catch (error) {
+            showApiError(error);
         }
-
-        trialActive = true;
-        trialUsed = true;
-        currentTrialDay = 1;
-
-        userVip = {
-            name: "الفترة التجريبية (Trial)",
-            price: 0,
-            totalTasks: 2,
-            totalReward: 2.00,
-            isTrial: true
-        };
-
-        completedTasksCount = 0;
-        const now = new Date();
-        taskLastResetDate = now.toISOString().split('T')[0];
-
-        document.getElementById('btn-trial-activate').style.display = 'none';
-        document.getElementById('trial-success-section').style.display = 'block';
-        updateVipUIState();
-        saveUserData();
     }
 
     function toggleAuth() {
@@ -1469,76 +1444,24 @@
     }
 
     function adminEditBalance(index) {
-        let u = registeredUsers[index];
-        let newBal = prompt(`أدخل الرصيد الجديد للمستخدم (${u.email}):`, u.balance || 0);
-        if (newBal !== null && !isNaN(parseFloat(newBal))) {
-            u.balance = parseFloat(newBal);
-            renderAdminDashboard();
-            alert("✅ تم تعديل الرصيد بنجاح!");
-        }
+        showApiError(new Error("تعديل الرصيد يتم فقط عبر عمليات النظام المعتمدة"));
     }
 
     function adminChangeVip(index) {
-        let u = registeredUsers[index];
-        let choice = prompt(`اختر مستوى VIP للمستخدم (${u.email}):\n0: إلغاء VIP\n1: VIP 1\n2: VIP 2\n3: VIP 3\n4: VIP 4`, "1");
-        
-        if (choice === "0") {
-            u.userVip = null;
-        } else if (choice === "1") {
-            u.userVip = { name: "VIP 1", price: 14, totalTasks: 3, totalReward: 1.20, isTrial: false };
-        } else if (choice === "2") {
-            u.userVip = { name: "VIP 2", price: 24, totalTasks: 6, totalReward: 2.50, isTrial: false };
-        } else if (choice === "3") {
-            u.userVip = { name: "VIP 3", price: 54, totalTasks: 8, totalReward: 7.00, isTrial: false };
-        } else if (choice === "4") {
-            u.userVip = { name: "VIP 4", price: 120, totalTasks: 10, totalReward: 18.00, isTrial: false };
-        } else {
-            return;
-        }
-
-        renderAdminDashboard();
-        alert("✅ تم تحديث مستوى VIP بنجاح!");
+        showApiError(new Error("تغيير العضوية يتم فقط عبر عملية شراء موثقة"));
     }
 
     function adminResetTasks(index) {
-        let u = registeredUsers[index];
-        if (confirm(`هل أنت متأكد من إعادة تصفير المهام اليومية للمستخدم (${u.email})؟`)) {
-            u.completedTasksCount = 0;
-            renderAdminDashboard();
-            alert("✅ تم تصفير عدد المهام بنجاح!");
-        }
+        showApiError(new Error("حالة المهام مملوكة للخادم ولا يمكن تعديلها من الواجهة"));
     }
 
     function adminDeleteUser(index) {
-        let u = registeredUsers[index];
-        if (confirm(`⚠️ هل أنت متأكد من حذف حساب (${u.email}) نهائياً؟`)) {
-            registeredUsers.splice(index, 1);
-            renderAdminDashboard();
-            alert("🗑️ تم حذف الحساب بنجاح!");
-        }
+        showApiError(new Error("حذف الحساب غير متاح من لوحة الواجهة"));
     }
 
     function saveUserData() {
-        if (!currentUser) return;
-        currentUser.balance = balance;
-        currentUser.availableSpins = availableSpins;
-        currentUser.userVip = userVip;
-        currentUser.completedTasksCount = completedTasksCount;
-        currentUser.taskLastResetDate = taskLastResetDate;
-        currentUser.lastClaimDate = lastClaimDate;
-        currentUser.currentTrialDay = currentTrialDay;
-        currentUser.trialActive = trialActive;
-        currentUser.trialUsed = trialUsed;
-        currentUser.depositLogs = depositLogs;
-        currentUser.rewardLogs = rewardLogs;
-        currentUser.withdrawLogs = withdrawLogs;
-        currentUser.txLogs = txLogs;
-
-        syncGlobalDatabase();
-        let index = registeredUsers.findIndex(u => u.email === currentUser.email);
-        if (index !== -1) {
-            registeredUsers[index] = currentUser;
-        }
+        // Account state is server-owned. This legacy hook intentionally does
+        // nothing; mutations must use an explicit authenticated API endpoint.
     }
 
     function checkMidnightReset() {
@@ -1720,29 +1643,21 @@
         modal.style.display = "flex";
     }
 
-    function confirmBuyVip() {
+    async function confirmBuyVip() {
         if (!pendingVip) return;
-        balance -= pendingVip.price;
-        document.getElementById('user-balance').innerText = balance.toFixed(2);
-
-        userVip = { ...pendingVip };
-        trialActive = false; 
-        completedTasksCount = 0;
-        activeTaskTimers = {};
-
-        availableSpins++;
-        document.getElementById('wheel-spins-count').innerText = availableSpins;
-
-        const now = new Date();
-        taskLastResetDate = now.toISOString().split('T')[0];
-        const dateStr = `${now.toLocaleDateString('ar-DZ')} - ${now.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}`;
-        txLogs.unshift({ title: `شراء عضوية ${userVip.name}`, amount: `-$${userVip.price.toFixed(2)}`, date: dateStr, type: "شراء" });
-
-        closeVipModal();
-        updateVipUIState();
-        saveUserData();
-        alert(`🎉 تهانينا! تم تفعيل عضوية ${userVip.name} (صالحة لمدة 365 يوماً) بنجاح وحصلت آلياً على (+1) محاولة في عجلة الحظ.`);
-        switchTab('tasks');
+        try {
+            const result = await window.securoApi("/api/vip/purchase", {
+                method: "POST",
+                body: JSON.stringify({ name: pendingVip.name }),
+            });
+            window.syncServerUser(result.user);
+            activeTaskTimers = {};
+            closeVipModal();
+            alert(`🎉 تهانينا! تم تفعيل عضوية ${result.user.userVip.name} بنجاح وحصلت آلياً على (+1) محاولة في عجلة الحظ.`);
+            switchTab('tasks');
+        } catch (error) {
+            showApiError(error);
+        }
     }
 
     function closeVipModal() { document.getElementById('vip-confirm-modal').style.display = "none"; }
@@ -1861,13 +1776,25 @@
         }, 1000);
     }
 
-    function submitHotelTask(taskIdx) {
+    async function submitHotelTask(taskIdx) {
         if (activeTaskTimers[taskIdx] && activeTaskTimers[taskIdx].running) return;
-
-        const taskReward = userVip.totalReward / userVip.totalTasks;
         const btn = document.getElementById(`btn-task-${taskIdx}`);
         const textarea = document.getElementById(`comment-${taskIdx}`);
-        
+        const comment = textarea ? textarea.value.trim() : "";
+        if (comment.length < 5) {
+            showApiError(new Error("يرجى كتابة تعليق صحيح"));
+            return;
+        }
+        let started;
+        try {
+            started = await window.securoApi(`/api/tasks/${taskIdx}/start`, {
+                method: "POST",
+                body: JSON.stringify({ comment }),
+            });
+        } catch (error) {
+            showApiError(error);
+            return;
+        }
         if(textarea) textarea.disabled = true;
         if(btn) {
             btn.disabled = true;
@@ -1878,10 +1805,8 @@
             btn.style.border = "1px solid #fde68a";
         }
 
-        activeTaskTimers[taskIdx] = {
-            running: true,
-            timeLeft: 60
-        };
+        const startedAt = new Date(started.startedAt).getTime();
+        activeTaskTimers[taskIdx] = { running: true, timeLeft: Math.max(0, 60 - Math.floor((Date.now() - startedAt) / 1000)) };
 
         const timer = setInterval(() => {
             if (!activeTaskTimers[taskIdx]) {
@@ -1900,21 +1825,19 @@
             if (timeLeft <= 0) {
                 clearInterval(timer);
                 delete activeTaskTimers[taskIdx];
-
-                balance += taskReward;
-                completedTasksCount++;
-                document.getElementById('user-balance').innerText = balance.toFixed(2);
-
-                const now = new Date();
-                const dateStr = `${now.toLocaleDateString('ar-DZ')} - ${now.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}`;
-                txLogs.unshift({ title: `عمولة تقييم فندق (${userVip.name})`, amount: `+$${taskReward.toFixed(2)}`, date: dateStr, type: "إيداع" });
-
-                saveUserData();
-
-                document.getElementById('task-success-msg').innerHTML = `لقد ربحت <strong>$${taskReward.toFixed(2)}</strong> عن إتمام المهمة بنجاح وتضافرت الأرباح إلى رصيدك.`;
-                document.getElementById('task-success-modal').style.display = 'flex';
-
-                renderTasksScreen();
+                window.securoApi(`/api/tasks/${taskIdx}/complete`, {
+                    method: "POST",
+                    body: JSON.stringify({ comment }),
+                }).then((result) => {
+                    window.syncServerUser(result.user);
+                    document.getElementById('task-success-msg').innerHTML =
+                        `لقد ربحت <strong>$${Number(result.reward).toFixed(2)}</strong> عن إتمام المهمة بنجاح وتضافرت الأرباح إلى رصيدك.`;
+                    document.getElementById('task-success-modal').style.display = 'flex';
+                    renderTasksScreen();
+                }).catch((error) => {
+                    showApiError(error);
+                    renderTasksScreen();
+                });
             }
         }, 1000);
     }
@@ -1940,28 +1863,20 @@
         }
     }
 
-    function claimDailyReward() {
-        const now = new Date();
-        const todayStr = now.toISOString().split('T')[0];
-        const dateDisplay = now.toLocaleDateString('ar-DZ');
-        const timeStr = now.toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' });
-
-        if (lastClaimDate === todayStr) {
-            document.getElementById('already-claimed-modal').style.display = 'flex';
+    async function claimDailyReward() {
+        try {
+            const result = await window.securoApi("/api/rewards/daily", { method: "POST" });
+            window.syncServerUser(result.user);
             updateDailyRewardUI();
-            return;
+            document.getElementById('congrats-modal').style.display = 'flex';
+        } catch (error) {
+            if (error.message.includes("مسبقاً")) {
+                document.getElementById('already-claimed-modal').style.display = 'flex';
+                updateDailyRewardUI();
+                return;
+            }
+            showApiError(error);
         }
-
-        balance += 0.10;
-        lastClaimDate = todayStr;
-        document.getElementById('user-balance').innerText = balance.toFixed(2);
-        
-        rewardLogs.unshift({ title: "مكافأة تسجيل الدخول اليومية", amount: "+0.10$", date: `${dateDisplay} - ${timeStr}`, status: "مكتملة" });
-        txLogs.unshift({ title: "استلام مكافأة يومية", amount: "+0.10$", date: `${dateDisplay} - ${timeStr}`, type: "إيداع" });
-
-        saveUserData();
-        updateDailyRewardUI();
-        document.getElementById('congrats-modal').style.display = 'flex';
     }
 
     function closeCongratsModal() { document.getElementById('congrats-modal').style.display = 'none'; }

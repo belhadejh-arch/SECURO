@@ -1,1 +1,2 @@
 - [Render وVercel](render-vercel-deployment.md) — عند فصل الواجهة والـ API، يجب ضبط CORS وCookies والجسر `/api` معاً.
+- [Server-owned financial state](server-owned-financial-state.md) — كل الرصيد والمكافآت والحجوزات تتغير عبر Backend/PostgreSQL فقط.

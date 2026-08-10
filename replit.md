@@ -77,3 +77,21 @@ cd attached_assets
 npm install
 npm run build
 ```
+
+## Server-owned financial and reward state
+
+The browser is never trusted to write `balance`, withdrawal reservations, VIP
+membership, task progress, daily rewards, referral commissions, or wheel spins.
+Those values are changed only by authenticated backend transactions:
+
+- `POST /api/deposit-requests` creates a pending request; an admin approval
+  credits the user and creates referral commissions.
+- `POST /api/withdrawal-requests` creates a pending request and reserves the
+  amount. Admin approval debits it; rejection releases the reservation.
+- `POST /api/rewards/daily`, `/api/vip/trial`, `/api/vip/purchase`, and
+  `/api/wheel/spin` perform their checks and balance changes on the server.
+- `/api/tasks/:taskIndex/start` and `/complete` use `task_attempts`; the server
+  validates membership, order, one attempt per day, comment, and the 60-second
+  minimum duration.
+
+After schema changes, run `npm run db:init` against the intended Neon database.

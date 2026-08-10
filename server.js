@@ -5,6 +5,7 @@ const pgSession = require("connect-pg-simple")(session);
 const { Pool } = require("pg");
 const bcrypt = require("bcryptjs");
 const helmet = require("helmet");
+const { randomInt } = require("crypto");
 
 const DATABASE_URL = process.env.NEON_DATABASE_URL || process.env.DATABASE_URL;
 const SESSION_SECRET = process.env.SESSION_SECRET;
@@ -78,6 +79,24 @@ const statusNames = {
   rejected: "مرفوض",
 };
 const rates = [0.1, 0.05, 0.01];
+const vipProducts = {
+  "VIP 1": { price: 14, totalTasks: 3, totalReward: 1.2 },
+  "VIP 2": { price: 24, totalTasks: 6, totalReward: 2.5 },
+  "VIP 3": { price: 54, totalTasks: 8, totalReward: 7 },
+  "VIP 4": { price: 120, totalTasks: 10, totalReward: 18 },
+};
+const wheelSectors = [
+  { label: "حظ سعيد", amount: 0 },
+  { label: "$0.50", amount: 0.5 },
+  { label: "$1.00", amount: 1 },
+  { label: "$2.00", amount: 2 },
+  { label: "حظ سعيد", amount: 0 },
+  { label: "$3.00", amount: 3 },
+  { label: "$50.00", amount: 50 },
+  { label: "$100.00", amount: 100 },
+];
+const allowedWheelSectors = [0, 1, 2, 4, 5];
+const taskMinimumDurationMs = 60 * 1000;
 
 function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase();
@@ -100,6 +119,8 @@ function publicUser(row) {
     inviteCode: row.referral_code,
     isAdmin: Boolean(row.is_admin),
     balance: money(row.balance),
+    reservedBalance: money(row.reserved_balance),
+    availableBalance: money(Number(row.balance) - Number(row.reserved_balance)),
     userVip: row.user_vip || null,
     completedTasksCount: row.completed_tasks_count || 0,
     taskLastResetDate: row.task_last_reset_date,
@@ -121,7 +142,35 @@ async function getUserById(id) {
   return result.rows[0] || null;
 }
 
+function parseMoney(value) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  return Number(amount.toFixed(2));
+}
+
+function currentDateSql() {
+  return "CURRENT_DATE";
+}
+
+async function syncDailyTaskState(clientOrPool, userId) {
+  await clientOrPool.query(
+    `UPDATE users
+     SET completed_tasks_count = 0,
+         task_last_reset_date = ${currentDateSql()},
+         current_trial_day = CASE
+           WHEN user_vip->>'isTrial' = 'true' AND task_last_reset_date IS NOT NULL
+             THEN current_trial_day + 1
+           ELSE current_trial_day
+         END,
+         updated_at = NOW()
+     WHERE id = $1
+       AND (task_last_reset_date IS NULL OR task_last_reset_date < CURRENT_DATE)`,
+    [userId],
+  );
+}
+
 async function loadUserPayload(userId) {
+  await syncDailyTaskState(pool, userId);
   const user = await getUserById(userId);
   if (!user) return null;
 
@@ -201,10 +250,16 @@ function requireAuth(req, res, next) {
 }
 
 function requireAdmin(req, res, next) {
-  if (!req.session.userId || !req.session.isAdmin) {
+  if (!req.session.userId) {
     return appError(res, 403, "ليس لديك صلاحية المشرف");
   }
-  next();
+  getUserById(req.session.userId)
+    .then((user) => {
+      if (!user || !user.is_admin) return appError(res, 403, "ليس لديك صلاحية المشرف");
+      req.session.isAdmin = true;
+      next();
+    })
+    .catch(() => appError(res, 403, "تعذر التحقق من صلاحية المشرف"));
 }
 
 async function withTransaction(callback) {
@@ -332,53 +387,211 @@ app.get("/api/me", requireAuth, async (req, res) => {
   }
 });
 
-app.patch("/api/me/state", requireAuth, async (req, res) => {
-  const allowed = [
-    "userVip",
-    "completedTasksCount",
-    "taskLastResetDate",
-    "lastClaimDate",
-    "currentTrialDay",
-    "trialActive",
-    "trialUsed",
-    "availableSpins",
-  ];
-  const values = {
-    userVip: req.body.userVip ?? null,
-    completedTasksCount: Number(req.body.completedTasksCount || 0),
-    taskLastResetDate: req.body.taskLastResetDate || null,
-    lastClaimDate: req.body.lastClaimDate || null,
-    currentTrialDay: Number(req.body.currentTrialDay || 1),
-    trialActive: Boolean(req.body.trialActive),
-    trialUsed: Boolean(req.body.trialUsed),
-    availableSpins: Number(req.body.availableSpins || 0),
-  };
-  if (values.completedTasksCount < 0 || values.availableSpins < 0) {
-    return appError(res, 400, "بيانات الحالة غير صحيحة");
-  }
+// Account state is server-owned. Never accept a client-supplied balance,
+// reward, task count, VIP object, or spin count.
+app.patch("/api/me/state", requireAuth, (_req, res) =>
+  appError(res, 405, "لا يمكن تعديل حالة الحساب مباشرة"),
+);
+
+app.post("/api/rewards/daily", requireAuth, async (req, res) => {
   try {
-    const result = await pool.query(
-      `UPDATE users SET
-        user_vip = $1::jsonb, completed_tasks_count = $2,
-        task_last_reset_date = $3, last_claim_date = $4,
-        current_trial_day = $5, trial_active = $6,
-        trial_used = $7, available_spins = $8, updated_at = NOW()
-       WHERE id = $9 RETURNING *`,
-      [
-        values.userVip ? JSON.stringify(values.userVip) : null,
-        values.completedTasksCount,
-        values.taskLastResetDate,
-        values.lastClaimDate,
-        values.currentTrialDay,
-        values.trialActive,
-        values.trialUsed,
-        values.availableSpins,
-        req.session.userId,
-      ],
-    );
-    res.json({ user: publicUser(result.rows[0]) });
-  } catch {
-    appError(res, 400, "تعذر حفظ حالة الحساب");
+    const result = await withTransaction(async (client) => {
+      const locked = await client.query(
+        "SELECT * FROM users WHERE id = $1 FOR UPDATE",
+        [req.session.userId],
+      );
+      if (!locked.rowCount) throw Object.assign(new Error("الحساب غير موجود"), { status: 404 });
+      const user = locked.rows[0];
+      const claimedToday =
+        user.last_claim_date &&
+        new Date(user.last_claim_date).toISOString().slice(0, 10) ===
+          new Date().toISOString().slice(0, 10);
+      if (claimedToday) throw Object.assign(new Error("تم استلام مكافأة اليوم مسبقاً"), { status: 409 });
+      const updated = await client.query(
+        `UPDATE users SET balance = balance + 0.10, last_claim_date = CURRENT_DATE, updated_at = NOW()
+         WHERE id = $1 RETURNING *`,
+        [req.session.userId],
+      );
+      await client.query(
+        `INSERT INTO transactions
+          (user_id, type, amount, direction, description, reference_type, reference_id)
+         VALUES ($1, 'مكافأة', 0.10, 'credit', 'مكافأة تسجيل الدخول اليومية', 'daily_reward', NULL)`,
+        [req.session.userId],
+      );
+      return publicUser(updated.rows[0]);
+    });
+    res.json({ user: result, amount: 0.1 });
+  } catch (error) {
+    appError(res, error.status || 500, error.status ? error.message : "تعذر استلام المكافأة اليومية");
+  }
+});
+
+app.post("/api/vip/trial", requireAuth, async (req, res) => {
+  try {
+    const result = await withTransaction(async (client) => {
+      const locked = await client.query("SELECT * FROM users WHERE id = $1 FOR UPDATE", [req.session.userId]);
+      if (!locked.rowCount) throw Object.assign(new Error("الحساب غير موجود"), { status: 404 });
+      const user = locked.rows[0];
+      if (user.trial_used) throw Object.assign(new Error("لقد استخدمت الفترة التجريبية سابقاً"), { status: 409 });
+      const vip = { name: "الفترة التجريبية (Trial)", price: 0, totalTasks: 2, totalReward: 2, isTrial: true };
+      const updated = await client.query(
+        `UPDATE users SET user_vip = $1::jsonb, trial_active = TRUE, trial_used = TRUE,
+          current_trial_day = 1, completed_tasks_count = 0, task_last_reset_date = CURRENT_DATE,
+          updated_at = NOW() WHERE id = $2 RETURNING *`,
+        [JSON.stringify(vip), req.session.userId],
+      );
+      return publicUser(updated.rows[0]);
+    });
+    res.json({ user: result });
+  } catch (error) {
+    appError(res, error.status || 500, error.status ? error.message : "تعذر تفعيل الفترة التجريبية");
+  }
+});
+
+app.post("/api/vip/purchase", requireAuth, async (req, res) => {
+  const name = String(req.body.name || "").trim();
+  const product = vipProducts[name];
+  if (!product) return appError(res, 400, "عضوية VIP غير صالحة");
+  try {
+    const result = await withTransaction(async (client) => {
+      const locked = await client.query("SELECT * FROM users WHERE id = $1 FOR UPDATE", [req.session.userId]);
+      if (!locked.rowCount) throw Object.assign(new Error("الحساب غير موجود"), { status: 404 });
+      const user = locked.rows[0];
+      if (Number(user.balance) - Number(user.reserved_balance) < product.price) {
+        throw Object.assign(new Error("رصيدك المتاح غير كافٍ"), { status: 400 });
+      }
+      const vip = { name, ...product, isTrial: false };
+      const updated = await client.query(
+        `UPDATE users SET balance = balance - $1, user_vip = $2::jsonb,
+          trial_active = FALSE, completed_tasks_count = 0, task_last_reset_date = CURRENT_DATE,
+          available_spins = available_spins + 1, updated_at = NOW()
+         WHERE id = $3 RETURNING *`,
+        [product.price.toFixed(2), JSON.stringify(vip), req.session.userId],
+      );
+      await client.query(
+        `INSERT INTO transactions
+          (user_id, type, amount, direction, description, reference_type, reference_id)
+         VALUES ($1, 'شراء', $2, 'debit', $3, 'vip_purchase', NULL)`,
+        [req.session.userId, product.price.toFixed(2), `شراء عضوية ${name}`],
+      );
+      return publicUser(updated.rows[0]);
+    });
+    res.json({ user: result });
+  } catch (error) {
+    appError(res, error.status || 500, error.status ? error.message : "تعذر شراء العضوية");
+  }
+});
+
+app.post("/api/wheel/spin", requireAuth, async (req, res) => {
+  try {
+    const result = await withTransaction(async (client) => {
+      const locked = await client.query("SELECT * FROM users WHERE id = $1 FOR UPDATE", [req.session.userId]);
+      if (!locked.rowCount) throw Object.assign(new Error("الحساب غير موجود"), { status: 404 });
+      const user = locked.rows[0];
+      if (Number(user.available_spins) < 1) {
+        throw Object.assign(new Error("لا توجد محاولات حظ متاحة"), { status: 400 });
+      }
+      const sectorIndex = allowedWheelSectors[randomInt(allowedWheelSectors.length)];
+      const amount = wheelSectors[sectorIndex].amount;
+      const updated = await client.query(
+        `UPDATE users SET available_spins = available_spins - 1,
+          balance = balance + $1, updated_at = NOW() WHERE id = $2 RETURNING *`,
+        [amount.toFixed(2), req.session.userId],
+      );
+      if (amount > 0) {
+        await client.query(
+          `INSERT INTO transactions
+            (user_id, type, amount, direction, description, reference_type, reference_id)
+           VALUES ($1, 'عجلة الحظ', $2, 'credit', 'جائزة عجلة الحظ', 'wheel_spin', NULL)`,
+          [req.session.userId, amount.toFixed(2)],
+        );
+      }
+      return { user: publicUser(updated.rows[0]), sectorIndex, amount };
+    });
+    res.json(result);
+  } catch (error) {
+    appError(res, error.status || 500, error.status ? error.message : "تعذر تدوير عجلة الحظ");
+  }
+});
+
+app.post("/api/tasks/:taskIndex/start", requireAuth, async (req, res) => {
+  const taskIndex = Number(req.params.taskIndex);
+  if (!Number.isInteger(taskIndex) || taskIndex < 0) return appError(res, 400, "مهمة غير صالحة");
+  try {
+    const result = await withTransaction(async (client) => {
+      await syncDailyTaskState(client, req.session.userId);
+      const locked = await client.query("SELECT * FROM users WHERE id = $1 FOR UPDATE", [req.session.userId]);
+      const user = locked.rows[0];
+      const vip = user && user.user_vip;
+      if (!user || !vip) throw Object.assign(new Error("لا توجد عضوية نشطة"), { status: 400 });
+      if (taskIndex >= Number(vip.totalTasks) || taskIndex !== Number(user.completed_tasks_count)) {
+        throw Object.assign(new Error("ترتيب المهمة غير صالح"), { status: 400 });
+      }
+      const existing = await client.query(
+        `SELECT started_at, completed_at FROM task_attempts
+         WHERE user_id = $1 AND task_day = CURRENT_DATE AND task_index = $2`,
+        [req.session.userId, taskIndex],
+      );
+      if (existing.rowCount) {
+        return { startedAt: existing.rows[0].started_at, completed: Boolean(existing.rows[0].completed_at) };
+      }
+      const inserted = await client.query(
+        `INSERT INTO task_attempts (user_id, task_day, task_index, comment)
+         VALUES ($1, CURRENT_DATE, $2, $3) RETURNING started_at`,
+        [req.session.userId, taskIndex, String(req.body.comment || "").trim()],
+      );
+      return { startedAt: inserted.rows[0].started_at, completed: false };
+    });
+    res.json({ ...result, minimumDurationSeconds: 60 });
+  } catch (error) {
+    appError(res, error.status || 500, error.status ? error.message : "تعذر بدء المهمة");
+  }
+});
+
+app.post("/api/tasks/:taskIndex/complete", requireAuth, async (req, res) => {
+  const taskIndex = Number(req.params.taskIndex);
+  if (!Number.isInteger(taskIndex) || taskIndex < 0) return appError(res, 400, "مهمة غير صالحة");
+  const comment = String(req.body.comment || "").trim();
+  if (comment.length < 5 || comment.length > 2000) return appError(res, 400, "يرجى كتابة تعليق صحيح");
+  try {
+    const result = await withTransaction(async (client) => {
+      await syncDailyTaskState(client, req.session.userId);
+      const locked = await client.query("SELECT * FROM users WHERE id = $1 FOR UPDATE", [req.session.userId]);
+      const user = locked.rows[0];
+      const vip = user && user.user_vip;
+      if (!user || !vip) throw Object.assign(new Error("لا توجد عضوية نشطة"), { status: 400 });
+      if (taskIndex >= Number(vip.totalTasks) || taskIndex !== Number(user.completed_tasks_count)) {
+        throw Object.assign(new Error("ترتيب المهمة غير صالح"), { status: 400 });
+      }
+      const attempt = await client.query(
+        `SELECT *, EXTRACT(EPOCH FROM (NOW() - started_at)) AS elapsed_seconds
+         FROM task_attempts
+         WHERE user_id = $1 AND task_day = CURRENT_DATE AND task_index = $2 FOR UPDATE`,
+        [req.session.userId, taskIndex],
+      );
+      if (!attempt.rowCount) throw Object.assign(new Error("يجب بدء المهمة أولاً"), { status: 400 });
+      if (attempt.rows[0].completed_at) throw Object.assign(new Error("تم إكمال المهمة مسبقاً"), { status: 409 });
+      if (Number(attempt.rows[0].elapsed_seconds) * 1000 < taskMinimumDurationMs) {
+        throw Object.assign(new Error("يجب الانتظار دقيقة كاملة قبل إكمال المهمة"), { status: 400 });
+      }
+      const reward = Number(vip.totalReward) / Number(vip.totalTasks);
+      const updated = await client.query(
+        `UPDATE users SET balance = balance + $1, completed_tasks_count = completed_tasks_count + 1,
+          updated_at = NOW() WHERE id = $2 RETURNING *`,
+        [reward.toFixed(2), req.session.userId],
+      );
+      await client.query("UPDATE task_attempts SET completed_at = NOW() WHERE id = $1", [attempt.rows[0].id]);
+      await client.query(
+        `INSERT INTO transactions
+          (user_id, type, amount, direction, description, reference_type, reference_id)
+         VALUES ($1, 'مهمة', $2, 'credit', $3, 'task_attempt', $4)`,
+        [req.session.userId, reward.toFixed(2), `عمولة تقييم فندق (${vip.name})`, attempt.rows[0].id],
+      );
+      return { user: publicUser(updated.rows[0]), reward };
+    });
+    res.json(result);
+  } catch (error) {
+    appError(res, error.status || 500, error.status ? error.message : "تعذر إكمال المهمة");
   }
 });
 
@@ -422,7 +635,7 @@ app.post("/api/withdrawal-requests", requireAuth, async (req, res) => {
         [req.session.userId],
       );
       const availableBalance =
-        Number(locked.rows[0].balance) - Number(pending.rows[0].amount);
+        Number(locked.rows[0].balance) - Number(locked.rows[0].reserved_balance);
       if (availableBalance < amount) {
         throw Object.assign(new Error("رصيدك غير كافٍ"), { status: 400 });
       }
@@ -430,6 +643,11 @@ app.post("/api/withdrawal-requests", requireAuth, async (req, res) => {
         `INSERT INTO withdrawal_requests (user_id, bank, account, amount)
          VALUES ($1, $2, $3, $4) RETURNING id`,
         [req.session.userId, bank, account, amount.toFixed(2)],
+      );
+      await client.query(
+        `UPDATE users SET reserved_balance = reserved_balance + $1, updated_at = NOW()
+         WHERE id = $2`,
+        [amount.toFixed(2), req.session.userId],
       );
       return request.rows[0].id;
     });
@@ -573,8 +791,8 @@ app.post("/api/admin/withdrawals/:id/review", requireAdmin, async (req, res) => 
       if (status === "accepted") {
         const updatedUser = await client.query(
           `UPDATE users
-           SET balance = balance - $1, updated_at = NOW()
-           WHERE id = $2 AND balance >= $1
+           SET balance = balance - $1, reserved_balance = reserved_balance - $1, updated_at = NOW()
+           WHERE id = $2 AND balance >= $1 AND reserved_balance >= $1
            RETURNING id`,
           [request.amount, request.user_id],
         );
@@ -594,8 +812,11 @@ app.post("/api/admin/withdrawals/:id/review", requireAdmin, async (req, res) => 
         [status, req.session.userId, id],
       );
       if (status === "rejected") {
-        // No balance change is needed: pending withdrawals are only reserved
-        // logically and are deducted when an admin accepts the request.
+        await client.query(
+          `UPDATE users SET reserved_balance = reserved_balance - $1, updated_at = NOW()
+           WHERE id = $2 AND reserved_balance >= $1`,
+          [request.amount, request.user_id],
+        );
       }
     });
     res.json({ ok: true });

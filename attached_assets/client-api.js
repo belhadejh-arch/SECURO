@@ -26,6 +26,7 @@
     if (!response.ok) throw new Error(body.error || "حدث خطأ غير متوقع");
     return body;
   }
+  window.securoApi = api;
 
   function escapeHtml(value) {
     return String(value ?? "")
@@ -51,11 +52,12 @@
       alert(error.message || "تعذر تنفيذ العملية");
     }
   }
+  window.showApiError = showApiError;
 
   function hydrate(payload) {
     currentUser = payload.user;
     isAdmin = Boolean(payload.user.isAdmin);
-    balance = Number(payload.user.balance || 0);
+    balance = Number(payload.user.availableBalance ?? payload.user.balance ?? 0);
     availableSpins = Number(payload.user.availableSpins || 0);
     userVip = payload.user.userVip || null;
     completedTasksCount = Number(payload.user.completedTasksCount || 0);
@@ -85,6 +87,27 @@
       }
     }
   }
+
+  window.syncServerUser = function (user) {
+    if (!user) return;
+    currentUser = user;
+    isAdmin = Boolean(user.isAdmin);
+    balance = Number(user.availableBalance ?? user.balance ?? 0);
+    availableSpins = Number(user.availableSpins || 0);
+    userVip = user.userVip || null;
+    completedTasksCount = Number(user.completedTasksCount || 0);
+    taskLastResetDate = user.taskLastResetDate || null;
+    lastClaimDate = user.lastClaimDate || null;
+    currentTrialDay = Number(user.currentTrialDay || 1);
+    trialActive = Boolean(user.trialActive);
+    trialUsed = Boolean(user.trialUsed);
+    const balanceEl = document.getElementById("user-balance");
+    const spinsEl = document.getElementById("wheel-spins-count");
+    if (balanceEl) balanceEl.innerText = balance.toFixed(2);
+    if (spinsEl) spinsEl.innerText = availableSpins;
+    if (typeof updateVipUIState === "function") updateVipUIState();
+    if (typeof updateDailyRewardUI === "function") updateDailyRewardUI();
+  };
 
   function enterApp(payload) {
     hydrate(payload);
@@ -144,25 +167,8 @@
   };
 
   window.saveUserData = async function () {
-    if (!currentUser || isAdmin) return;
-    try {
-      const result = await api("/api/me/state", {
-        method: "PATCH",
-        body: JSON.stringify({
-          userVip,
-          completedTasksCount,
-          taskLastResetDate,
-          lastClaimDate,
-          currentTrialDay,
-          trialActive,
-          trialUsed,
-          availableSpins,
-        }),
-      });
-      if (result.user) currentUser = { ...currentUser, ...result.user };
-    } catch (error) {
-      console.error("Failed to save account state", error);
-    }
+    // State mutations are intentionally server-only. Kept as a compatibility
+    // no-op for older UI code so it cannot submit forged account state.
   };
 
   window.submitDeposit = async function () {
@@ -227,6 +233,7 @@
       console.error("Failed to refresh account", error);
     }
   }
+  window.refreshServerMe = refreshMe;
 
   window.renderDepositsList = function () {
     const container = document.getElementById("deposit-history-list");

@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
   referred_by BIGINT REFERENCES users(id) ON DELETE SET NULL,
   is_admin BOOLEAN NOT NULL DEFAULT FALSE,
   balance NUMERIC(14, 2) NOT NULL DEFAULT 0 CHECK (balance >= 0),
+  reserved_balance NUMERIC(14, 2) NOT NULL DEFAULT 0 CHECK (reserved_balance >= 0),
   user_vip JSONB,
   completed_tasks_count INTEGER NOT NULL DEFAULT 0,
   task_last_reset_date DATE,
@@ -18,6 +19,9 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS reserved_balance NUMERIC(14, 2) NOT NULL DEFAULT 0;
 
 CREATE INDEX IF NOT EXISTS users_referred_by_idx ON users(referred_by);
 
@@ -52,6 +56,17 @@ CREATE TABLE IF NOT EXISTS withdrawal_requests (
 
 CREATE INDEX IF NOT EXISTS withdrawal_requests_status_idx
   ON withdrawal_requests(status, created_at DESC);
+
+-- Backfill reservations for requests created before reserved_balance existed.
+UPDATE users u
+SET reserved_balance = pending.amount
+FROM (
+  SELECT user_id, COALESCE(SUM(amount), 0) AS amount
+  FROM withdrawal_requests
+  WHERE status = 'pending'
+  GROUP BY user_id
+) pending
+WHERE u.id = pending.user_id;
 
 CREATE TABLE IF NOT EXISTS transactions (
   id BIGSERIAL PRIMARY KEY,
@@ -92,3 +107,22 @@ CREATE TABLE IF NOT EXISTS referral_commissions (
 
 CREATE INDEX IF NOT EXISTS referral_commissions_beneficiary_idx
   ON referral_commissions(beneficiary_id, created_at DESC);
+
+-- Server-owned task attempts prevent the browser from inventing completions,
+-- changing the reward, or claiming the same task more than once per day.
+CREATE TABLE IF NOT EXISTS task_attempts (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  task_day DATE NOT NULL,
+  task_index INTEGER NOT NULL CHECK (task_index >= 0),
+  comment TEXT NOT NULL DEFAULT '',
+  started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  completed_at TIMESTAMPTZ,
+  UNIQUE (user_id, task_day, task_index)
+);
+
+ALTER TABLE task_attempts
+  ADD COLUMN IF NOT EXISTS comment TEXT NOT NULL DEFAULT '';
+
+CREATE INDEX IF NOT EXISTS task_attempts_user_day_idx
+  ON task_attempts(user_id, task_day, task_index);

@@ -391,9 +391,27 @@
     document.getElementById("reg-name").value = "";
   };
 
+  function showInviteRegistration(invite) {
+    const inviteInput = document.getElementById("invite-code-input");
+    const authScreen = document.getElementById("auth-screen");
+    const bottomNav = document.getElementById("bottom-nav");
+    const normalizedInvite = String(invite || "").trim();
+    if (!normalizedInvite || !inviteInput) return false;
+
+    // An invitation link always starts a fresh registration flow. Do not let a
+    // previously saved session route this browser into an existing account.
+    if (!isSignup && typeof window.toggleAuth === "function") window.toggleAuth();
+    inviteInput.value = normalizedInvite;
+    inviteInput.readOnly = true;
+    if (authScreen) authScreen.classList.add("active");
+    if (bottomNav) bottomNav.style.display = "none";
+    document.getElementById("header-title").innerText = "SECURO";
+    return true;
+  }
+
   window.addEventListener("load", async () => {
     const invite = new URLSearchParams(window.location.search).get("invite");
-    if (invite) document.getElementById("invite-code-input").value = invite;
+    if (showInviteRegistration(invite)) return;
     try {
       const session = await api("/api/auth/session");
       if (session.authenticated) enterApp(await api("/api/me"));

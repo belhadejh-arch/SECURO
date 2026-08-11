@@ -2520,6 +2520,63 @@
             .app-container:not(:has(#auth-screen.active)) { padding-bottom: 0 !important; }
             .app-container:not(:has(#auth-screen.active)) > .content { padding-bottom: 18px !important; }
         }
+
+        /*
+         * Absolute final no-gap guard.
+         * The document owns the page scroll and every authenticated screen
+         * starts directly below the header. This intentionally overrides all
+         * legacy viewport-centering and min-height rules above.
+         */
+        html, body {
+            width: 100% !important;
+            height: auto !important;
+            min-height: 100% !important;
+            overflow-x: clip !important;
+            overflow-y: auto !important;
+        }
+        body {
+            display: block !important;
+            margin: 0 !important;
+            align-items: flex-start !important;
+            justify-content: flex-start !important;
+        }
+        .app-container {
+            width: min(100%, 1180px) !important;
+            height: auto !important;
+            min-height: 100dvh !important;
+            margin: 0 !important;
+            overflow: visible !important;
+        }
+        .app-container > .content {
+            display: block !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding-top: 0 !important;
+            overflow: visible !important;
+            scroll-padding-top: 0 !important;
+        }
+        .app-container:not(:has(#auth-screen.active)) > .content {
+            padding-bottom: 18px !important;
+        }
+        .screen, .screen.active, .admin-screen, .admin-screen.active {
+            width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+        .screen.active {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        .screen:not(.active) { display: none !important; }
+        .admin-screen.active > :first-child,
+        #home-screen.active > :first-child {
+            margin-top: 0 !important;
+        }
     </style>
 </head>
 <body>
@@ -3564,6 +3621,9 @@
     function scrollMainContentToTop() {
         const content = document.querySelector('.content');
         if (content) content.scrollTo({ top: 0, behavior: 'auto' });
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
     }
 
     function resetAppViewport() {

@@ -380,6 +380,7 @@
             </div>
             <div style="text-align:left;white-space:nowrap">
               <strong>$${Number(user.balance).toFixed(2)}</strong><br>
+              <span class="history-badge ${user.isBlocked ? "badge-orange" : "badge-green"}">${user.isBlocked ? "محظور / غير نشط" : "نشط"}</span><br>
               <small>${dateText(user.createdAt)}</small>
             </div>
           </div>
@@ -387,7 +388,7 @@
             <button class="btn btn-green" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminEditBalance(${index})">✏️ تعديل الرصيد</button>
             <button class="btn btn-gold" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminChangeVip(${index})">👑 تغيير VIP</button>
             <button class="btn" style="flex:1;padding:6px 10px;font-size:.75rem;background:#6366f1;color:white" onclick="adminResetTasks(${index})">🔄 تصفير المهام</button>
-            ${!user.isAdmin ? `<button class="btn btn-red" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminDeleteUser(${index})">🗑️ حذف</button>` : ""}
+            ${!user.isAdmin ? `<button class="btn ${user.isBlocked ? "btn-green" : "btn-red"}" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminToggleBlock(${user.id},${!user.isBlocked})">${user.isBlocked ? "✅ رفع الحظر" : "🚫 حظر المستخدم"}</button>` : ""}
           </div>
         </div>`).join("") || '<div class="history-date">لا توجد حسابات.</div>';
       document.getElementById("admin-deposit-requests").innerHTML = data.deposits.map((item) => adminRequestCard(item, "deposits")).join("")
@@ -398,6 +399,19 @@
       showApiError(error);
     } finally {
       adminRefreshInFlight = false;
+    }
+  };
+  window.adminToggleBlock = async function (userId, blocked) {
+    const action = blocked ? "حظر هذا المستخدم" : "رفع الحظر عن هذا المستخدم";
+    if (!window.confirm(`${action}؟ سيتم الاحتفاظ بكل بياناته ومعاملاته وإحالاته.`)) return;
+    try {
+      await api(`/api/admin/users/${encodeURIComponent(userId)}/status`, {
+        method: "POST",
+        body: JSON.stringify({ blocked }),
+      });
+      await window.renderAdminDashboard();
+    } catch (error) {
+      showApiError(error);
     }
   };
   function startAdminDashboardRefresh() {

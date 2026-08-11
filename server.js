@@ -143,6 +143,8 @@ function publicUser(row) {
     name: row.name,
     inviteCode: row.referral_code,
     isAdmin: Boolean(row.is_admin),
+    isBlocked: Boolean(row.is_blocked),
+    isActive: !Boolean(row.is_blocked),
     balance: money(row.balance),
     reservedBalance: money(row.reserved_balance),
     availableBalance: money(Number(row.balance) - Number(row.reserved_balance)),
@@ -311,26 +313,40 @@ async function loadUserPayload(userId) {
 
 function requireAuth(req, res, next) {
   if (!req.session.userId) return appError(res, 401, "يجب تسجيل الدخول أولاً");
-  next();
+  getUserById(req.session.userId)
+    .then((user) => {
+      if (!user) {
+        req.session.destroy(() => {});
+        return appError(res, 401, "انتهت الجلسة");
+      }
+      if (user.is_blocked) {
+        req.session.destroy(() => {});
+        return appError(res, 403, "تم حظر هذا الحساب. يرجى التواصل مع الإدارة");
+      }
+      req.currentUser = user;
+      req.session.isAdmin = Boolean(user.is_admin);
+      next();
+    })
+    .catch(() => appError(res, 503, "تعذر التحقق من الحساب"));
 }
 
 function requireUser(req, res, next) {
-  if (!req.session.userId) return appError(res, 401, "يجب تسجيل الدخول أولاً");
-  if (req.session.isAdmin) return appError(res, 403, "هذه العملية متاحة لحسابات المستخدمين فقط");
-  next();
+  requireAuth(req, res, () => {
+    if (req.currentUser.is_admin) {
+      return appError(res, 403, "هذه العملية متاحة لحسابات المستخدمين فقط");
+    }
+    next();
+  });
 }
 
 function requireAdmin(req, res, next) {
   if (!req.session.userId) {
     return appError(res, 403, "ليس لديك صلاحية المشرف");
   }
-  getUserById(req.session.userId)
-    .then((user) => {
-      if (!user || !user.is_admin) return appError(res, 403, "ليس لديك صلاحية المشرف");
-      req.session.isAdmin = true;
-      next();
-    })
-    .catch(() => appError(res, 403, "تعذر التحقق من صلاحية المشرف"));
+  requireAuth(req, res, () => {
+    if (!req.currentUser.is_admin) return appError(res, 403, "ليس لديك صلاحية المشرف");
+    next();
+  });
 }
 
 async function withTransaction(callback) {
@@ -444,6 +460,9 @@ app.post("/api/auth/login", async (req, res) => {
     if (!user || !(await bcrypt.compare(password, user.password_hash))) {
       return appError(res, 401, "البريد الإلكتروني غير مسجل أو كلمة المرور خاطئة");
     }
+    if (user.is_blocked) {
+      return appError(res, 403, "تم حظر هذا الحساب. يرجى التواصل مع الإدارة");
+    }
     await regenerateSession(req);
     req.session.userId = user.id;
     req.session.isAdmin = Boolean(user.is_admin);
@@ -470,8 +489,11 @@ app.get("/api/auth/session", async (req, res) => {
   if (!req.session.userId) return res.json({ authenticated: false });
   try {
     const user = await getUserById(req.session.userId);
-    if (!user) {
+    if (!user || user.is_blocked) {
       req.session.destroy(() => {});
+      if (user?.is_blocked) {
+        return appError(res, 403, "تم حظر هذا الحساب. يرجى التواصل مع الإدارة");
+      }
       return res.json({ authenticated: false });
     }
     res.json({ authenticated: true, user: publicUser(user) });
@@ -815,7 +837,7 @@ app.get("/api/admin/overview", requireAdmin, async (_req, res) => {
   try {
     const [users, deposits, withdrawals, stats] = await Promise.all([
       pool.query(
-        `SELECT id, email, name, referral_code, is_admin, balance, user_vip, created_at
+        `SELECT id, email, name, referral_code, is_admin, is_blocked, balance, user_vip, created_at
          FROM users ORDER BY created_at DESC`,
       ),
       pool.query(
@@ -849,6 +871,30 @@ app.get("/api/admin/overview", requireAdmin, async (_req, res) => {
     });
   } catch {
     appError(res, 500, "تعذر تحميل لوحة الإدارة");
+  }
+});
+
+app.post("/api/admin/users/:id/status", requireAdmin, async (req, res) => {
+  const userId = Number(req.params.id);
+  const blocked = req.body.blocked;
+  if (!Number.isInteger(userId) || userId <= 0 || typeof blocked !== "boolean") {
+    return appError(res, 400, "بيانات حالة الحساب غير صحيحة");
+  }
+  if (userId === req.session.userId) {
+    return appError(res, 400, "لا يمكنك تغيير حالة حساب المشرف الحالي");
+  }
+  try {
+    const result = await pool.query(
+      `UPDATE users
+       SET is_blocked = $1, updated_at = NOW()
+       WHERE id = $2 AND is_admin = FALSE
+       RETURNING *`,
+      [blocked, userId],
+    );
+    if (!result.rowCount) return appError(res, 404, "المستخدم غير موجود أو حساب إداري");
+    res.json({ user: publicUser(result.rows[0]) });
+  } catch {
+    appError(res, 500, "تعذر تحديث حالة المستخدم");
   }
 });
 

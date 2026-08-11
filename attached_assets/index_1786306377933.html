@@ -1342,7 +1342,7 @@
                         <button class="btn btn-green" style="flex:1; padding: 6px 10px; font-size: 0.75rem;" onclick="adminEditBalance(${idx})">✏️ تعديل الرصيد</button>
                         <button class="btn btn-gold" style="flex:1; padding: 6px 10px; font-size: 0.75rem;" onclick="adminChangeVip(${idx})">👑 تغيير VIP</button>
                         <button class="btn" style="flex:1; padding: 6px 10px; font-size: 0.75rem; background: #6366f1; color: white;" onclick="adminResetTasks(${idx})">🔄 تصفير المهام</button>
-                        ${!u.isAdmin ? `<button class="btn btn-red" style="flex:1; padding: 6px 10px; font-size: 0.75rem;" onclick="adminDeleteUser(${idx})">🗑️ حذف</button>` : ''}
+                        ${!u.isAdmin ? `<button class="btn btn-red" style="flex:1; padding: 6px 10px; font-size: 0.75rem;" onclick="adminBlockUser(${idx})">🚫 حظر المستخدم</button>` : ''}
                     </div>
                 </div>
             `;
@@ -1390,12 +1390,13 @@
         }
     }
 
-    function adminDeleteUser(index) {
+    function adminBlockUser(index) {
         let u = registeredUsers[index];
-        if (confirm(`⚠️ هل أنت متأكد من حذف حساب (${u.email}) نهائياً؟`)) {
-            registeredUsers.splice(index, 1);
+        if (confirm(`⚠️ هل أنت متأكد من حظر حساب (${u.email})؟ سيتم الاحتفاظ بكل بياناته ومعاملاته وإحالاته.`)) {
+            u.isBlocked = true;
+            u.isActive = false;
             renderAdminDashboard();
-            alert("🗑️ تم حذف الحساب بنجاح!");
+            alert("🚫 تم حظر الحساب. لا يمكن تسجيل الدخول إليه.");
         }
     }
 

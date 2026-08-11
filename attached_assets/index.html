@@ -2366,7 +2366,7 @@
                         <button class="btn btn-green" style="flex:1; padding: 6px 10px; font-size: 0.75rem;" onclick="adminEditBalance(${idx})">✏️ تعديل الرصيد</button>
                         <button class="btn btn-gold" style="flex:1; padding: 6px 10px; font-size: 0.75rem;" onclick="adminChangeVip(${idx})">👑 تغيير VIP</button>
                         <button class="btn" style="flex:1; padding: 6px 10px; font-size: 0.75rem; background: #6366f1; color: white;" onclick="adminResetTasks(${idx})">🔄 تصفير المهام</button>
-                        ${!u.isAdmin ? `<button class="btn btn-red" style="flex:1; padding: 6px 10px; font-size: 0.75rem;" onclick="adminDeleteUser(${idx})">🗑️ حذف</button>` : ''}
+                        ${!u.isAdmin ? `<button class="btn ${u.isBlocked ? 'btn-green' : 'btn-red'}" style="flex:1; padding: 6px 10px; font-size: 0.75rem;" onclick="adminToggleBlock(${u.id}, ${!u.isBlocked})">${u.isBlocked ? '✅ رفع الحظر' : '🚫 حظر المستخدم'}</button>` : ''}
                     </div>
                 </div>
             `;
@@ -2385,8 +2385,11 @@
         showApiError(new Error("حالة المهام مملوكة للخادم ولا يمكن تعديلها من الواجهة"));
     }
 
-    function adminDeleteUser(index) {
-        showApiError(new Error("حذف الحساب غير متاح من لوحة الواجهة"));
+    function adminToggleBlock(userId, blocked) {
+        if (typeof window.adminToggleBlock === 'function') {
+            return window.adminToggleBlock(userId, blocked);
+        }
+        showApiError(new Error("تعذر تحديث حالة المستخدم"));
     }
 
     function saveUserData() {

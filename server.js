@@ -98,6 +98,7 @@ const statusNames = {
 };
 const rates = [0.1, 0.05, 0.01];
 const dailyRewardAmount = 0.1;
+const trialDurationDays = 2;
 const vipProducts = {
   "VIP 1": { price: 14, totalTasks: 3, totalReward: 1.2 },
   "VIP 2": { price: 24, totalTasks: 6, totalReward: 2.5 },
@@ -155,6 +156,7 @@ function publicUser(row) {
     currentTrialDay: row.current_trial_day || 1,
     trialActive: Boolean(row.trial_active),
     trialUsed: Boolean(row.trial_used),
+    vipExpiresAt: row.vip_expires_at || null,
     availableSpins: row.available_spins || 0,
     createdAt: row.created_at,
   };
@@ -570,9 +572,9 @@ app.post("/api/vip/trial", requireUser, async (req, res) => {
       const updated = await client.query(
         `UPDATE users SET user_vip = $1::jsonb, trial_active = TRUE, trial_used = TRUE,
           current_trial_day = 1, completed_tasks_count = 0, task_last_reset_date = CURRENT_DATE,
-           vip_expires_at = NOW() + INTERVAL '2 days',
-          updated_at = NOW() WHERE id = $2 RETURNING *`,
-        [JSON.stringify(vip), req.session.userId],
+           vip_expires_at = NOW() + ($2 * INTERVAL '1 day'),
+          updated_at = NOW() WHERE id = $3 RETURNING *`,
+        [JSON.stringify(vip), trialDurationDays, req.session.userId],
       );
       return publicUser(updated.rows[0]);
     });

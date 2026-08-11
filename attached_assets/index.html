@@ -2144,6 +2144,140 @@
                 border-radius: 18px;
             }
         }
+
+        /*
+         * Final mobile home layout
+         * ------------------------
+         * Keep the home screen dense enough for a phone viewport while
+         * preserving a comfortable touch target for every action. This is
+         * intentionally the last rule block because this legacy page has
+         * several older responsive overrides above it.
+         */
+        @media (max-width: 760px) {
+            :root {
+                --bottom-nav-height: 58px;
+                --bottom-nav-space: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+            }
+
+            .app-container > .content,
+            .app-container:not(:has(#auth-screen.active)):not(:has(#admin-screen.active)) > .content {
+                padding: 6px 10px calc(var(--bottom-nav-space) + 10px) !important;
+                scroll-padding-bottom: calc(var(--bottom-nav-space) + 10px) !important;
+            }
+
+            .app-container:has(#auth-screen.active) > .content {
+                padding: 0 10px 18px !important;
+            }
+
+            .app-container:not(:has(#auth-screen.active)):not(:has(#admin-screen.active)) .screen {
+                padding-top: 0 !important;
+            }
+
+            #home-screen .slider-container {
+                height: clamp(142px, 37vw, 180px);
+                margin-bottom: 10px;
+                border-radius: 15px;
+            }
+
+            #home-screen .quick-actions {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 6px;
+                margin-bottom: 10px;
+            }
+
+            #home-screen .action-item {
+                min-height: 70px;
+                padding: 8px 3px;
+                gap: 4px;
+                border-radius: 12px;
+            }
+
+            #home-screen .action-icon {
+                width: 34px;
+                height: 34px;
+                border-radius: 10px;
+                font-size: 1.05rem;
+            }
+
+            #home-screen .action-title {
+                font-size: clamp(.62rem, 2.25vw, .72rem);
+                line-height: 1.2;
+            }
+
+            #home-screen .wheel-card {
+                padding: 12px 8px;
+                margin-bottom: 10px;
+                border-radius: 16px;
+            }
+
+            #home-screen .wheel-card h3 {
+                font-size: 1rem !important;
+            }
+
+            #home-screen .wheel-card p {
+                line-height: 1.45;
+            }
+
+            #home-screen .wheel-container-wrapper {
+                width: min(200px, 58vw);
+                height: min(200px, 58vw);
+                margin: 11px auto;
+            }
+
+            #home-screen .spin-center-btn {
+                width: 48px;
+                height: 48px;
+                font-size: .78rem;
+            }
+
+            #home-screen .stats-bar {
+                margin-bottom: 10px;
+                padding: 9px 7px;
+                border-radius: 12px;
+            }
+
+            .bottom-nav {
+                height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom)) !important;
+                padding: 2px 3px env(safe-area-inset-bottom) !important;
+            }
+
+            .nav-link {
+                min-height: 48px;
+                gap: 1px;
+                font-size: clamp(.58rem, 2.1vw, .68rem);
+                line-height: 1.15;
+            }
+
+            .nav-link span {
+                font-size: clamp(.98rem, 4.5vw, 1.16rem);
+                line-height: 1;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .app-container > .content,
+            .app-container:not(:has(#auth-screen.active)):not(:has(#admin-screen.active)) > .content {
+                padding-inline: 7px !important;
+            }
+
+            #home-screen .action-item {
+                min-height: 66px;
+            }
+
+            #home-screen .action-icon {
+                width: 31px;
+                height: 31px;
+                font-size: .96rem;
+            }
+
+            .nav-link {
+                font-size: .56rem;
+            }
+
+            .nav-link span {
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>

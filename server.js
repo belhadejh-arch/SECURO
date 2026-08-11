@@ -589,7 +589,7 @@ app.post("/api/vip/purchase", requireUser, async (req, res) => {
   const product = vipProducts[name];
   if (!product) return appError(res, 400, "عضوية VIP غير صالحة");
   try {
-    const result = await withTransaction(async (client) => {
+    await withTransaction(async (client) => {
       await syncVipState(client, req.session.userId);
       const locked = await client.query("SELECT * FROM users WHERE id = $1 FOR UPDATE", [req.session.userId]);
       if (!locked.rowCount) throw Object.assign(new Error("الحساب غير موجود"), { status: 404 });
@@ -601,7 +601,7 @@ app.post("/api/vip/purchase", requireUser, async (req, res) => {
         throw Object.assign(new Error("لديك عضوية VIP نشطة حالياً"), { status: 409 });
       }
       const vip = { name, ...product, isTrial: false };
-      const updated = await client.query(
+      await client.query(
         `UPDATE users SET balance = balance - $1, user_vip = $2::jsonb,
           trial_active = FALSE, completed_tasks_count = 0, task_last_reset_date = CURRENT_DATE,
            vip_expires_at = NOW() + INTERVAL '365 days',
@@ -615,9 +615,12 @@ app.post("/api/vip/purchase", requireUser, async (req, res) => {
          VALUES ($1, 'شراء', $2, 'debit', $3, 'vip_purchase', NULL)`,
         [req.session.userId, product.price.toFixed(2), `شراء عضوية ${name}`],
       );
-      return publicUser(updated.rows[0]);
     });
-    res.json({ user: result });
+    // Return the complete, freshly-loaded task state with the purchase result.
+    // This makes the new VIP task list available immediately after confirmation
+    // instead of leaving the client with the previous membership's task cache.
+    const payload = await loadUserPayload(req.session.userId);
+    res.json(payload);
   } catch (error) {
     appError(res, error.status || 500, error.status ? error.message : "تعذر شراء العضوية");
   }

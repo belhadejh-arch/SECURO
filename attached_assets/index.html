@@ -3573,10 +3573,14 @@
             });
             if (!result?.user) throw new Error("لم يرجع الخادم بيانات العضوية");
             window.syncServerUser(result.user);
+            // The purchase endpoint returns the new day's task state as well.
+            // Replace the local cache before opening "مهامي" so VIP1's tasks
+            // are rendered immediately and not only after a later refresh.
+            taskStatuses = result.taskStatuses || [];
             activeTaskTimers = {};
             pendingVip = null;
             closeVipModal();
-            alert(`🎉 تهانينا! تم تفعيل عضوية ${result.user.userVip.name} بنجاح وحصلت آلياً على (+1) محاولة في عجلة الحظ.`);
+            alert(`🎉 تم تفعيل الاشتراك ${result.user.userVip.name} بنجاح. بدأت الآن مهام ${result.user.userVip.name} الخاصة بك.`);
             switchTab('tasks');
         } catch (error) {
             if (confirmBtn) {

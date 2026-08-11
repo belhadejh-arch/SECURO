@@ -1,2 +1,3 @@
 - [Render وVercel](render-vercel-deployment.md) — عند فصل الواجهة والـ API، يجب ضبط CORS وCookies والجسر `/api` معاً.
 - [Server-owned financial state](server-owned-financial-state.md) — كل الرصيد والمكافآت والحجوزات تتغير عبر Backend/PostgreSQL فقط.
+- [Responsive CSS layering](responsive-css-layering.md) — قواعد responsive المتكررة قد تلغي الإصلاح؛ يجب وضع override النهائي في آخر CSS.

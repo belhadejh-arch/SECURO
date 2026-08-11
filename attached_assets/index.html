@@ -1902,6 +1902,92 @@
                 font-size: 1.08rem;
             }
         }
+        /*
+         * Absolute final mobile/desktop spacing override.
+         * Earlier responsive blocks in this legacy single-file page redefine
+         * the same selectors several times. Keep this block last so the page
+         * always starts at the top instead of inheriting viewport-centering
+         * spacing on narrow screens.
+         */
+        html,
+        body {
+            height: auto !important;
+            min-height: 100% !important;
+            overflow-x: clip !important;
+            overflow-y: auto !important;
+        }
+
+        body {
+            display: block !important;
+            align-items: flex-start !important;
+            justify-content: flex-start !important;
+        }
+
+        .app-container {
+            height: auto !important;
+            min-height: 100dvh !important;
+            margin: 0 !important;
+            overflow: visible !important;
+        }
+
+        .app-container.nav-visible {
+            padding-bottom: var(--bottom-nav-space) !important;
+        }
+
+        .content {
+            height: auto !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding-top: 0 !important;
+            overflow: visible !important;
+            scroll-padding-top: 0 !important;
+            scroll-padding-bottom: var(--bottom-nav-space) !important;
+        }
+
+        .content:has(#home-screen.active),
+        .content:has(#auth-screen.active) {
+            padding-top: 0 !important;
+            scroll-padding-top: 0 !important;
+        }
+
+        .screen,
+        .screen.active {
+            min-height: 0 !important;
+            height: auto !important;
+            margin-top: 0 !important;
+        }
+
+        .auth-layout {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 10px !important;
+            min-height: 0 !important;
+            height: auto !important;
+            margin: 0 auto !important;
+            padding: 0 0 24px !important;
+        }
+
+        .auth-brand,
+        .auth-card {
+            margin-top: 0 !important;
+        }
+
+        @media (max-width: 760px) {
+            .content {
+                padding: 0 10px 24px !important;
+            }
+
+            .auth-layout {
+                gap: 10px !important;
+                padding: 0 0 20px !important;
+            }
+
+            .auth-card {
+                width: 100% !important;
+                max-width: 430px !important;
+            }
+        }
     </style>
 </head>
 <body>

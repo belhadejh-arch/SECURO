@@ -1168,6 +1168,251 @@
                 transition-duration: .01ms !important;
             }
         }
+
+        /*
+         * Final responsive layout guardrails
+         * ---------------------------------
+         * The app uses one scroll viewport inside .app-container.  Keeping that
+         * contract explicit prevents long screens and modals from being clipped
+         * when the browser changes its mobile URL-bar height.
+         */
+        html, body {
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            overflow-x: hidden;
+        }
+        html {
+            min-height: 100%;
+            background: #020617;
+        }
+        body {
+            min-height: 100vh;
+            min-height: 100dvh;
+            margin: 0;
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            overflow-y: auto;
+        }
+        .app-container {
+            width: min(100%, 1180px);
+            min-width: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+        }
+        .content {
+            min-width: 0;
+            min-height: 0;
+            width: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-gutter: stable;
+        }
+        .screen,
+        .screen > *,
+        .card,
+        .vip-card,
+        .hotel-card,
+        .history-card,
+        .admin-panel,
+        .auth-card {
+            min-width: 0;
+            max-width: 100%;
+        }
+        .screen.active {
+            overflow: visible;
+        }
+        img, canvas, svg, video, iframe {
+            max-width: 100%;
+        }
+        input, select, textarea, button {
+            max-width: 100%;
+        }
+        input, select, textarea {
+            min-width: 0;
+        }
+        .copy-input-container,
+        .support-banner-profile,
+        .history-card,
+        .subpage-header,
+        .admin-hero,
+        .admin-hero-copy {
+            min-width: 0;
+        }
+        .copy-input-container input {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .copy-input-container .copy-btn {
+            flex: 0 1 auto;
+        }
+        .modal {
+            position: absolute;
+            inset: 0;
+            min-width: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+        .modal-content {
+            min-width: 0;
+            width: min(100%, 520px);
+            max-width: 100%;
+            max-height: calc(100dvh - 32px);
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+        .bottom-nav {
+            max-width: 100%;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        @media (min-width: 761px) {
+            body {
+                overflow: hidden;
+            }
+            .content {
+                padding-inline: clamp(18px, 3vw, 46px);
+            }
+            .screen {
+                margin-inline: auto;
+            }
+            .auth-layout {
+                width: 100%;
+            }
+            .admin-hero-copy > div:last-child {
+                min-width: 0;
+            }
+        }
+
+        @media (max-width: 760px) {
+            body {
+                display: block;
+                overflow: hidden;
+            }
+            .app-container {
+                width: 100%;
+                max-width: none;
+                height: 100vh;
+                height: 100dvh;
+                min-height: 100vh;
+                min-height: 100dvh;
+                border-radius: 0;
+            }
+            .content {
+                height: auto;
+                padding: 14px 12px calc(84px + env(safe-area-inset-bottom));
+                scroll-padding-bottom: calc(84px + env(safe-area-inset-bottom));
+            }
+            .screen {
+                padding-inline: 0;
+            }
+            .screen > h2 {
+                font-size: clamp(1.15rem, 5vw, 1.45rem);
+                line-height: 1.45;
+            }
+            .admin-hero-copy {
+                width: 100%;
+            }
+            .admin-hero-copy > div:last-child {
+                flex: 1 1 auto;
+            }
+            .admin-hero-icon {
+                flex: 0 0 52px;
+                width: 52px;
+                height: 52px;
+            }
+            .support-banner-profile {
+                align-items: center;
+            }
+            .support-banner-profile > div:first-child {
+                flex: 1 1 auto;
+            }
+            .support-banner-profile .btn {
+                flex: 0 1 auto;
+                min-width: 0;
+            }
+            .history-card {
+                width: 100%;
+            }
+            .history-card > div {
+                max-width: 100%;
+            }
+            .modal {
+                padding: max(12px, env(safe-area-inset-top))
+                    12px max(12px, env(safe-area-inset-bottom));
+            }
+            .modal-content {
+                width: 100%;
+                max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+                margin-block: auto;
+            }
+            #deposit-modal,
+            #withdraw-modal {
+                align-items: flex-end !important;
+                padding: 0 0 env(safe-area-inset-bottom) !important;
+            }
+            #deposit-modal .modal-content,
+            #withdraw-modal .modal-content {
+                width: 100%;
+                max-height: min(90dvh, 720px);
+                border-radius: 22px 22px 0 0;
+                margin: 0;
+            }
+            .bottom-nav {
+                left: 0;
+                right: 0;
+                bottom: 0;
+                height: calc(68px + env(safe-area-inset-bottom));
+            }
+        }
+
+        @media (max-width: 420px) {
+            .content {
+                padding-inline: 10px;
+            }
+            .auth-card {
+                padding-inline: 13px;
+            }
+            .stats-bar {
+                gap: 6px;
+            }
+            .stats-bar > .stat-box {
+                flex-basis: 0;
+                min-width: 0;
+            }
+            .stat-num {
+                font-size: clamp(.88rem, 4vw, 1.1rem);
+            }
+            .stat-lbl {
+                line-height: 1.35;
+            }
+            .subpage-header h2 {
+                font-size: 1rem !important;
+            }
+        }
+
+        @media (max-width: 340px) {
+            .content {
+                padding-inline: 8px;
+            }
+            .quick-actions {
+                gap: 6px;
+            }
+            .action-item {
+                padding-inline: 4px;
+            }
+            .nav-link {
+                font-size: .6rem;
+            }
+        }
     </style>
 </head>
 <body>

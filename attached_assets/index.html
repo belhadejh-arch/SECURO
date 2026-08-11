@@ -1041,9 +1041,9 @@
             align-items: center;
             justify-content: flex-start;
             gap: 22px;
-            min-height: calc(100dvh - 82px);
+            min-height: 0;
             max-width: 560px;
-            padding: 8px 0 36px;
+            padding: 0 0 28px;
         }
         .auth-brand {
             width: 100%;
@@ -1153,9 +1153,9 @@
                 padding: 15px 14px calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
             }
             .auth-layout {
-                min-height: calc(100dvh - 64px);
+                min-height: 0;
                 gap: 23px;
-                padding: 8px 0 28px;
+                padding: 0 0 24px;
             }
             .auth-brand::before {
                 font-size: 1.45rem;
@@ -1512,15 +1512,19 @@
             flex: 0 0 auto;
             overflow: visible;
             overflow-x: clip;
-            padding: clamp(16px, 3vw, 28px) var(--page-gutter) 28px;
+            padding: clamp(6px, 1.2vw, 14px) var(--page-gutter) 28px;
             scroll-padding-bottom: var(--bottom-nav-space);
         }
 
         .content:has(#home-screen.active) {
-            padding-top: clamp(10px, 2vw, 20px);
+            padding-top: clamp(4px, 0.8vw, 10px);
             padding-bottom: 28px;
-            scroll-padding-top: 10px;
+            scroll-padding-top: 4px;
             scroll-padding-bottom: var(--bottom-nav-space);
+        }
+
+        .content:has(#auth-screen.active) {
+            padding-top: 0;
         }
 
         .screen {
@@ -1579,8 +1583,8 @@
 
         .auth-layout {
             width: 100%;
-            min-height: auto;
-            padding: 8px 0 32px;
+            min-height: 0;
+            padding: 0 0 24px;
         }
 
         .admin-hero,
@@ -1733,12 +1737,12 @@
             }
 
             .content {
-                padding: 14px 12px 24px;
+                padding: 6px 12px 24px;
             }
 
             .auth-layout {
-                gap: 18px;
-                padding: 8px 0 24px;
+                gap: 14px;
+                padding: 0 0 20px;
             }
 
             .auth-card {

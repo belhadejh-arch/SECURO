@@ -1443,7 +1443,10 @@
         /* الصفحة الرئيسية: تقليل الفراغ العلوي مع إبقاء الحواف السفلية
            محسوبة بواسطة مساحة التنقل حتى يبقى آخر المحتوى قابلاً للظهور. */
         .content:has(#home-screen.active) {
-            padding-top: 8px;
+            padding-top: 4px;
+            padding-bottom: calc(var(--bottom-nav-height) + 32px + env(safe-area-inset-bottom));
+            scroll-padding-top: 4px;
+            scroll-padding-bottom: calc(var(--bottom-nav-height) + 32px + env(safe-area-inset-bottom));
         }
 
         :root {

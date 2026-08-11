@@ -1439,6 +1439,25 @@
                 font-size: .6rem;
             }
         }
+
+        /* الصفحة الرئيسية: تقليل الفراغ العلوي مع إبقاء الحواف السفلية
+           محسوبة بواسطة مساحة التنقل حتى يبقى آخر المحتوى قابلاً للظهور. */
+        .content:has(#home-screen.active) {
+            padding-top: 8px;
+        }
+
+        :root {
+            --bottom-nav-height: 60px;
+            --bottom-nav-gap: 16px;
+        }
+
+        .nav-link {
+            gap: 2px;
+        }
+
+        .nav-link span {
+            font-size: 1.15rem;
+        }
     </style>
 </head>
 <body>

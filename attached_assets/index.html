@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>SECURO VIP - الإدارة والمستخدم</title>
     <!-- مكتبة الأيقونات -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -1461,6 +1461,443 @@
         .nav-link span {
             font-size: 1.15rem;
         }
+
+        /*
+         * Final responsive contract
+         * -------------------------
+         * The document is the only vertical scroll container. The navigation
+         * remains fixed for quick access, while nav-visible reserves its full
+         * safe-area footprint in normal flow so the last item on every screen
+         * can always be reached.
+         */
+        :root {
+            --bottom-nav-height: 64px;
+            --bottom-nav-space: calc(var(--bottom-nav-height) + 28px + env(safe-area-inset-bottom));
+            --page-gutter: clamp(12px, 3vw, 46px);
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-width: 0;
+            min-height: 100%;
+            overflow-x: clip;
+            overflow-y: auto;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            display: block;
+            margin: 0;
+        }
+
+        .app-container {
+            width: min(100%, 1180px);
+            max-width: 1180px;
+            min-width: 0;
+            min-height: 100dvh;
+            height: auto;
+            overflow: visible;
+        }
+
+        .app-container.nav-visible {
+            padding-bottom: var(--bottom-nav-space);
+        }
+
+        .content {
+            width: 100%;
+            min-width: 0;
+            min-height: 0;
+            height: auto;
+            flex: 0 0 auto;
+            overflow: visible;
+            overflow-x: clip;
+            padding: clamp(16px, 3vw, 28px) var(--page-gutter) 28px;
+            scroll-padding-bottom: var(--bottom-nav-space);
+        }
+
+        .content:has(#home-screen.active) {
+            padding-top: clamp(10px, 2vw, 20px);
+            padding-bottom: 28px;
+            scroll-padding-top: 10px;
+            scroll-padding-bottom: var(--bottom-nav-space);
+        }
+
+        .screen {
+            width: 100%;
+            max-width: 1120px;
+            min-width: 0;
+            margin-inline: auto;
+            overflow: visible;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .screen > *,
+        .card,
+        .admin-panel,
+        .vip-card,
+        .hotel-card,
+        .wheel-card,
+        .history-card,
+        .auth-card,
+        .referral-box,
+        .balance-card,
+        .task-progress-box,
+        .task-complete-card {
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        /* Cards should not clip text or controls inserted later by JavaScript. */
+        .card,
+        .admin-panel,
+        .vip-card,
+        .wheel-card,
+        .history-card,
+        .task-complete-card {
+            overflow: visible;
+        }
+
+        .hotel-card {
+            overflow: visible;
+        }
+
+        .hotel-card .hotel-img {
+            border-radius: 15px 15px 0 0;
+        }
+
+        .slider-container {
+            height: clamp(150px, 28vw, 230px);
+        }
+
+        .hotel-img {
+            height: clamp(140px, 26vw, 205px);
+        }
+
+        .auth-layout {
+            width: 100%;
+            min-height: auto;
+            padding: 8px 0 32px;
+        }
+
+        .admin-hero,
+        .admin-hero-copy,
+        .support-banner-profile,
+        .history-card,
+        .subpage-header {
+            min-width: 0;
+        }
+
+        .admin-hero-copy > div:last-child,
+        .support-banner-profile > div:first-child,
+        .history-info {
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        .admin-hero h2,
+        .admin-hero p,
+        .card h3,
+        .vip-card h3,
+        .hotel-card h3,
+        .history-title,
+        .history-date,
+        .menu-item,
+        .support-banner-profile,
+        .action-title {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        input,
+        select,
+        textarea,
+        button,
+        .btn,
+        .action-item,
+        .menu-item,
+        .copy-btn,
+        .back-btn-arrow,
+        .nav-link {
+            max-width: 100%;
+            touch-action: manipulation;
+        }
+
+        button,
+        .btn,
+        .action-item,
+        .menu-item,
+        .copy-btn {
+            min-height: 48px;
+        }
+
+        input,
+        select,
+        textarea {
+            min-width: 0;
+            font-size: max(16px, .95rem);
+        }
+
+        textarea {
+            min-height: 84px;
+            line-height: 1.55;
+        }
+
+        .copy-input-container {
+            min-width: 0;
+            align-items: stretch;
+        }
+
+        .copy-input-container input {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .levels-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .level-card {
+            min-width: 0;
+        }
+
+        .level-card > * {
+            max-width: 100%;
+            overflow-wrap: anywhere;
+        }
+
+        .wheel-container-wrapper {
+            width: min(230px, 68vw);
+            height: min(230px, 68vw);
+            max-width: 100%;
+        }
+
+        .wheel-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            aspect-ratio: 1;
+        }
+
+        .modal {
+            position: absolute;
+            inset: 0;
+            min-width: 0;
+            overflow-y: auto;
+            padding: max(14px, env(safe-area-inset-top)) 14px
+                max(14px, env(safe-area-inset-bottom));
+        }
+
+        .modal-content {
+            width: min(100%, 520px);
+            max-width: 100%;
+            max-height: calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+            overflow-x: hidden;
+            overflow-y: auto;
+            margin-block: auto;
+        }
+
+        .bottom-nav {
+            width: min(100%, 1180px);
+            height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+            padding: 0 6px env(safe-area-inset-bottom);
+            box-sizing: border-box;
+        }
+
+        .nav-link {
+            min-width: 0;
+            min-height: 48px;
+            justify-content: center;
+            line-height: 1.2;
+            text-align: center;
+        }
+
+        @media (max-width: 760px) {
+            .app-container {
+                width: 100%;
+                max-width: none;
+                min-height: 100dvh;
+                box-shadow: none;
+            }
+
+            header {
+                min-height: 54px;
+                padding: 10px 14px;
+            }
+
+            header h1 {
+                font-size: clamp(1.2rem, 5vw, 1.4rem);
+            }
+
+            .content {
+                padding: 14px 12px 24px;
+            }
+
+            .auth-layout {
+                gap: 18px;
+                padding: 8px 0 24px;
+            }
+
+            .auth-card {
+                padding: 20px 15px;
+            }
+
+            .admin-hero {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 14px;
+                padding: 18px;
+            }
+
+            .admin-refresh {
+                width: 100%;
+            }
+
+            .admin-panel {
+                padding: 14px;
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+            }
+
+            .action-item {
+                min-height: 84px;
+            }
+
+            .stats-bar {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .stats-bar > .stat-box {
+                flex: 1 1 28%;
+                min-width: 0;
+            }
+
+            .stats-bar > div[style*="height: 25px"] {
+                display: none !important;
+            }
+
+            .copy-input-container {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .copy-btn {
+                width: 100%;
+            }
+
+            .support-banner-profile {
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .support-banner-profile .btn {
+                width: auto;
+                min-width: 0;
+            }
+
+            .history-card {
+                align-items: flex-start;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .history-info {
+                flex: 1 1 65%;
+            }
+
+            .history-card > div:last-child {
+                max-width: 100%;
+            }
+
+            .levels-grid {
+                gap: 7px;
+            }
+
+            .level-card {
+                padding: 10px 5px;
+            }
+
+            .wheel-card {
+                padding: 14px 10px;
+            }
+
+            .modal {
+                padding-inline: 12px;
+            }
+
+            .modal-content {
+                width: 100%;
+                border-radius: 16px;
+            }
+
+            #deposit-modal,
+            #withdraw-modal {
+                align-items: flex-end;
+                padding: 0 0 env(safe-area-inset-bottom);
+            }
+
+            #deposit-modal .modal-content,
+            #withdraw-modal .modal-content {
+                width: 100%;
+                max-height: min(90dvh, 720px);
+                border-radius: 22px 22px 0 0;
+                margin: 0;
+            }
+
+            .bottom-nav {
+                left: 0;
+                right: 0;
+                transform: none;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .content {
+                padding-inline: 10px;
+            }
+
+            .subpage-header h2 {
+                font-size: 1rem !important;
+            }
+
+            .support-banner-profile {
+                flex-wrap: wrap;
+            }
+
+            .support-banner-profile .btn {
+                flex: 1 1 100%;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .content {
+                padding-inline: 8px;
+            }
+
+            .levels-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-bar > .stat-box {
+                flex-basis: 100%;
+            }
+
+            .nav-link {
+                font-size: .62rem;
+            }
+
+            .nav-link span {
+                font-size: 1.08rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2515,6 +2952,7 @@
 
         document.getElementById(tabName + '-screen').classList.add('active');
         document.getElementById('nav-' + tabName).classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'auto' });
 
         if(tabName === 'tasks') renderTasksScreen();
         if(tabName === 'team') renderTeamScreen();
@@ -2596,6 +3034,7 @@
     function openSubPage(pageId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'auto' });
 
         if(pageId === 'deposit-history-screen') renderDepositsList();
         if(pageId === 'reward-history-screen') renderRewardsList();

@@ -1127,10 +1127,6 @@
             font-size: .78rem !important;
             font-weight: 600 !important;
         }
-        .auth-card #admin-login-toggle {
-            color: #8794aa !important;
-            font-size: .72rem !important;
-        }
         .app-container:has(#auth-screen.active) > header {
             display: none;
         }
@@ -1454,9 +1450,6 @@
                 <div class="auth-note"><i class="fa-solid fa-circle-info" style="color:#60a5fa;"></i><span>لن نشارك بياناتك. يتم حفظ حسابك في قاعدة بيانات آمنة.</span></div>
                 <div style="text-align: center; margin-top: 18px;">
                     <span id="toggle-text" style="color: #60a5fa; cursor: pointer; font-size: 0.88rem; font-weight: bold;" onclick="toggleAuth()">ليس لديك حساب؟ إنشاء حساب جديد</span>
-                </div>
-                <div style="text-align: center; margin-top: 12px;">
-                    <span id="admin-login-toggle" style="color: #fbbf24; cursor: pointer; font-size: 0.82rem; font-weight: bold;" onclick="toggleAdminLogin()">🔐 دخول الإدارة</span>
                 </div>
               </div>
                 </div>
@@ -2030,7 +2023,6 @@
 
 <script>
     let isSignup = false;
-    let isAdminLogin = false;
     let currentUser = null;
     let balance = 0.00;
     let isAdmin = false;
@@ -2218,36 +2210,18 @@
     }
 
     function toggleAuth() {
-        isAdminLogin = false;
         isSignup = !isSignup;
         updateAuthModeUI();
     }
-
-    function toggleAdminLogin() {
-        isAdminLogin = !isAdminLogin;
-        isSignup = false;
-        updateAuthModeUI();
-    }
-
-    function isAdminLoginMode() {
-        return isAdminLogin;
-    }
-    window.isAdminLoginMode = isAdminLoginMode;
-    window.setAuthMode = function(mode) {
-        isAdminLogin = mode === 'admin';
-        isSignup = false;
-        updateAuthModeUI();
-    };
 
     function updateAuthModeUI() {
         document.getElementById('reg-name').style.display = isSignup ? 'block' : 'none';
         document.getElementById('reg-name-label').style.display = isSignup ? 'block' : 'none';
         document.getElementById('invite-group').style.display = isSignup ? 'block' : 'none';
-        document.getElementById('auth-title').innerText = isAdminLogin ? 'دخول الإدارة' : (isSignup ? 'إنشاء حساب جديد' : 'تسجيل الدخول');
-        document.getElementById('auth-btn').innerText = isAdminLogin ? '🔐 دخول Admin' : (isSignup ? '🚀 إنشاء الحساب' : '🚀 دخول');
-        document.getElementById('toggle-text').innerText = isAdminLogin ? 'العودة إلى دخول المستخدم' : (isSignup ? 'لديك حساب بالفعل؟ دخول' : 'ليس لديك حساب؟ إنشاء حساب جديد');
-        document.getElementById('toggle-text').setAttribute('onclick', isAdminLogin ? 'toggleAdminLogin()' : 'toggleAuth()');
-        document.getElementById('admin-login-toggle').innerText = isAdminLogin ? '👤 العودة إلى دخول المستخدم' : '🔐 دخول الإدارة';
+        document.getElementById('auth-title').innerText = isSignup ? 'إنشاء حساب جديد' : 'تسجيل الدخول';
+        document.getElementById('auth-btn').innerText = isSignup ? '🚀 إنشاء الحساب' : '🚀 دخول';
+        document.getElementById('toggle-text').innerText = isSignup ? 'لديك حساب بالفعل؟ دخول' : 'ليس لديك حساب؟ إنشاء حساب جديد';
+        document.getElementById('toggle-text').setAttribute('onclick', 'toggleAuth()');
     }
 
     function startDailyRewardClock() {

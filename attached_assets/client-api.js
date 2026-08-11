@@ -14,6 +14,8 @@
     configuredApiBaseUrl === "__BACKEND_URL__"
       ? ""
       : configuredApiBaseUrl.replace(/\/+$/, "");
+  let adminRefreshInterval = null;
+  let adminRefreshInFlight = false;
 
   async function api(url, options) {
     const requestUrl = /^https?:\/\//i.test(url) ? url : `${apiBaseUrl}${url}`;
@@ -126,7 +128,9 @@
       document.getElementById("admin-screen").classList.add("active");
       document.getElementById("header-title").innerText = "SECURO ADMIN";
       renderAdminDashboard();
+      startAdminDashboardRefresh();
     } else {
+      stopAdminDashboardRefresh();
       document.getElementById("bottom-nav").style.display = "flex";
       document.getElementById("header-title").innerText = "SECURO";
       switchTab("home");
@@ -138,7 +142,6 @@
     const password = document.getElementById("auth-pass").value;
     const name = document.getElementById("reg-name").value.trim();
     const inviteCode = document.getElementById("invite-code-input").value.trim();
-    const adminLogin = typeof window.isAdminLoginMode === "function" && window.isAdminLoginMode();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return showApiError(new Error("يرجى كتابة بريد إلكتروني صحيح"));
     }
@@ -148,24 +151,18 @@
     const button = document.getElementById("auth-btn");
     button.disabled = true;
     try {
-      const endpoint = adminLogin
-        ? "/api/auth/admin-login"
-        : isSignup
-          ? "/api/auth/register"
-          : "/api/auth/login";
+      const endpoint = isSignup ? "/api/auth/register" : "/api/auth/login";
       const result = await api(endpoint, {
         method: "POST",
         body: JSON.stringify(
-          adminLogin
-            ? { email, password }
-            : isSignup
-              ? { name, email, password, inviteCode }
-              : { email, password },
+          isSignup
+            ? { name, email, password, inviteCode }
+            : { email, password },
         ),
       });
       const payload = await api("/api/me");
       enterApp(payload);
-      if (isSignup && !adminLogin) {
+      if (isSignup) {
         showCopyToast("تم إنشاء الحساب بنجاح ✅", "تم ربط حسابك بقاعدة البيانات ويمكنك الآن استخدام المنصة.");
       }
     } catch (error) {
@@ -367,6 +364,8 @@
   }
 
   window.renderAdminDashboard = async function () {
+    if (adminRefreshInFlight) return;
+    adminRefreshInFlight = true;
     try {
       const data = await api("/api/admin/overview");
       document.getElementById("admin-total-users").innerText = data.stats.users;
@@ -386,15 +385,31 @@
         || '<div class="history-date">لا توجد طلبات سحب.</div>';
     } catch (error) {
       showApiError(error);
+    } finally {
+      adminRefreshInFlight = false;
     }
   };
+  function startAdminDashboardRefresh() {
+    stopAdminDashboardRefresh();
+    adminRefreshInterval = window.setInterval(() => {
+      if (isAdmin && document.getElementById("admin-screen")?.classList.contains("active")) {
+        renderAdminDashboard();
+      }
+    }, 5000);
+  }
+  function stopAdminDashboardRefresh() {
+    if (adminRefreshInterval) {
+      window.clearInterval(adminRefreshInterval);
+      adminRefreshInterval = null;
+    }
+  }
   window.adminReview = adminReview;
 
   window.logout = async function () {
+    stopAdminDashboardRefresh();
     await api("/api/auth/logout", { method: "POST" }).catch(() => {});
     currentUser = null;
     isAdmin = false;
-    if (typeof window.setAuthMode === "function") window.setAuthMode("user");
     document.getElementById("bottom-nav").style.display = "none";
     document.querySelectorAll(".screen").forEach((screen) => screen.classList.remove("active"));
     document.getElementById("auth-screen").classList.add("active");

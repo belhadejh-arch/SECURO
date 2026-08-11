@@ -444,40 +444,14 @@ app.post("/api/auth/login", async (req, res) => {
     if (!user || !(await bcrypt.compare(password, user.password_hash))) {
       return appError(res, 401, "البريد الإلكتروني غير مسجل أو كلمة المرور خاطئة");
     }
-    if (user.is_admin) {
-      return appError(res, 403, "هذا حساب إداري. استخدم صفحة دخول الإدارة");
-    }
     await regenerateSession(req);
     req.session.userId = user.id;
-    req.session.isAdmin = false;
+    req.session.isAdmin = Boolean(user.is_admin);
     await saveSession(req);
     res.json({ user: publicUser(user) });
   } catch (error) {
     console.error("Login failed:", error.code || error.message);
     appError(res, 500, "تعذر تسجيل الدخول");
-  }
-});
-
-app.post("/api/auth/admin-login", async (req, res) => {
-  const email = normalizeEmail(req.body.email);
-  const password = String(req.body.password || "");
-  try {
-    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
-    const user = result.rows[0];
-    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
-      return appError(res, 401, "البريد الإلكتروني غير مسجل أو كلمة المرور خاطئة");
-    }
-    if (!user.is_admin) {
-      return appError(res, 403, "هذا الحساب لا يملك صلاحيات الإدارة");
-    }
-    await regenerateSession(req);
-    req.session.userId = user.id;
-    req.session.isAdmin = true;
-    await saveSession(req);
-    res.json({ user: publicUser(user) });
-  } catch (error) {
-    console.error("Admin login failed:", error.code || error.message);
-    appError(res, 500, "تعذر تسجيل دخول الإدارة");
   }
 });
 
@@ -992,11 +966,14 @@ app.post("/api/admin/withdrawals/:id/review", requireAdmin, async (req, res) => 
         [status, req.session.userId, id],
       );
       if (status === "rejected") {
-        await client.query(
+        const released = await client.query(
           `UPDATE users SET reserved_balance = reserved_balance - $1, updated_at = NOW()
            WHERE id = $2 AND reserved_balance >= $1`,
           [request.amount, request.user_id],
         );
+        if (!released.rowCount) {
+          throw Object.assign(new Error("تعذر تحرير المبلغ المحجوز لهذا الطلب"), { status: 409 });
+        }
       }
     });
     res.json({ ok: true });

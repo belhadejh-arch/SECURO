@@ -472,15 +472,14 @@
         }
 
         /* طبقة ضبط الواجهة: تحافظ على نفس الوظائف وتمنع التداخل */
-        html, body { overflow-x: clip; }
+        html, body { overflow-x: hidden; }
         body { overflow-y: auto; }
         .app-container, .content, .screen, .card, .admin-panel,
         .history-card, .auth-card, .vip-card, .hotel-card { min-width: 0; }
         .content {
             scrollbar-gutter: stable;
-            overflow-x: clip;
-            overflow-y: visible;
-            padding-bottom: calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
+            overflow: visible;
+            padding-bottom: 0;
         }
         .screen { width: 100%; max-width: 1120px; margin-inline: auto; }
         .auth-layout {
@@ -1222,13 +1221,21 @@
             min-width: 0;
             min-height: 0;
             width: 100%;
-            overflow-x: clip;
-            overflow-y: visible;
+            height: auto;
+            overflow: visible;
             overscroll-behavior: auto;
             -webkit-overflow-scrolling: touch;
             scrollbar-gutter: stable;
             flex: 0 0 auto;
-            padding-bottom: calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
+            padding-bottom: 0;
+        }
+        /*
+         * The document owns the page scroll. The bottom navigation is fixed so
+         * it stays reachable, while this class reserves its real footprint in
+         * normal flow. This prevents the final card from ending underneath it.
+         */
+        .app-container.nav-visible {
+            padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
         }
         .screen,
         .screen > *,
@@ -1325,8 +1332,8 @@
             .content {
                 height: auto;
                 overflow: visible;
-                padding: 14px 12px calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
-                scroll-padding-bottom: calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
+                padding: 14px 12px 24px;
+                scroll-padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
             }
             .screen {
                 padding-inline: 0;
@@ -1441,7 +1448,7 @@
         <h1 id="header-title">SECURO</h1>
     </header>
 
-    <div class="content">
+    <main class="content">
         <!-- 1. شاشة تسجيل الدخول وإنشاء حساب -->
         <div id="auth-screen" class="screen active">
             <div class="auth-layout">
@@ -1821,7 +1828,7 @@
             </div>
             <div id="tx-history-list"></div>
         </div>
-    </div>
+    </main>
 
     <!-- النوافذ المنبثقة Modal -->
     <div id="withdraw-success-modal" class="modal">
@@ -2025,7 +2032,7 @@
     </div>
 
     <!-- شريط التنقل السفلي -->
-    <div id="bottom-nav" class="bottom-nav">
+    <nav id="bottom-nav" class="bottom-nav" aria-label="التنقل الرئيسي">
         <div id="nav-home" class="nav-link active" onclick="switchTab('home')">
             <span>🏠</span> الرئيسية
         </div>
@@ -2041,7 +2048,7 @@
         <div id="nav-profile" class="nav-link" onclick="switchTab('profile')">
             <span>👤</span> ملكي
         </div>
-    </div>
+    </nav>
 </div>
 
 <script>
@@ -2268,11 +2275,13 @@
         document.getElementById('auth-screen').classList.remove('active');
         
         if (isAdmin) {
+            document.querySelector('.app-container').classList.remove('nav-visible');
             document.getElementById('admin-screen').classList.add('active');
             document.getElementById('header-title').innerText = "SECURO ADMIN";
             renderAdminDashboard();
         } else {
             document.getElementById('bottom-nav').style.display = 'flex';
+            document.querySelector('.app-container').classList.add('nav-visible');
             switchTab('home');
         }
     }
@@ -2456,6 +2465,7 @@
         taskDaySyncInterval = null;
         
         document.getElementById('bottom-nav').style.display = 'none';
+        document.querySelector('.app-container').classList.remove('nav-visible');
         document.getElementById('admin-screen').classList.remove('active');
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById('auth-screen').classList.add('active');

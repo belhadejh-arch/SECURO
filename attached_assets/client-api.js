@@ -125,6 +125,7 @@
     document.querySelectorAll(".screen").forEach((screen) => screen.classList.remove("active"));
     document.getElementById("auth-screen").classList.remove("active");
     if (isAdmin) {
+      document.querySelector(".app-container").classList.remove("nav-visible");
       document.getElementById("admin-screen").classList.add("active");
       document.getElementById("header-title").innerText = "SECURO ADMIN";
       renderAdminDashboard();
@@ -132,6 +133,7 @@
     } else {
       stopAdminDashboardRefresh();
       document.getElementById("bottom-nav").style.display = "flex";
+      document.querySelector(".app-container").classList.add("nav-visible");
       document.getElementById("header-title").innerText = "SECURO";
       switchTab("home");
     }
@@ -436,6 +438,7 @@
     currentUser = null;
     isAdmin = false;
     document.getElementById("bottom-nav").style.display = "none";
+    document.querySelector(".app-container").classList.remove("nav-visible");
     document.querySelectorAll(".screen").forEach((screen) => screen.classList.remove("active"));
     document.getElementById("auth-screen").classList.add("active");
     document.getElementById("header-title").innerText = "SECURO";
@@ -461,6 +464,7 @@
     inviteInput.readOnly = true;
     if (authScreen) authScreen.classList.add("active");
     if (bottomNav) bottomNav.style.display = "none";
+    document.querySelector(".app-container").classList.remove("nav-visible");
     document.getElementById("header-title").innerText = "SECURO";
     return true;
   }

@@ -1950,6 +1950,11 @@
             scroll-padding-top: 0 !important;
         }
 
+        .app-container:not(:has(#auth-screen.active)) .content {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+
         .screen,
         .screen.active {
             min-height: 0 !important;
@@ -2833,8 +2838,22 @@
         document.getElementById('login-error-modal').style.display = 'none';
     }
 
+    function resetAppViewport() {
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        window.scrollTo(0, 0);
+
+        const content = document.querySelector('.content');
+        if (content) {
+            content.scrollTop = 0;
+            content.style.paddingTop = '0px';
+            content.style.marginTop = '0px';
+        }
+    }
+
     function closeLoginSuccessModal() {
         document.getElementById('login-success-modal').style.display = 'none';
+        resetAppViewport();
         document.getElementById('auth-screen').classList.remove('active');
         
         if (isAdmin) {
@@ -2847,6 +2866,8 @@
             document.querySelector('.app-container').classList.add('nav-visible');
             switchTab('home');
         }
+
+        requestAnimationFrame(resetAppViewport);
     }
 
     function loadUserSession(userObj) {

@@ -2917,10 +2917,10 @@
             <h3 id="vip-modal-title" style="color: var(--text-white); margin-bottom: 10px;">تأكيد شراء العضوية</h3>
             <p id="vip-modal-msg" style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;"></p>
             <div id="vip-modal-actions" style="display: flex; gap: 10px;">
-                <button class="btn btn-green" style="flex:1;" onclick="confirmBuyVip()">نعم</button>
-                <button class="btn btn-red" style="flex:1;" onclick="closeVipModal()">لا</button>
+                <button type="button" class="btn btn-green" id="vip-confirm-yes-btn" style="flex:1;" onclick="confirmBuyVip(event)">نعم</button>
+                <button type="button" class="btn btn-red" style="flex:1;" onclick="closeVipModal()">لا</button>
             </div>
-            <button id="vip-modal-close-btn" class="btn btn-primary" style="display:none;" onclick="closeVipModal()">حسناً</button>
+            <button type="button" id="vip-modal-close-btn" class="btn btn-primary" style="display:none;" onclick="closeVipModal()">حسناً</button>
         </div>
     </div>
 
@@ -3525,7 +3525,13 @@
         const modal = document.getElementById('vip-confirm-modal');
         const actions = document.getElementById('vip-modal-actions');
         const closeBtn = document.getElementById('vip-modal-close-btn');
+        const confirmBtn = document.getElementById('vip-confirm-yes-btn');
 
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = "نعم";
+            confirmBtn.setAttribute("aria-busy", "false");
+        }
         if (balance >= price) {
             document.getElementById('vip-modal-icon').innerText = "❓";
             document.getElementById('vip-modal-title').innerText = "تأكيد شراء العضوية";
@@ -3542,19 +3548,42 @@
         modal.style.display = "flex";
     }
 
-    async function confirmBuyVip() {
-        if (!pendingVip) return;
+    async function confirmBuyVip(event) {
+        event?.preventDefault();
+        if (!pendingVip) {
+            showApiError(new Error("يرجى اختيار عضوية VIP أولاً"));
+            return;
+        }
+        const confirmBtn = document.getElementById('vip-confirm-yes-btn');
+        if (confirmBtn?.disabled) return;
+        const vipToBuy = { ...pendingVip };
+        if (!window.securoApi) {
+            showApiError(new Error("الخادم غير جاهز بعد، يرجى المحاولة مرة أخرى"));
+            return;
+        }
+        if (confirmBtn) {
+            confirmBtn.disabled = true;
+            confirmBtn.innerText = "جارٍ التأكيد...";
+            confirmBtn.setAttribute("aria-busy", "true");
+        }
         try {
             const result = await window.securoApi("/api/vip/purchase", {
                 method: "POST",
-                body: JSON.stringify({ name: pendingVip.name }),
+                body: JSON.stringify({ name: vipToBuy.name }),
             });
+            if (!result?.user) throw new Error("لم يرجع الخادم بيانات العضوية");
             window.syncServerUser(result.user);
             activeTaskTimers = {};
+            pendingVip = null;
             closeVipModal();
             alert(`🎉 تهانينا! تم تفعيل عضوية ${result.user.userVip.name} بنجاح وحصلت آلياً على (+1) محاولة في عجلة الحظ.`);
             switchTab('tasks');
         } catch (error) {
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerText = "نعم";
+                confirmBtn.setAttribute("aria-busy", "false");
+            }
             showApiError(error);
         }
     }

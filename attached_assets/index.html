@@ -23,6 +23,8 @@
             --border-color: #334155;
             --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
             --shadow-lg: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+            --bottom-nav-height: 68px;
+            --bottom-nav-gap: 24px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -62,7 +64,9 @@
         .content {
             flex: 0 0 auto; min-height: 0; overflow-y: visible; overflow-x: clip;
             -webkit-overflow-scrolling: touch; touch-action: pan-y;
-            padding: 24px; padding-bottom: 96px; overscroll-behavior-y: auto;
+            padding: 24px;
+            padding-bottom: calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
+            overscroll-behavior-y: auto;
         }
         .screen { display: none; }
         .screen.active { display: block; animation: fadeIn 0.3s ease-in-out; }
@@ -436,7 +440,7 @@
 
         .bottom-nav {
             position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-            width: min(100%, 1180px); height: 68px;
+            width: min(100%, 1180px); height: var(--bottom-nav-height);
             background-color: var(--bg-card); border-top: 1px solid var(--border-color);
             display: none; justify-content: space-around; align-items: center; z-index: 10; padding: 0 4px;
         }
@@ -449,7 +453,10 @@
 
         @media (max-width: 760px) {
             .app-container { max-width: 520px; }
-            .content { padding: 15px; padding-bottom: 86px; }
+            .content {
+                padding: 15px;
+                padding-bottom: calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
+            }
             .auth-layout { display: block; min-height: auto; padding: 22px 0; }
             .auth-brand { padding: 16px 8px 24px; text-align: center; }
             .brand-mark { margin: 0 auto 16px; }
@@ -469,7 +476,12 @@
         body { overflow-y: auto; }
         .app-container, .content, .screen, .card, .admin-panel,
         .history-card, .auth-card, .vip-card, .hotel-card { min-width: 0; }
-        .content { scrollbar-gutter: stable; overflow-x: clip; overflow-y: visible !important; }
+        .content {
+            scrollbar-gutter: stable;
+            overflow-x: clip;
+            overflow-y: visible;
+            padding-bottom: calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
+        }
         .screen { width: 100%; max-width: 1120px; margin-inline: auto; }
         .auth-layout {
             grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
@@ -569,7 +581,7 @@
                 width: 100%;
                 max-width: none;
                 min-height: 100svh;
-                height: 100svh;
+                height: auto;
                 box-shadow: none;
             }
             header {
@@ -578,7 +590,10 @@
                 padding: 10px 14px;
             }
             header h1 { font-size: 1.35rem; }
-            .content { padding: 14px 12px 84px; }
+            .content {
+                padding: 14px 12px calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
+                scroll-padding-bottom: calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
+            }
             input, select, textarea { font-size: 16px; }
             .auth-layout {
                 display: flex;
@@ -667,7 +682,7 @@
                 border-radius: 16px;
             }
             .bottom-nav {
-                height: calc(68px + env(safe-area-inset-bottom));
+                height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
                 padding-bottom: env(safe-area-inset-bottom);
             }
         }
@@ -893,7 +908,7 @@
             }
             .content {
                 min-height: 0;
-                padding-bottom: calc(84px + env(safe-area-inset-bottom));
+                padding-bottom: calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
             }
             .card, .vip-card, .hotel-card, .wheel-card {
                 border-radius: 15px;
@@ -1136,7 +1151,7 @@
         }
         @media (max-width: 760px) {
             .content {
-                padding: 15px 14px 30px;
+                padding: 15px 14px calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
             }
             .auth-layout {
                 min-height: calc(100dvh - 64px);
@@ -1213,7 +1228,7 @@
             -webkit-overflow-scrolling: touch;
             scrollbar-gutter: stable;
             flex: 0 0 auto;
-            padding-bottom: calc(96px + env(safe-area-inset-bottom));
+            padding-bottom: calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
         }
         .screen,
         .screen > *,
@@ -1310,8 +1325,8 @@
             .content {
                 height: auto;
                 overflow: visible;
-                padding: 14px 12px calc(84px + env(safe-area-inset-bottom));
-                scroll-padding-bottom: calc(84px + env(safe-area-inset-bottom));
+                padding: 14px 12px calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
+                scroll-padding-bottom: calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
             }
             .screen {
                 padding-inline: 0;
@@ -1374,7 +1389,7 @@
                 right: 0;
                 bottom: 0;
                 transform: none;
-                height: calc(68px + env(safe-area-inset-bottom));
+                height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
             }
         }
 

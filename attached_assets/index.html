@@ -3532,19 +3532,15 @@
             confirmBtn.innerText = "نعم";
             confirmBtn.setAttribute("aria-busy", "false");
         }
-        if (balance >= price) {
-            document.getElementById('vip-modal-icon').innerText = "❓";
-            document.getElementById('vip-modal-title').innerText = "تأكيد شراء العضوية";
-            document.getElementById('vip-modal-msg').innerText = `هل أنت متأكد من شراء عضوية ${name} بسعر $${price} (مدة الصلاحية: 365 يوماً)؟`;
-            actions.style.display = "flex";
-            closeBtn.style.display = "none";
-        } else {
-            document.getElementById('vip-modal-icon').innerText = "⚠️";
-            document.getElementById('vip-modal-title').innerText = "الرصيد غير كافٍ";
-            document.getElementById('vip-modal-msg').innerText = `رصيدك الحالي ($${balance.toFixed(2)}) غير كافٍ لشراء عضوية ${name} بسعر ($${price}).\nيرجى إعادة شحن حسابك!`;
-            actions.style.display = "none";
-            closeBtn.style.display = "block";
-        }
+        // The server is the source of truth for the available balance. Do not
+        // block the purchase here using a possibly stale client-side balance:
+        // VIP purchases are allowed at any time and the API performs the
+        // final atomic balance check after the user confirms with "نعم".
+        document.getElementById('vip-modal-icon').innerText = "❓";
+        document.getElementById('vip-modal-title').innerText = "تأكيد شراء العضوية";
+        document.getElementById('vip-modal-msg').innerText = `هل أنت متأكد من شراء عضوية ${name} بسعر $${price} (مدة الصلاحية: 365 يوماً)؟\nسيتم التحقق من الرصيد المتاح وتنفيذ الشراء فوراً.`;
+        actions.style.display = "flex";
+        closeBtn.style.display = "none";
         modal.style.display = "flex";
     }
 

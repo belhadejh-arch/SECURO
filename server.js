@@ -850,13 +850,13 @@ app.get("/api/admin/overview", requireAdmin, async (_req, res) => {
         `SELECT d.id, d.amount, d.txid, d.network, d.status, d.created_at,
                 u.name, u.email
          FROM deposit_requests d JOIN users u ON u.id = d.user_id
-         ORDER BY d.created_at DESC LIMIT 300`,
+          ORDER BY d.created_at DESC`,
       ),
       pool.query(
         `SELECT w.id, w.amount, w.bank, w.account, w.status, w.created_at,
                 u.name, u.email
          FROM withdrawal_requests w JOIN users u ON u.id = w.user_id
-         ORDER BY w.created_at DESC LIMIT 300`,
+          ORDER BY w.created_at DESC`,
       ),
       pool.query(
         `SELECT

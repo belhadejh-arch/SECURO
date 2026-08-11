@@ -175,6 +175,12 @@ function parseMoney(value) {
   return Number(amount.toFixed(2));
 }
 
+function parseBalanceAdjustment(value) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount) || amount === 0) return null;
+  return Number(amount.toFixed(2));
+}
+
 function currentDateSql() {
   return "CURRENT_DATE";
 }
@@ -895,6 +901,114 @@ app.post("/api/admin/users/:id/status", requireAdmin, async (req, res) => {
     res.json({ user: publicUser(result.rows[0]) });
   } catch {
     appError(res, 500, "تعذر تحديث حالة المستخدم");
+  }
+});
+
+app.post("/api/admin/users/:id/balance", requireAdmin, async (req, res) => {
+  const userId = Number(req.params.id);
+  const adjustment = parseBalanceAdjustment(req.body.amount);
+  const reason = String(req.body.reason || "تعديل إداري للرصيد").trim().slice(0, 255);
+  if (!Number.isInteger(userId) || userId <= 0 || adjustment === null || adjustment === 0) {
+    return appError(res, 400, "قيمة تعديل الرصيد غير صحيحة");
+  }
+  try {
+    const result = await withTransaction(async (client) => {
+      const locked = await client.query(
+        "SELECT * FROM users WHERE id = $1 FOR UPDATE",
+        [userId],
+      );
+      if (!locked.rowCount || locked.rows[0].is_admin) {
+        throw Object.assign(new Error("المستخدم غير موجود أو حساب إداري"), { status: 404 });
+      }
+      const user = locked.rows[0];
+      const currentBalance = Number(user.balance);
+      const reservedBalance = Number(user.reserved_balance);
+      const nextBalance = currentBalance + adjustment;
+      if (nextBalance < reservedBalance) {
+        throw Object.assign(new Error("لا يمكن خفض الرصيد أسفل المبلغ المحجوز"), { status: 409 });
+      }
+      const updated = await client.query(
+        `UPDATE users SET balance = $1, updated_at = NOW()
+         WHERE id = $2 RETURNING *`,
+        [nextBalance.toFixed(2), userId],
+      );
+      await client.query(
+        `INSERT INTO transactions
+          (user_id, type, amount, direction, description, reference_type, reference_id)
+         VALUES ($1, 'إدارة', $2, $3, $4, 'admin_balance_adjustment', $5)`,
+        [
+          userId,
+          Math.abs(adjustment).toFixed(2),
+          adjustment > 0 ? "credit" : "debit",
+          reason || "تعديل إداري للرصيد",
+          req.session.userId,
+        ],
+      );
+      return publicUser(updated.rows[0]);
+    });
+    res.json({ user: result });
+  } catch (error) {
+    appError(res, error.status || 500, error.status ? error.message : "تعذر تعديل رصيد المستخدم");
+  }
+});
+
+app.post("/api/admin/users/:id/vip", requireAdmin, async (req, res) => {
+  const userId = Number(req.params.id);
+  const name = String(req.body.name || "").trim();
+  const product = vipProducts[name];
+  if (!Number.isInteger(userId) || userId <= 0 || !product) {
+    return appError(res, 400, "عضوية VIP غير صالحة");
+  }
+  try {
+    const result = await pool.query(
+      `UPDATE users
+       SET user_vip = $1::jsonb,
+           vip_expires_at = NOW() + INTERVAL '365 days',
+           trial_active = FALSE,
+           trial_used = TRUE,
+           completed_tasks_count = 0,
+           task_last_reset_date = CURRENT_DATE,
+           updated_at = NOW()
+       WHERE id = $2 AND is_admin = FALSE
+       RETURNING *`,
+      [JSON.stringify({ name, ...product, isTrial: false }), userId],
+    );
+    if (!result.rowCount) return appError(res, 404, "المستخدم غير موجود أو حساب إداري");
+    res.json({ user: publicUser(result.rows[0]) });
+  } catch {
+    appError(res, 500, "تعذر تغيير عضوية المستخدم");
+  }
+});
+
+app.post("/api/admin/users/:id/tasks/reset", requireAdmin, async (req, res) => {
+  const userId = Number(req.params.id);
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return appError(res, 400, "معرّف المستخدم غير صحيح");
+  }
+  try {
+    const result = await withTransaction(async (client) => {
+      const user = await client.query(
+        "SELECT * FROM users WHERE id = $1 FOR UPDATE",
+        [userId],
+      );
+      if (!user.rowCount || user.rows[0].is_admin) {
+        throw Object.assign(new Error("المستخدم غير موجود أو حساب إداري"), { status: 404 });
+      }
+      await client.query(
+        "DELETE FROM task_attempts WHERE user_id = $1 AND task_day = CURRENT_DATE",
+        [userId],
+      );
+      const updated = await client.query(
+        `UPDATE users
+         SET completed_tasks_count = 0, task_last_reset_date = CURRENT_DATE, updated_at = NOW()
+         WHERE id = $1 RETURNING *`,
+        [userId],
+      );
+      return publicUser(updated.rows[0]);
+    });
+    res.json({ user: result });
+  } catch (error) {
+    appError(res, error.status || 500, error.status ? error.message : "تعذر تصفير مهام المستخدم");
   }
 });
 

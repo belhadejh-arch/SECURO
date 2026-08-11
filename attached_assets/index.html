@@ -2405,15 +2405,27 @@
     }
 
     function adminEditBalance(index) {
-        showApiError(new Error("تعديل الرصيد يتم فقط عبر عمليات النظام المعتمدة"));
+        const user = registeredUsers[index];
+        if (user && typeof window.adminAdjustBalance === 'function') {
+            return window.adminAdjustBalance(user.id, user.balance);
+        }
+        showApiError(new Error("تعذر تعديل رصيد المستخدم"));
     }
 
     function adminChangeVip(index) {
-        showApiError(new Error("تغيير العضوية يتم فقط عبر عملية شراء موثقة"));
+        const user = registeredUsers[index];
+        if (user && typeof window.adminChangeVip === 'function') {
+            return window.adminChangeVip(user.id);
+        }
+        showApiError(new Error("تعذر تغيير عضوية المستخدم"));
     }
 
     function adminResetTasks(index) {
-        showApiError(new Error("حالة المهام مملوكة للخادم ولا يمكن تعديلها من الواجهة"));
+        const user = registeredUsers[index];
+        if (user && typeof window.adminResetTasks === 'function') {
+            return window.adminResetTasks(user.id);
+        }
+        showApiError(new Error("تعذر تصفير مهام المستخدم"));
     }
 
     function adminToggleBlock(userId, blocked) {

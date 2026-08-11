@@ -387,9 +387,9 @@
             </div>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;border-top:1px solid var(--border-color);padding-top:8px">
-            <button class="btn btn-green" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminEditBalance(${index})">✏️ تعديل الرصيد</button>
-            <button class="btn btn-gold" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminChangeVip(${index})">👑 تغيير VIP</button>
-            <button class="btn" style="flex:1;padding:6px 10px;font-size:.75rem;background:#6366f1;color:white" onclick="adminResetTasks(${index})">🔄 تصفير المهام</button>
+            <button class="btn btn-green" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminAdjustBalance(${user.id},${Number(user.balance).toFixed(2)})">✏️ تعديل الرصيد</button>
+            <button class="btn btn-gold" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminChangeVip(${user.id})">👑 تغيير VIP</button>
+            <button class="btn" style="flex:1;padding:6px 10px;font-size:.75rem;background:#6366f1;color:white" onclick="adminResetTasks(${user.id})">🔄 تصفير المهام</button>
             ${!user.isAdmin ? `<button class="btn ${user.isBlocked ? "btn-green" : "btn-red"}" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminToggleBlock(${user.id},${!user.isBlocked})">${user.isBlocked ? "✅ رفع الحظر" : "🚫 حظر المستخدم"}</button>` : ""}
           </div>
         </div>`).join("") || '<div class="history-date">لا توجد حسابات.</div>';
@@ -410,6 +410,54 @@
       await api(`/api/admin/users/${encodeURIComponent(userId)}/status`, {
         method: "POST",
         body: JSON.stringify({ blocked }),
+      });
+      await window.renderAdminDashboard();
+    } catch (error) {
+      showApiError(error);
+    }
+  };
+  window.adminAdjustBalance = async function (userId, currentBalance) {
+    const input = window.prompt(
+      `أدخل قيمة التعديل على الرصيد الحالي ($${Number(currentBalance).toFixed(2)}). استخدم قيمة موجبة للإضافة أو سالبة للخصم:`,
+      "",
+    );
+    if (input === null || !input.trim()) return;
+    const amount = Number(input);
+    if (!Number.isFinite(amount) || amount === 0) {
+      return showApiError(new Error("أدخل قيمة مالية صحيحة غير صفرية"));
+    }
+    const reason = window.prompt("سبب التعديل (اختياري):", "تعديل إداري للرصيد") || "تعديل إداري للرصيد";
+    try {
+      await api(`/api/admin/users/${encodeURIComponent(userId)}/balance`, {
+        method: "POST",
+        body: JSON.stringify({ amount, reason }),
+      });
+      await window.renderAdminDashboard();
+    } catch (error) {
+      showApiError(error);
+    }
+  };
+  window.adminChangeVip = async function (userId) {
+    const name = window.prompt("اختر العضوية: VIP 1 أو VIP 2 أو VIP 3 أو VIP 4", "VIP 1");
+    if (name === null) return;
+    if (!["VIP 1", "VIP 2", "VIP 3", "VIP 4"].includes(name.trim())) {
+      return showApiError(new Error("اسم عضوية VIP غير صالح"));
+    }
+    try {
+      await api(`/api/admin/users/${encodeURIComponent(userId)}/vip`, {
+        method: "POST",
+        body: JSON.stringify({ name: name.trim() }),
+      });
+      await window.renderAdminDashboard();
+    } catch (error) {
+      showApiError(error);
+    }
+  };
+  window.adminResetTasks = async function (userId) {
+    if (!window.confirm("هل تريد تصفير مهام هذا المستخدم لليوم؟")) return;
+    try {
+      await api(`/api/admin/users/${encodeURIComponent(userId)}/tasks/reset`, {
+        method: "POST",
       });
       await window.renderAdminDashboard();
     } catch (error) {

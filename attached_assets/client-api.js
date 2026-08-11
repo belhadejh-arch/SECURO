@@ -371,13 +371,24 @@
       document.getElementById("admin-total-users").innerText = data.stats.users;
       document.getElementById("admin-total-deposits").innerText = `$${Number(data.stats.deposits).toFixed(2)}`;
       document.getElementById("admin-total-withdraws").innerText = `$${Number(data.stats.withdrawals).toFixed(2)}`;
-      document.getElementById("admin-users-list").innerHTML = data.users.map((user) => `
-        <div class="history-card">
-          <div class="history-info">
-            <div class="history-title">👤 ${escapeHtml(user.name)} ${user.isAdmin ? "👑" : ""}</div>
-            <div class="history-date">📧 ${escapeHtml(user.email)} | رمز الإحالة: ${escapeHtml(user.inviteCode)}</div>
+      document.getElementById("admin-users-list").innerHTML = data.users.map((user, index) => `
+        <div class="history-card" style="display:block">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+            <div class="history-info">
+              <div class="history-title">👤 ${escapeHtml(user.name)} ${user.isAdmin ? "👑" : ""}</div>
+              <div class="history-date">📧 ${escapeHtml(user.email)} | رمز الإحالة: ${escapeHtml(user.inviteCode)}</div>
+            </div>
+            <div style="text-align:left;white-space:nowrap">
+              <strong>$${Number(user.balance).toFixed(2)}</strong><br>
+              <small>${dateText(user.createdAt)}</small>
+            </div>
           </div>
-          <div style="text-align:left"><strong>$${Number(user.balance).toFixed(2)}</strong><br><small>${dateText(user.createdAt)}</small></div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;border-top:1px solid var(--border-color);padding-top:8px">
+            <button class="btn btn-green" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminEditBalance(${index})">✏️ تعديل الرصيد</button>
+            <button class="btn btn-gold" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminChangeVip(${index})">👑 تغيير VIP</button>
+            <button class="btn" style="flex:1;padding:6px 10px;font-size:.75rem;background:#6366f1;color:white" onclick="adminResetTasks(${index})">🔄 تصفير المهام</button>
+            ${!user.isAdmin ? `<button class="btn btn-red" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminDeleteUser(${index})">🗑️ حذف</button>` : ""}
+          </div>
         </div>`).join("") || '<div class="history-date">لا توجد حسابات.</div>';
       document.getElementById("admin-deposit-requests").innerHTML = data.deposits.map((item) => adminRequestCard(item, "deposits")).join("")
         || '<div class="history-date">لا توجد طلبات إيداع.</div>';

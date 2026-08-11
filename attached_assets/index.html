@@ -2358,14 +2358,287 @@
                 padding-inline: 7px !important;
             }
         }
+
+        /* Modern unified shell and platform menu */
+        :root {
+            --surface-0: #06101f;
+            --surface-1: #0d1b2e;
+            --surface-2: #12243b;
+            --line-soft: rgba(148, 163, 184, .16);
+            --line-strong: rgba(96, 165, 250, .32);
+            --text-soft: #b7c7db;
+            --menu-width: min(390px, 92vw);
+        }
+        .site-header {
+            min-height: 76px;
+            padding: 12px clamp(14px, 3vw, 30px);
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 14px;
+            background: rgba(8, 20, 38, .92);
+            border-bottom: 1px solid var(--line-soft);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, .18);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            backdrop-filter: blur(18px);
+        }
+        .header-start, .header-end { display: flex; align-items: center; min-width: 0; }
+        .header-start { justify-content: flex-start; }
+        .header-end { justify-content: flex-end; }
+        .brand-lockup { display: flex; align-items: center; justify-content: center; gap: 10px; min-width: 0; text-align: center; }
+        .brand-symbol {
+            width: 40px; height: 40px; display: grid; place-items: center; border-radius: 13px;
+            color: white; background: linear-gradient(145deg, #38bdf8, #2563eb 72%);
+            box-shadow: 0 10px 24px rgba(37, 99, 235, .3); flex: 0 0 auto;
+        }
+        .brand-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-width: 0; }
+        .brand-copy h1 {
+            background: linear-gradient(90deg, #e0f2fe, #60a5fa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-size: 1.25rem; letter-spacing: .12em; line-height: 1.05; white-space: nowrap;
+        }
+        .brand-copy small { color: #8ea8c4; font-size: .66rem; letter-spacing: .04em; white-space: nowrap; }
+        .header-menu-button, .header-account-button {
+            border: 1px solid var(--line-soft); background: rgba(30, 64, 175, .17); color: #dbeafe;
+            border-radius: 13px; min-height: 44px; padding: 8px 12px; display: inline-flex;
+            align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+            transition: transform .2s ease, border-color .2s ease, background .2s ease;
+            font: inherit; font-size: .78rem; font-weight: 800;
+        }
+        .header-menu-button:hover, .header-account-button:hover {
+            transform: translateY(-1px); background: rgba(37, 99, 235, .3); border-color: var(--line-strong);
+        }
+        .header-menu-button i { font-size: 1.05rem; }
+        .header-account-button { display: none; border-radius: 999px; padding-inline: 13px; }
+        .header-account-button i { color: #7dd3fc; }
+        .platform-menu {
+            position: fixed; inset: 0; z-index: 100; visibility: hidden; pointer-events: none;
+        }
+        .platform-menu.is-open { visibility: visible; pointer-events: auto; }
+        .platform-menu-backdrop {
+            position: absolute; inset: 0; background: rgba(2, 6, 23, .68); opacity: 0;
+            transition: opacity .22s ease; backdrop-filter: blur(4px);
+        }
+        .platform-menu-panel {
+            position: absolute; top: 0; right: 0; width: var(--menu-width); height: 100%;
+            padding: 22px 18px max(22px, env(safe-area-inset-bottom)); overflow-y: auto;
+            background: linear-gradient(180deg, #102643 0%, #081426 55%, #06101f 100%);
+            border-left: 1px solid rgba(125, 211, 252, .2); box-shadow: -22px 0 65px rgba(0, 0, 0, .38);
+            transform: translateX(105%); transition: transform .25s cubic-bezier(.2, .8, .2, 1);
+        }
+        .platform-menu.is-open .platform-menu-backdrop { opacity: 1; }
+        .platform-menu.is-open .platform-menu-panel { transform: translateX(0); }
+        .platform-menu-head {
+            display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+            padding-bottom: 18px; margin-bottom: 18px; border-bottom: 1px solid var(--line-soft);
+        }
+        .platform-menu-head h2 { color: #f8fafc; font-size: 1.15rem; margin-bottom: 4px; }
+        .platform-menu-head p { color: #8ea8c4; font-size: .74rem; line-height: 1.5; }
+        .platform-menu-close {
+            width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--line-soft);
+            background: rgba(15, 23, 42, .45); color: #dbeafe; cursor: pointer; font-size: 1rem;
+        }
+        .platform-menu-group { margin-bottom: 20px; }
+        .platform-menu-label {
+            display: flex; align-items: center; gap: 7px; color: #7dd3fc; font-size: .68rem;
+            font-weight: 900; letter-spacing: .08em; margin: 0 4px 8px;
+        }
+        .platform-menu-item {
+            width: 100%; display: flex; align-items: center; gap: 12px; min-height: 48px;
+            padding: 10px 12px; margin-bottom: 6px; border: 1px solid transparent; border-radius: 14px;
+            background: rgba(15, 23, 42, .36); color: #dbeafe; cursor: pointer; text-align: right;
+            font: inherit; font-size: .84rem; transition: background .2s ease, border-color .2s ease, transform .2s ease;
+        }
+        .platform-menu-item:hover, .platform-menu-item.is-active {
+            background: rgba(37, 99, 235, .22); border-color: rgba(96, 165, 250, .25); transform: translateX(-2px);
+        }
+        .platform-menu-item i, .platform-menu-item .menu-item-icon {
+            width: 28px; color: #7dd3fc; text-align: center; font-size: 1.02rem; flex: 0 0 28px;
+        }
+        .platform-menu-item .menu-item-arrow { margin-inline-start: auto; color: #6f89a5; font-size: .75rem; }
+        .platform-menu-language {
+            width: auto; min-width: 112px; min-height: 36px; margin-inline-start: auto; padding: 5px 8px;
+            border: 1px solid var(--line-soft); border-radius: 10px; background: rgba(15, 23, 42, .55);
+            color: #e2e8f0; font: inherit; font-size: .74rem;
+        }
+        .platform-menu-logout { color: #fda4af; background: rgba(127, 29, 29, .2); border-color: rgba(248, 113, 113, .18); }
+        .platform-menu-logout i { color: #fb7185; }
+        .menu-admin-only { display: none; }
+        .menu-user-only { display: block; }
+        .platform-menu.admin-mode .menu-admin-only { display: block; }
+        .platform-menu.admin-mode .menu-user-only { display: none; }
+        .home-overview {
+            display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(240px, .55fr);
+            align-items: stretch; gap: 14px; margin-bottom: 16px;
+        }
+        .home-welcome, .home-status {
+            border: 1px solid var(--line-soft); border-radius: 20px;
+            background: linear-gradient(145deg, rgba(22, 53, 91, .9), rgba(13, 27, 46, .92));
+            box-shadow: 0 15px 35px rgba(0, 0, 0, .16);
+        }
+        .home-welcome { position: relative; overflow: hidden; padding: 22px; }
+        .home-welcome::after {
+            content: ""; position: absolute; width: 180px; height: 180px; left: -70px; bottom: -95px;
+            border-radius: 50%; background: rgba(56, 189, 248, .13);
+        }
+        .home-kicker { color: #7dd3fc; font-size: .72rem; font-weight: 900; letter-spacing: .08em; margin-bottom: 8px; }
+        .home-welcome h2 { color: #f8fafc; font-size: clamp(1.25rem, 3vw, 1.85rem); margin-bottom: 8px; }
+        .home-welcome p { color: var(--text-soft); font-size: .82rem; line-height: 1.7; max-width: 620px; }
+        .home-status { padding: 18px; display: flex; flex-direction: column; justify-content: center; }
+        .home-status-label { color: #91a8c3; font-size: .75rem; margin-bottom: 4px; }
+        .home-status-value { color: #f8fafc; font-size: 1.65rem; font-weight: 900; }
+        .home-status-note { color: #86efac; font-size: .7rem; margin-top: 4px; }
+        .about-screen .slider-container, .about-screen .stats-bar, .about-screen .card { margin-bottom: 16px; }
+        .screen.active { animation: screenReveal .24s ease both; }
+        @keyframes screenReveal { from { opacity: .45; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .card, .vip-card, .hotel-card, .wheel-card, .history-card, .admin-panel, .balance-card, .referral-box, .daily-reward-card, .task-progress-box {
+            border-radius: 18px; border-color: var(--line-soft);
+        }
+        .btn { border-radius: 12px; min-height: 46px; }
+        .admin-panel { background: linear-gradient(145deg, rgba(19, 39, 66, .94), rgba(12, 27, 46, .94)); }
+        .admin-section-anchor { scroll-margin-top: 92px; }
+        @media (max-width: 760px) {
+            .site-header { min-height: 64px; grid-template-columns: auto 1fr auto; gap: 8px; padding: 9px 12px; }
+            .brand-symbol { width: 34px; height: 34px; border-radius: 11px; }
+            .brand-copy h1 { font-size: 1.05rem; }
+            .brand-copy small { font-size: .58rem; }
+            .header-menu-button { width: 44px; min-height: 44px; padding: 0; gap: 0; }
+            .header-menu-button span, .header-account-button span { display: none; }
+            .header-account-button { width: 44px; padding: 0; }
+            .home-overview { grid-template-columns: 1fr; gap: 10px; }
+            .home-welcome { padding: 18px; }
+            .home-status { padding: 14px 18px; }
+            .platform-menu-panel { padding-inline: 14px; }
+        }
+        @media (min-width: 761px) {
+            .app-container:not(:has(#auth-screen.active)) .bottom-nav { display: none !important; }
+        }
+        @media (max-width: 760px) {
+            .app-container:not(:has(#auth-screen.active)) .bottom-nav { display: none !important; }
+            .app-container:not(:has(#auth-screen.active)) { padding-bottom: 0 !important; }
+            .app-container:not(:has(#auth-screen.active)) > .content { padding-bottom: 18px !important; }
+        }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <header>
-        <h1 id="header-title">SECURO</h1>
+    <header class="site-header">
+        <div class="header-start">
+            <button id="platform-menu-toggle" class="header-menu-button" type="button" aria-label="فتح قائمة منصة" aria-expanded="false" onclick="togglePlatformMenu()">
+                <i class="fa-solid fa-bars"></i><span>منصة</span>
+            </button>
+        </div>
+        <div class="brand-lockup" aria-label="SECURO">
+            <div class="brand-symbol"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="brand-copy">
+                <h1 id="header-title">SECURO</h1>
+                <small id="header-subtitle">مساحتك المالية الذكية</small>
+            </div>
+        </div>
+        <div class="header-end">
+            <button id="header-account-action" class="header-account-button" type="button" aria-label="فتح حسابي" onclick="switchTab('profile')">
+                <i class="fa-solid fa-user"></i><span>حسابي</span>
+            </button>
+        </div>
     </header>
+
+    <div id="platform-menu" class="platform-menu" aria-hidden="true">
+        <div class="platform-menu-backdrop" onclick="closePlatformMenu()"></div>
+        <aside class="platform-menu-panel" aria-label="قائمة منصة">
+            <div class="platform-menu-head">
+                <div>
+                    <h2><i class="fa-solid fa-layer-group" style="color:#7dd3fc;"></i> منصة SECURO</h2>
+                    <p id="platform-menu-description">كل أقسام المنصة في مكان واحد</p>
+                </div>
+                <button class="platform-menu-close" type="button" aria-label="إغلاق القائمة" onclick="closePlatformMenu()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="menu-user-only">
+                <div class="platform-menu-group">
+                    <div class="platform-menu-label"><i class="fa-solid fa-compass"></i> الوصول السريع</div>
+                    <button class="platform-menu-item" type="button" onclick="navigateFromPlatform('home')">
+                        <span class="menu-item-icon">⌂</span><span>الرئيسية</span><i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                    </button>
+                    <button class="platform-menu-item" type="button" onclick="navigateFromPlatform('about')">
+                        <span class="menu-item-icon">◈</span><span>عن SECURO والمعلومات</span><i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                    </button>
+                </div>
+                <div class="platform-menu-group">
+                    <div class="platform-menu-label"><i class="fa-solid fa-bolt"></i> نشاط المنصة</div>
+                    <button class="platform-menu-item" type="button" onclick="navigateFromPlatform('vip')">
+                        <span class="menu-item-icon">♛</span><span>مستويات ومنتجات VIP</span><i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                    </button>
+                    <button class="platform-menu-item" type="button" onclick="navigateFromPlatform('tasks')">
+                        <span class="menu-item-icon">★</span><span>مهامي اليومية</span><i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                    </button>
+                    <button class="platform-menu-item" type="button" onclick="navigateFromPlatform('team')">
+                        <span class="menu-item-icon">♧</span><span>فريقي والإحالات</span><i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                    </button>
+                </div>
+                <div class="platform-menu-group">
+                    <div class="platform-menu-label"><i class="fa-solid fa-user-circle"></i> الحساب والسجلات</div>
+                    <button class="platform-menu-item" type="button" onclick="navigateFromPlatform('profile')">
+                        <span class="menu-item-icon">◎</span><span>حسابي والرصيد</span><i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                    </button>
+                    <button class="platform-menu-item" type="button" onclick="navigateFromPlatform('deposit-history-screen')">
+                        <span class="menu-item-icon">▣</span><span>سجل الإيداع</span><i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                    </button>
+                    <button class="platform-menu-item" type="button" onclick="navigateFromPlatform('withdraw-history-screen')">
+                        <span class="menu-item-icon">⇩</span><span>سجل السحوبات</span><i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                    </button>
+                    <button class="platform-menu-item" type="button" onclick="navigateFromPlatform('reward-history-screen')">
+                        <span class="menu-item-icon">✦</span><span>سجل المكافآت</span><i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                    </button>
+                    <button class="platform-menu-item" type="button" onclick="navigateFromPlatform('tx-history-screen')">
+                        <span class="menu-item-icon">↔</span><span>المعاملات المالية</span><i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                    </button>
+                    <button class="platform-menu-item" type="button" onclick="closePlatformMenu(); openSupportModal()">
+                        <span class="menu-item-icon">?</span><span>خدمة العملاء والدعم</span><i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                    </button>
+                    <label class="platform-menu-item" for="platform-language-select">
+                        <span class="menu-item-icon">文</span><span>لغة التطبيق</span>
+                        <select id="platform-language-select" class="platform-menu-language" onchange="changeLanguage(this.value); closePlatformMenu()">
+                            <option value="ar">العربية (AR)</option>
+                            <option value="fr">Français (FR)</option>
+                            <option value="en">English (EN)</option>
+                            <option value="es">Español (ES)</option>
+                            <option value="zh">中文 (ZH)</option>
+                        </select>
+                    </label>
+                </div>
+                <button class="platform-menu-item platform-menu-logout" type="button" onclick="closePlatformMenu(); logout()">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i><span>تسجيل الخروج</span>
+                </button>
+            </div>
+
+            <div class="menu-admin-only">
+                <div class="platform-menu-group">
+                    <div class="platform-menu-label"><i class="fa-solid fa-chart-line"></i> إدارة المنصة</div>
+                    <button class="platform-menu-item" type="button" onclick="navigateFromPlatform('admin-dashboard')">
+                        <span class="menu-item-icon">⌂</span><span>نظرة عامة</span><i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                    </button>
+                    <button class="platform-menu-item" type="button" onclick="focusAdminSection('admin-users-panel')">
+                        <span class="menu-item-icon">♧</span><span>الحسابات المسجلة</span><i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                    </button>
+                    <button class="platform-menu-item" type="button" onclick="focusAdminSection('admin-deposits-panel')">
+                        <span class="menu-item-icon">▣</span><span>طلبات الإيداع</span><i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                    </button>
+                    <button class="platform-menu-item" type="button" onclick="focusAdminSection('admin-withdrawals-panel')">
+                        <span class="menu-item-icon">⇩</span><span>طلبات السحب</span><i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                    </button>
+                    <button class="platform-menu-item" type="button" onclick="closePlatformMenu(); renderAdminDashboard()">
+                        <span class="menu-item-icon">↻</span><span>تحديث البيانات</span><i class="fa-solid fa-chevron-left menu-item-arrow"></i>
+                    </button>
+                </div>
+                <button class="platform-menu-item platform-menu-logout" type="button" onclick="closePlatformMenu(); logout()">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i><span>تسجيل الخروج</span>
+                </button>
+            </div>
+        </aside>
+    </div>
 
     <main class="content">
         <!-- 1. شاشة تسجيل الدخول وإنشاء حساب -->
@@ -2436,17 +2709,17 @@
                 </div>
             </div>
 
-            <div class="card admin-panel">
+            <div id="admin-users-panel" class="card admin-panel admin-section-anchor">
                 <h3><i class="fa-solid fa-users" style="color:#60a5fa;"></i> الحسابات المسجلة في المنصة</h3>
                 <div id="admin-users-list" style="margin-top: 10px;"></div>
             </div>
 
-             <div class="card admin-panel" style="margin-top: 15px;">
+             <div id="admin-deposits-panel" class="card admin-panel admin-section-anchor" style="margin-top: 15px;">
                  <h3><i class="fa-solid fa-wallet" style="color:#34d399;"></i> طلبات الإيداع</h3>
                  <div id="admin-deposit-requests" style="margin-top: 10px;"></div>
              </div>
 
-             <div class="card admin-panel" style="margin-top: 15px;">
+             <div id="admin-withdrawals-panel" class="card admin-panel admin-section-anchor" style="margin-top: 15px;">
                  <h3><i class="fa-solid fa-money-bill-transfer" style="color:#fbbf24;"></i> طلبات السحب</h3>
                  <div id="admin-withdrawal-requests" style="margin-top: 10px;"></div>
              </div>
@@ -2456,6 +2729,18 @@
 
         <!-- 2. الصفحة الرئيسية للمستخدم -->
         <div id="home-screen" class="screen">
+            <div class="home-overview">
+                <div class="home-welcome">
+                    <div class="home-kicker">مساحتك في SECURO</div>
+                    <h2>أهلاً بك في منصتك</h2>
+                    <p>تابع رصيدك، نفّذ خطواتك اليومية، واستكشف جميع الأقسام من قائمة <strong>منصة</strong> المنظمة.</p>
+                </div>
+                <div class="home-status">
+                    <div class="home-status-label">الرصيد المتاح</div>
+                    <div class="home-status-value">$<span id="home-balance">0.00</span></div>
+                    <div class="home-status-note">بياناتك محدثة من الخادم</div>
+                </div>
+            </div>
             <div class="slider-container">
                 <div class="slider-slide active" style="background-image: linear-gradient(to top, #0f172a, transparent), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80');">
                     <div class="slide-caption">🏢 المقر الرئيسي للشركة - نيويورك، الولايات المتحدة الأمريكية</div>
@@ -2504,6 +2789,7 @@
                 </div>
             </div>
 
+            <div id="home-secondary-content" class="home-secondary-content">
             <div class="stats-bar">
                 <div class="stat-box">
                     <div class="stat-num">$1.2M+</div>
@@ -2527,6 +2813,18 @@
                     تأسست شركة **SECURO** رسميًا في عام **2014** وتتخذ من مدينة **نيويورك في الولايات المتحدة الأمريكية** مقراً رئيسياً لها. تُعد المنصة رائدة عالمياً في مجالات التداول والحلول الاستثمارية الرقمية المتقدمة.
                 </p>
             </div>
+            </div>
+        </div>
+
+        <div id="about-screen" class="screen about-screen">
+            <div class="subpage-header">
+                <div>
+                    <div class="home-kicker">معلومات المنصة</div>
+                    <h2 style="color: var(--text-white); font-size: 1.2rem;">عن SECURO</h2>
+                </div>
+                <button class="back-btn-arrow" type="button" onclick="switchTab('home')" aria-label="العودة للرئيسية">➔</button>
+            </div>
+            <div id="about-screen-content"></div>
         </div>
 
         <!-- 3. صفحة VIP -->
@@ -3026,7 +3324,81 @@
         { name: "فندق أتلانتس البالم - دبي", location: "الإمارات العربية المتحدة", img: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=600&q=80" }
     ];
 
+    function relocateHomeSecondaryContent() {
+        const content = document.getElementById('home-secondary-content');
+        const target = document.getElementById('about-screen-content');
+        if (content && target && !target.contains(content)) target.appendChild(content);
+    }
+
+    function setPlatformMenuMode(adminMode) {
+        const menu = document.getElementById('platform-menu');
+        const menuToggle = document.getElementById('platform-menu-toggle');
+        const accountAction = document.getElementById('header-account-action');
+        if (menu) menu.classList.toggle('admin-mode', Boolean(adminMode));
+        const authenticated = Boolean(currentUser) && !document.getElementById('auth-screen')?.classList.contains('active');
+        if (menuToggle) menuToggle.style.display = authenticated ? 'inline-flex' : 'none';
+        if (accountAction) accountAction.style.display = authenticated && !adminMode ? 'inline-flex' : 'none';
+    }
+
+    function togglePlatformMenu() {
+        const menu = document.getElementById('platform-menu');
+        const toggle = document.getElementById('platform-menu-toggle');
+        if (!menu || document.getElementById('auth-screen')?.classList.contains('active')) return;
+        const open = !menu.classList.contains('is-open');
+        menu.classList.toggle('is-open', open);
+        menu.setAttribute('aria-hidden', String(!open));
+        if (toggle) toggle.setAttribute('aria-expanded', String(open));
+        document.body.classList.toggle('platform-menu-open', open);
+    }
+
+    function closePlatformMenu() {
+        const menu = document.getElementById('platform-menu');
+        const toggle = document.getElementById('platform-menu-toggle');
+        if (!menu) return;
+        menu.classList.remove('is-open');
+        menu.setAttribute('aria-hidden', 'true');
+        if (toggle) toggle.setAttribute('aria-expanded', 'false');
+        document.body.classList.remove('platform-menu-open');
+    }
+
+    function navigateFromPlatform(target) {
+        closePlatformMenu();
+        if (target === 'admin-dashboard') {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('admin-screen')?.classList.add('active');
+            scrollMainContentToTop();
+            renderAdminDashboard();
+            return;
+        }
+        if (target.endsWith('-screen')) {
+            openSubPage(target);
+        } else {
+            switchTab(target);
+        }
+    }
+
+    function focusAdminSection(sectionId) {
+        closePlatformMenu();
+        const screen = document.getElementById('admin-screen');
+        const section = document.getElementById(sectionId);
+        if (!screen || !section) return;
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        screen.classList.add('active');
+        requestAnimationFrame(() => section.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    }
+
+    function setActivePlatformItem(target) {
+        document.querySelectorAll('.platform-menu-item[data-target]').forEach(item => {
+            item.classList.toggle('is-active', item.dataset.target === target);
+        });
+    }
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') closePlatformMenu();
+    });
+
     window.addEventListener('load', function() {
+        relocateHomeSecondaryContent();
         drawWheel();
         
         let currentSlide = 0;
@@ -3202,6 +3574,7 @@
         document.getElementById('login-success-modal').style.display = 'none';
         resetAppViewport();
         document.getElementById('auth-screen').classList.remove('active');
+        setPlatformMenuMode(isAdmin);
         
         if (isAdmin) {
             document.querySelector('.app-container').classList.remove('nav-visible');
@@ -3238,6 +3611,7 @@
 
         if (!isAdmin) {
             document.getElementById('user-balance').innerText = balance.toFixed(2);
+            document.getElementById('home-balance').innerText = balance.toFixed(2);
             document.getElementById('wheel-spins-count').innerText = availableSpins;
             document.getElementById('user-display-email').innerText = currentUser.email;
             setupUserInviteData();
@@ -3252,6 +3626,7 @@
                 document.getElementById('trial-success-section').style.display = 'none';
             }
         }
+        setPlatformMenuMode(isAdmin);
     }
 
     /* === وظائف المراقبة والتعديل الخاصة بالمشرف (Admin Control Panel) === */
@@ -3398,6 +3773,7 @@
 
     function logout() {
         saveUserData();
+        closePlatformMenu();
         currentUser = null;
         isAdmin = false;
         balance = 0.00;
@@ -3416,14 +3792,19 @@
         document.getElementById('auth-email').value = '';
         document.getElementById('auth-pass').value = '';
         document.getElementById('reg-name').value = '';
+        setPlatformMenuMode(false);
     }
 
     function switchTab(tabName) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
 
-        document.getElementById(tabName + '-screen').classList.add('active');
-        document.getElementById('nav-' + tabName).classList.add('active');
+        const screen = document.getElementById(tabName + '-screen');
+        if (!screen) return;
+        screen.classList.add('active');
+        const nav = document.getElementById('nav-' + tabName);
+        if (nav) nav.classList.add('active');
+        setActivePlatformItem(tabName);
         scrollMainContentToTop();
 
         if(tabName === 'tasks') renderTasksScreen();
@@ -3504,8 +3885,12 @@
     }
 
     function openSubPage(pageId) {
+        closePlatformMenu();
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(pageId).classList.add('active');
+        const page = document.getElementById(pageId);
+        if (!page) return;
+        page.classList.add('active');
+        setActivePlatformItem(pageId);
         scrollMainContentToTop();
 
         if(pageId === 'deposit-history-screen') renderDepositsList();

@@ -127,8 +127,10 @@
     trialActive = Boolean(user.trialActive);
     trialUsed = Boolean(user.trialUsed);
     const balanceEl = document.getElementById("user-balance");
+    const homeBalanceEl = document.getElementById("home-balance");
     const spinsEl = document.getElementById("wheel-spins-count");
     if (balanceEl) balanceEl.innerText = balance.toFixed(2);
+    if (homeBalanceEl) homeBalanceEl.innerText = balance.toFixed(2);
     if (spinsEl) spinsEl.innerText = availableSpins;
     if (typeof updateVipUIState === "function") updateVipUIState();
     if (typeof updateDailyRewardUI === "function") updateDailyRewardUI();
@@ -139,12 +141,14 @@
     document.querySelectorAll(".screen").forEach((screen) => screen.classList.remove("active"));
     document.getElementById("auth-screen").classList.remove("active");
     if (isAdmin) {
+      if (typeof setPlatformMenuMode === "function") setPlatformMenuMode(true);
       document.querySelector(".app-container").classList.remove("nav-visible");
       document.getElementById("admin-screen").classList.add("active");
       document.getElementById("header-title").innerText = "SECURO ADMIN";
       renderAdminDashboard();
       startAdminDashboardRefresh();
     } else {
+      if (typeof setPlatformMenuMode === "function") setPlatformMenuMode(false);
       stopAdminDashboardRefresh();
       document.getElementById("bottom-nav").style.display = "flex";
       document.querySelector(".app-container").classList.add("nav-visible");

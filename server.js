@@ -597,7 +597,9 @@ app.post("/api/vip/purchase", requireUser, async (req, res) => {
       if (Number(user.balance) - Number(user.reserved_balance) < product.price) {
         throw Object.assign(new Error("رصيدك المتاح غير كافٍ"), { status: 400 });
       }
-      if (user.user_vip) {
+      // A trial membership may be upgraded to a paid VIP at any time.
+      // Keep paid memberships protected from accidental replacement.
+      if (user.user_vip && !user.user_vip.isTrial) {
         throw Object.assign(new Error("لديك عضوية VIP نشطة حالياً"), { status: 409 });
       }
       const vip = { name, ...product, isTrial: false };

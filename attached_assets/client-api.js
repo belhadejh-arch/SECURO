@@ -53,6 +53,20 @@
     });
   }
 
+  function adminAccountStatus(user) {
+    if (user.isAdmin) return { label: "حساب إداري", className: "badge-green" };
+    if (user.isBlocked) return { label: "محظور / غير نشط", className: "badge-orange" };
+    return { label: "نشط", className: "badge-green" };
+  }
+
+  function adminVipStatus(user) {
+    if (!user.userVip) return { label: "غير مشترك", className: "badge-orange" };
+    if (user.userVip.isTrial) {
+      return { label: "تجريبي — صالح ليومين", className: "badge-green" };
+    }
+    return { label: user.userVip.name || "VIP نشط", className: "badge-green" };
+  }
+
   function showApiError(error) {
     if (typeof openLoginErrorModal === "function") {
       openLoginErrorModal(error.message || "تعذر تنفيذ العملية");
@@ -374,6 +388,13 @@
       document.getElementById("admin-total-deposits").innerText = `$${Number(data.stats.deposits).toFixed(2)}`;
       document.getElementById("admin-total-withdraws").innerText = `$${Number(data.stats.withdrawals).toFixed(2)}`;
       document.getElementById("admin-users-list").innerHTML = data.users.map((user, index) => `
+        ${(() => {
+          const accountStatus = adminAccountStatus(user);
+          const vipStatus = adminVipStatus(user);
+          const vipExpiry = user.userVip && user.vipExpiresAt
+            ? `<small style="display:block;color:var(--text-muted);margin-top:3px">ينتهي: ${escapeHtml(dateText(user.vipExpiresAt))}</small>`
+            : "";
+          return `
         <div class="history-card" style="display:block">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
             <div class="history-info">
@@ -382,9 +403,16 @@
             </div>
             <div style="text-align:left;white-space:nowrap">
               <strong>$${Number(user.balance).toFixed(2)}</strong><br>
-              <span class="history-badge ${user.isBlocked ? "badge-orange" : "badge-green"}">${user.isBlocked ? "محظور / غير نشط" : "نشط"}</span><br>
+              <span class="history-badge ${accountStatus.className}">${accountStatus.label}</span><br>
               <small>${dateText(user.createdAt)}</small>
             </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px;padding:8px 10px;background:rgba(15,23,42,.45);border:1px solid var(--border-color);border-radius:10px">
+            <span style="font-size:.76rem;color:var(--text-muted)">حالة الحساب:</span>
+            <span class="history-badge ${accountStatus.className}">${accountStatus.label}</span>
+            <span style="font-size:.76rem;color:var(--text-muted);margin-right:4px">عضوية VIP:</span>
+            <span class="history-badge ${vipStatus.className}">${escapeHtml(vipStatus.label)}</span>
+            ${vipExpiry}
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;border-top:1px solid var(--border-color);padding-top:8px">
             <button class="btn btn-green" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminAdjustBalance(${user.id},${Number(user.balance).toFixed(2)})">✏️ تعديل الرصيد</button>
@@ -392,7 +420,8 @@
             <button class="btn" style="flex:1;padding:6px 10px;font-size:.75rem;background:#6366f1;color:white" onclick="adminResetTasks(${user.id})">🔄 تصفير المهام</button>
             ${!user.isAdmin ? `<button class="btn ${user.isBlocked ? "btn-green" : "btn-red"}" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminToggleBlock(${user.id},${!user.isBlocked})">${user.isBlocked ? "✅ رفع الحظر" : "🚫 حظر المستخدم"}</button>` : ""}
           </div>
-        </div>`).join("") || '<div class="history-date">لا توجد حسابات.</div>';
+        </div>`;
+        })()}`).join("") || '<div class="history-date">لا توجد حسابات.</div>';
       document.getElementById("admin-deposit-requests").innerHTML = data.deposits.map((item) => adminRequestCard(item, "deposits")).join("")
         || '<div class="history-date">لا توجد طلبات إيداع.</div>';
       document.getElementById("admin-withdrawal-requests").innerHTML = data.withdrawals.map((item) => adminRequestCard(item, "withdrawals")).join("")

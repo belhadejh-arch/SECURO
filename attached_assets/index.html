@@ -2007,6 +2007,90 @@
                 max-width: 430px !important;
             }
         }
+
+        /*
+         * Unified post-login page layout
+         * ------------------------------
+         * The document is the only vertical scroll container. Auth keeps its
+         * own compact flow, while every user/Admin screen starts immediately
+         * below the small header and grows only as its real content grows.
+         * Keep this block last: older responsive layers above it intentionally
+         * contain legacy viewport-height rules.
+         */
+        .app-container:not(:has(#auth-screen.active)):not(:has(#admin-screen.active)) {
+            min-height: 100dvh;
+            height: auto;
+            padding-bottom: var(--bottom-nav-space);
+        }
+
+        .app-container:not(:has(#auth-screen.active)) > header {
+            min-height: 54px;
+            height: auto;
+            padding: 9px 16px;
+        }
+
+        .app-container:not(:has(#auth-screen.active)) > .content {
+            flex: 0 0 auto;
+            min-height: 0;
+            height: auto;
+            margin: 0;
+            padding: 10px var(--page-gutter) 0;
+            overflow: visible;
+            scroll-padding-top: 0;
+            scroll-padding-bottom: var(--bottom-nav-space);
+        }
+
+        .app-container:not(:has(#auth-screen.active)) .screen,
+        .app-container:not(:has(#auth-screen.active)) .screen.active {
+            display: block;
+            min-height: 0;
+            height: auto;
+            margin-top: 0;
+            padding-top: 0;
+            overflow: visible;
+        }
+
+        .app-container:not(:has(#auth-screen.active)) #home-screen,
+        .app-container:not(:has(#auth-screen.active)) #admin-screen {
+            margin-top: 0;
+        }
+
+        .app-container:not(:has(#auth-screen.active)) .admin-hero {
+            margin-top: 0;
+            padding: 20px 22px;
+        }
+
+        .app-container:not(:has(#auth-screen.active)) .admin-panel[style*="margin-top"] {
+            margin-top: 12px !important;
+        }
+
+        .app-container:not(:has(#auth-screen.active)):not(:has(#admin-screen.active)) .bottom-nav {
+            display: flex;
+        }
+
+        .app-container:has(#admin-screen.active) {
+            padding-bottom: 0;
+        }
+
+        .app-container:has(#admin-screen.active) .bottom-nav {
+            display: none;
+        }
+
+        @media (max-width: 760px) {
+            .app-container:not(:has(#auth-screen.active)) > header {
+                min-height: 50px;
+                padding: 8px 12px;
+            }
+
+            .app-container:not(:has(#auth-screen.active)) > .content {
+                padding: 7px 10px 0;
+            }
+
+            .app-container:not(:has(#auth-screen.active)) .admin-hero {
+                padding: 16px;
+                border-radius: 18px;
+            }
+        }
     </style>
 </head>
 <body>

@@ -2278,6 +2278,86 @@
                 font-size: 1rem;
             }
         }
+
+        /*
+         * Unified user/admin shell
+         * ------------------------
+         * Both authenticated areas share the same content edge directly
+         * below the header. Keep this block last so no legacy rule can
+         * reintroduce the empty strip above the first card.
+         */
+        .app-container > .content,
+        .app-container:not(:has(#auth-screen.active)) > .content {
+            padding-top: 0 !important;
+        }
+
+        .app-container:not(:has(#auth-screen.active)) .screen,
+        .app-container:not(:has(#auth-screen.active)) .admin-screen,
+        .app-container:not(:has(#auth-screen.active)) .admin-hero {
+            margin-top: 0 !important;
+        }
+
+        .app-container:not(:has(#auth-screen.active)) .screen {
+            width: 100%;
+            max-width: 1120px;
+        }
+
+        .app-container:not(:has(#auth-screen.active)) .admin-screen {
+            padding-top: 0 !important;
+        }
+
+        .app-container:not(:has(#auth-screen.active)) .admin-hero {
+            margin-bottom: 12px;
+        }
+
+        .app-container:not(:has(#auth-screen.active)) .card,
+        .app-container:not(:has(#auth-screen.active)) .vip-card,
+        .app-container:not(:has(#auth-screen.active)) .hotel-card,
+        .app-container:not(:has(#auth-screen.active)) .wheel-card,
+        .app-container:not(:has(#auth-screen.active)) .history-card,
+        .app-container:not(:has(#auth-screen.active)) .admin-panel {
+            max-width: 100%;
+        }
+
+        @media (min-width: 761px) {
+            .app-container:not(:has(#auth-screen.active)) > .content {
+                padding-inline: 24px !important;
+                padding-bottom: 24px !important;
+            }
+
+            .app-container:not(:has(#auth-screen.active)) .admin-hero {
+                padding: 20px 22px;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .app-container:not(:has(#auth-screen.active)) > .content {
+                padding: 0 10px calc(var(--bottom-nav-space) + 10px) !important;
+                scroll-padding-top: 0 !important;
+            }
+
+            .app-container:not(:has(#auth-screen.active)) .admin-hero {
+                padding: 14px;
+                margin-bottom: 10px;
+                border-radius: 16px;
+            }
+
+            .app-container:not(:has(#auth-screen.active)) .admin-panel {
+                padding: 14px;
+                margin-top: 10px !important;
+            }
+
+            .app-container:not(:has(#auth-screen.active)) .admin-stats {
+                gap: 8px;
+                margin-bottom: 10px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .app-container:not(:has(#auth-screen.active)) > .content {
+                padding-inline: 7px !important;
+            }
+        }
     </style>
 </head>
 <body>

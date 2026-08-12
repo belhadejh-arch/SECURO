@@ -383,49 +383,102 @@
       </div>${buttons}</div>`;
   }
 
+  // كل مستخدمي الأدمن المحفوظون محلياً للبحث الفوري
+  let _allAdminUsers = [];
+
+  function buildUserCard(user) {
+    const accountStatus = adminAccountStatus(user);
+    const vipStatus = adminVipStatus(user);
+    const hasTrial = user.userVip && user.userVip.isTrial;
+    const vipExpiry = user.userVip && user.vipExpiresAt
+      ? `<small style="display:block;color:var(--text-muted);margin-top:3px">ينتهي: ${escapeHtml(dateText(user.vipExpiresAt))}</small>`
+      : "";
+    const totalDep  = Number(user.totalDeposits  || 0).toFixed(2);
+    const totalWith = Number(user.totalWithdrawals || 0).toFixed(2);
+    return `
+      <div class="history-card" style="display:block">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div class="history-info">
+            <div class="history-title">👤 ${escapeHtml(user.name)} ${user.isAdmin ? "👑" : ""}</div>
+            <div class="history-date">📧 ${escapeHtml(user.email)}</div>
+            <div class="history-date" style="margin-top:2px">رمز الإحالة: ${escapeHtml(user.inviteCode)} | تسجيل: ${dateText(user.createdAt)}</div>
+          </div>
+          <div style="text-align:left;white-space:nowrap;min-width:0">
+            <strong style="color:#60a5fa;font-size:1.05rem">$${Number(user.balance).toFixed(2)}</strong><br>
+            <span class="history-badge ${accountStatus.className}" style="margin-top:4px;display:inline-block">${accountStatus.label}</span>
+          </div>
+        </div>
+
+        <!-- إجماليات الإيداع والسحب -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;padding:8px 10px;background:rgba(15,23,42,.45);border:1px solid var(--border-color);border-radius:10px">
+          <div style="flex:1;min-width:110px;text-align:center">
+            <div style="font-size:.68rem;color:var(--text-muted);margin-bottom:2px">إجمالي الإيداع</div>
+            <div style="font-weight:800;color:#34d399;font-size:.95rem">$${totalDep}</div>
+          </div>
+          <div style="width:1px;background:var(--border-color);align-self:stretch"></div>
+          <div style="flex:1;min-width:110px;text-align:center">
+            <div style="font-size:.68rem;color:var(--text-muted);margin-bottom:2px">إجمالي السحب</div>
+            <div style="font-weight:800;color:#f87171;font-size:.95rem">$${totalWith}</div>
+          </div>
+          <div style="width:1px;background:var(--border-color);align-self:stretch"></div>
+          <div style="flex:1;min-width:110px;text-align:center">
+            <div style="font-size:.68rem;color:var(--text-muted);margin-bottom:2px">عضوية VIP</div>
+            <span class="history-badge ${vipStatus.className}" style="display:inline-block">${escapeHtml(vipStatus.label)}</span>
+            ${vipExpiry}
+          </div>
+        </div>
+
+        <!-- أزرار الإجراءات -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;border-top:1px solid var(--border-color);padding-top:8px">
+          <button class="btn btn-green"  style="flex:1;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminAdjustBalance(${user.id},${Number(user.balance).toFixed(2)})">✏️ تعديل الرصيد</button>
+          <button class="btn btn-gold"   style="flex:1;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminChangeVip(${user.id})">👑 تغيير VIP</button>
+          <button class="btn"            style="flex:1;padding:6px 8px;font-size:.72rem;min-height:38px;background:#6366f1;color:white" onclick="adminResetTasks(${user.id})">🔄 تصفير المهام</button>
+          ${hasTrial ? `<button class="btn btn-red" style="flex:1;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminCancelTrial(${user.id})">🚫 إلغاء التجربة</button>` : ""}
+          ${!user.isAdmin ? `<button class="btn ${user.isBlocked ? "btn-green" : "btn-red"}" style="flex:1;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminToggleBlock(${user.id},${!user.isBlocked})">${user.isBlocked ? "✅ رفع الحظر" : "🚫 حظر"}</button>` : ""}
+        </div>
+      </div>`;
+  }
+
+  function renderUsersList(users) {
+    const container = document.getElementById("admin-users-list");
+    if (!container) return;
+    container.innerHTML = users.length
+      ? users.map(buildUserCard).join("")
+      : '<div class="history-date" style="padding:20px;text-align:center">لا توجد نتائج.</div>';
+  }
+
+  window.adminSearchUsers = function () {
+    const input = document.getElementById("admin-search-input");
+    const clearBtn = document.getElementById("admin-search-clear");
+    const q = (input?.value || "").trim().toLowerCase();
+    if (clearBtn) clearBtn.style.display = q ? "inline" : "none";
+    if (!q) return renderUsersList(_allAdminUsers);
+    const filtered = _allAdminUsers.filter((u) =>
+      (u.name  || "").toLowerCase().includes(q) ||
+      (u.email || "").toLowerCase().includes(q) ||
+      (u.inviteCode || "").toLowerCase().includes(q)
+    );
+    renderUsersList(filtered);
+  };
+
   window.renderAdminDashboard = async function () {
     if (adminRefreshInFlight) return;
     adminRefreshInFlight = true;
     try {
       const data = await api("/api/admin/overview");
+      _allAdminUsers = data.users;
       document.getElementById("admin-total-users").innerText = data.stats.users;
       document.getElementById("admin-total-deposits").innerText = `$${Number(data.stats.deposits).toFixed(2)}`;
       document.getElementById("admin-total-withdraws").innerText = `$${Number(data.stats.withdrawals).toFixed(2)}`;
-      document.getElementById("admin-users-list").innerHTML = data.users.map((user, index) => `
-        ${(() => {
-          const accountStatus = adminAccountStatus(user);
-          const vipStatus = adminVipStatus(user);
-          const vipExpiry = user.userVip && user.vipExpiresAt
-            ? `<small style="display:block;color:var(--text-muted);margin-top:3px">ينتهي: ${escapeHtml(dateText(user.vipExpiresAt))}</small>`
-            : "";
-          return `
-        <div class="history-card" style="display:block">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
-            <div class="history-info">
-              <div class="history-title">👤 ${escapeHtml(user.name)} ${user.isAdmin ? "👑" : ""}</div>
-              <div class="history-date">📧 ${escapeHtml(user.email)} | رمز الإحالة: ${escapeHtml(user.inviteCode)}</div>
-            </div>
-            <div style="text-align:left;white-space:nowrap">
-              <strong>$${Number(user.balance).toFixed(2)}</strong><br>
-              <span class="history-badge ${accountStatus.className}">${accountStatus.label}</span><br>
-              <small>${dateText(user.createdAt)}</small>
-            </div>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px;padding:8px 10px;background:rgba(15,23,42,.45);border:1px solid var(--border-color);border-radius:10px">
-            <span style="font-size:.76rem;color:var(--text-muted)">حالة الحساب:</span>
-            <span class="history-badge ${accountStatus.className}">${accountStatus.label}</span>
-            <span style="font-size:.76rem;color:var(--text-muted);margin-right:4px">عضوية VIP:</span>
-            <span class="history-badge ${vipStatus.className}">${escapeHtml(vipStatus.label)}</span>
-            ${vipExpiry}
-          </div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;border-top:1px solid var(--border-color);padding-top:8px">
-            <button class="btn btn-green" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminAdjustBalance(${user.id},${Number(user.balance).toFixed(2)})">✏️ تعديل الرصيد</button>
-            <button class="btn btn-gold" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminChangeVip(${user.id})">👑 تغيير VIP</button>
-            <button class="btn" style="flex:1;padding:6px 10px;font-size:.75rem;background:#6366f1;color:white" onclick="adminResetTasks(${user.id})">🔄 تصفير المهام</button>
-            ${!user.isAdmin ? `<button class="btn ${user.isBlocked ? "btn-green" : "btn-red"}" style="flex:1;padding:6px 10px;font-size:.75rem" onclick="adminToggleBlock(${user.id},${!user.isBlocked})">${user.isBlocked ? "✅ رفع الحظر" : "🚫 حظر المستخدم"}</button>` : ""}
-          </div>
-        </div>`;
-        })()}`).join("") || '<div class="history-date">لا توجد حسابات.</div>';
+
+      // أعد تطبيق فلتر البحث إن وُجد
+      const q = (document.getElementById("admin-search-input")?.value || "").trim();
+      if (q) {
+        window.adminSearchUsers();
+      } else {
+        renderUsersList(_allAdminUsers);
+      }
+
       document.getElementById("admin-deposit-requests").innerHTML = data.deposits.map((item) => adminRequestCard(item, "deposits")).join("")
         || '<div class="history-date">لا توجد طلبات إيداع.</div>';
       document.getElementById("admin-withdrawal-requests").innerHTML = data.withdrawals.map((item) => adminRequestCard(item, "withdrawals")).join("")
@@ -490,6 +543,18 @@
     if (!window.confirm("هل تريد تصفير مهام هذا المستخدم لليوم؟")) return;
     try {
       await api(`/api/admin/users/${encodeURIComponent(userId)}/tasks/reset`, {
+        method: "POST",
+      });
+      await window.renderAdminDashboard();
+    } catch (error) {
+      showApiError(error);
+    }
+  };
+
+  window.adminCancelTrial = async function (userId) {
+    if (!window.confirm("هل تريد إلغاء الفترة التجريبية لهذا المستخدم؟ لن يتمكن من إعادة تفعيلها.")) return;
+    try {
+      await api(`/api/admin/users/${encodeURIComponent(userId)}/trial/cancel`, {
         method: "POST",
       });
       await window.renderAdminDashboard();

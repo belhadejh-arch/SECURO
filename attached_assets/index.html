@@ -3298,7 +3298,26 @@
             </div>
 
             <div id="admin-users-panel" class="card admin-panel admin-section-anchor">
-                <h3><i class="fa-solid fa-users" style="color:#60a5fa;"></i> الحسابات المسجلة في المنصة</h3>
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid rgba(148,163,184,.12);">
+                    <h3 style="border:none;padding:0;margin:0;"><i class="fa-solid fa-users" style="color:#60a5fa;"></i> الحسابات المسجلة في المنصة</h3>
+                    <div style="display:flex;align-items:center;gap:8px;background:rgba(15,23,42,.55);border:1px solid rgba(148,163,184,.18);border-radius:12px;padding:7px 12px;flex:1;min-width:180px;max-width:320px;">
+                        <i class="fa-solid fa-magnifying-glass" style="color:#60a5fa;font-size:1rem;flex-shrink:0;"></i>
+                        <input
+                            id="admin-search-input"
+                            type="text"
+                            placeholder="ابحث باسم أو بريد أو رمز الإحالة…"
+                            oninput="adminSearchUsers()"
+                            style="background:transparent;border:none;outline:none;width:100%;color:#f8fafc;font-size:.82rem;padding:0;min-height:0;height:auto;"
+                        >
+                        <button
+                            type="button"
+                            id="admin-search-clear"
+                            onclick="document.getElementById('admin-search-input').value='';adminSearchUsers();"
+                            style="background:none;border:none;color:#64748b;cursor:pointer;padding:0;font-size:.85rem;line-height:1;display:none;min-height:0;width:auto;"
+                            title="مسح البحث"
+                        >✕</button>
+                    </div>
+                </div>
                 <div id="admin-users-list" style="margin-top: 10px;"></div>
             </div>
 

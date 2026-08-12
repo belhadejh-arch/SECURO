@@ -850,8 +850,25 @@ app.get("/api/admin/overview", requireAdmin, async (_req, res) => {
   try {
     const [users, deposits, withdrawals, stats] = await Promise.all([
       pool.query(
-        `SELECT id, email, name, referral_code, is_admin, is_blocked, balance, user_vip, created_at
-         FROM users ORDER BY created_at DESC`,
+        `SELECT u.id, u.email, u.name, u.referral_code, u.is_admin, u.is_blocked,
+                u.balance, u.reserved_balance, u.user_vip, u.created_at,
+                u.vip_expires_at, u.trial_active, u.trial_used,
+                u.available_spins, u.completed_tasks_count,
+                u.task_last_reset_date, u.last_claim_date, u.current_trial_day,
+                COALESCE(d.total_dep, 0) AS total_deposits,
+                COALESCE(w.total_with, 0) AS total_withdrawals
+         FROM users u
+         LEFT JOIN (
+           SELECT user_id, SUM(amount) AS total_dep
+           FROM deposit_requests WHERE status = 'accepted'
+           GROUP BY user_id
+         ) d ON d.user_id = u.id
+         LEFT JOIN (
+           SELECT user_id, SUM(amount) AS total_with
+           FROM withdrawal_requests WHERE status = 'accepted'
+           GROUP BY user_id
+         ) w ON w.user_id = u.id
+         ORDER BY u.created_at DESC`,
       ),
       pool.query(
         `SELECT d.id, d.amount, d.txid, d.network, d.status, d.created_at,
@@ -873,7 +890,11 @@ app.get("/api/admin/overview", requireAdmin, async (_req, res) => {
       ),
     ]);
     res.json({
-      users: users.rows.map(publicUser),
+      users: users.rows.map((row) => ({
+        ...publicUser(row),
+        totalDeposits: money(row.total_deposits),
+        totalWithdrawals: money(row.total_withdrawals),
+      })),
       deposits: deposits.rows,
       withdrawals: withdrawals.rows,
       stats: {
@@ -1016,6 +1037,31 @@ app.post("/api/admin/users/:id/tasks/reset", requireAdmin, async (req, res) => {
     res.json({ user: result });
   } catch (error) {
     appError(res, error.status || 500, error.status ? error.message : "تعذر تصفير مهام المستخدم");
+  }
+});
+
+app.post("/api/admin/users/:id/trial/cancel", requireAdmin, async (req, res) => {
+  const userId = Number(req.params.id);
+  if (!Number.isInteger(userId) || userId <= 0) {
+    return appError(res, 400, "معرّف المستخدم غير صحيح");
+  }
+  try {
+    const result = await pool.query(
+      `UPDATE users
+       SET trial_active = FALSE,
+           trial_used = TRUE,
+           user_vip = NULL,
+           updated_at = NOW()
+       WHERE id = $1 AND is_admin = FALSE AND (trial_active = TRUE OR (user_vip IS NOT NULL AND user_vip->>'isTrial' = 'true'))
+       RETURNING *`,
+      [userId],
+    );
+    if (!result.rowCount) {
+      return appError(res, 404, "المستخدم غير موجود أو لا توجد فترة تجريبية نشطة");
+    }
+    res.json({ user: publicUser(result.rows[0]) });
+  } catch {
+    appError(res, 500, "تعذر إلغاء الفترة التجريبية");
   }
 });
 

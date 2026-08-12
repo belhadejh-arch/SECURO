@@ -471,2643 +471,591 @@
             .admin-stats .stat-box { text-align: center; }
         }
 
-        /* طبقة ضبط الواجهة: تحافظ على نفس الوظائف وتمنع التداخل */
-        html, body { overflow-x: hidden; }
-        body { overflow-y: auto; }
-        .app-container, .content, .screen, .card, .admin-panel,
-        .history-card, .auth-card, .vip-card, .hotel-card { min-width: 0; }
-        .content {
-            scrollbar-gutter: stable;
-            overflow: visible;
-            padding-bottom: 0;
-        }
-        .screen { width: 100%; max-width: 1120px; margin-inline: auto; }
-        .auth-layout {
-            grid-template-columns: minmax(0, 1fr) minmax(340px, 430px);
-            width: 100%;
-        }
-        .auth-brand, .auth-card { min-width: 0; }
-        .auth-card {
-            justify-self: stretch;
-            width: 100%;
-            padding: clamp(18px, 2.4vw, 26px);
-        }
-        .auth-card form { width: 100%; }
-        .auth-card .field-label {
-            margin: 0;
-            line-height: 1.35;
-        }
-        .auth-card input,
-        .auth-card .btn {
-            width: 100%;
-            min-height: 52px;
-            height: 52px;
-            margin: 0;
-        }
-        .auth-card input { flex: 0 0 52px; }
-        .auth-card #invite-group {
-            width: 100%;
-            min-width: 0;
-        }
-        .auth-card #invite-group input {
-            margin-top: 10px;
-        }
-        .auth-card #invite-group span {
-            line-height: 1.45;
-            overflow-wrap: anywhere;
-        }
-        .auth-note {
-            align-items: flex-start;
-            overflow-wrap: anywhere;
-        }
 
-        .admin-screen { width: 100%; }
-        .admin-hero { min-width: 0; }
-        .admin-hero-copy { min-width: 0; }
-        .admin-hero-copy > div:last-child { min-width: 0; }
-        .admin-hero h2, .admin-hero p,
-        .admin-panel h3 { overflow-wrap: anywhere; }
-        .admin-panel { overflow: hidden; }
-        .admin-panel > [id$="-list"],
-        .admin-panel > [id$="-requests"] {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .admin-panel .history-card {
-            margin-bottom: 0;
-            width: 100%;
-        }
-        .admin-panel .history-info,
-        .admin-panel .history-card > div:first-child {
-            min-width: 0;
-        }
-        .admin-panel .history-title,
-        .admin-panel .history-date {
-            overflow-wrap: anywhere;
-            word-break: break-word;
-        }
-
-        .card, .vip-card, .hotel-card, .wheel-card, .history-card {
-            overflow: hidden;
-        }
-        .card h3, .history-title, .history-date,
-        .menu-item, .support-banner-profile, .action-item {
-            overflow-wrap: anywhere;
-            word-break: break-word;
-        }
-        .history-card { gap: 12px; }
-        .history-info { min-width: 0; }
-        .history-card > * { max-width: 100%; }
-        .history-badge { white-space: nowrap; }
-        .copy-input-container { align-items: stretch; }
-        .copy-input-container input { min-width: 0; }
-        .copy-btn { min-height: 48px; }
-        .levels-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-        .level-card { min-width: 0; overflow: hidden; }
-        .level-card span { overflow-wrap: anywhere; }
-        .wheel-container-wrapper { max-width: 100%; }
-        .wheel-canvas { max-width: 100%; height: auto; aspect-ratio: 1; }
-        .modal { overflow-y: auto; }
-        .modal-content { max-height: calc(100dvh - 32px); overflow-y: auto; }
-
-        @media (max-width: 760px) {
-            body {
-                display: block;
-                min-width: 0;
-            }
-            .app-container {
-                width: 100%;
-                max-width: none;
-                min-height: 100svh;
-                height: auto;
-                box-shadow: none;
-            }
-            header {
-                flex: 0 0 auto;
-                min-height: 54px;
-                padding: 10px 14px;
-            }
-            header h1 { font-size: 1.35rem; }
-            .content {
-                padding: 14px 12px calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
-                scroll-padding-bottom: calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
-            }
-            input, select, textarea { font-size: 16px; }
-            .auth-layout {
-                display: flex;
-                flex-direction: column;
-                gap: 18px;
-                padding: 16px 0 24px;
-            }
-            .auth-brand {
-                width: 100%;
-                padding: 8px 4px 0;
-            }
-            .auth-brand h2 {
-                font-size: clamp(1.8rem, 9vw, 2.35rem);
-                margin-bottom: 10px;
-            }
-            .auth-brand p { line-height: 1.7; }
-            .trust-row { gap: 7px; margin-top: 16px; }
-            .trust-pill { padding: 8px 10px; font-size: .72rem; }
-            .auth-card {
-                max-width: 100%;
-                padding: 18px 16px;
-                border-radius: 18px;
-            }
-            .auth-card .form-group { gap: 10px; margin-top: 18px; }
-            .auth-card input, .auth-card .btn {
-                min-height: 50px;
-                height: 50px;
-            }
-            .admin-hero {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 15px;
-                padding: 18px;
-                border-radius: 18px;
-            }
-            .admin-hero-copy { align-items: center; }
-            .admin-hero h2 { font-size: 1.18rem; }
-            .admin-refresh { width: 100%; }
-            .admin-panel { padding: 14px; }
-            .admin-panel h3 { line-height: 1.45; }
-            .admin-panel .history-card {
-                align-items: stretch;
-                flex-direction: column;
-            }
-            .admin-panel .history-card > div:first-child {
-                width: 100%;
-            }
-            .admin-panel .history-card > div:first-child > div:last-child,
-            .admin-panel .history-card > div:last-child {
-                text-align: start !important;
-                white-space: normal !important;
-            }
-            .quick-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-            .action-item { min-height: 86px; padding: 10px 6px; }
-            .stats-bar { flex-wrap: wrap; gap: 8px; padding: 10px; }
-            .stats-bar > .stat-box {
-                flex: 1 1 28%;
-                min-width: 78px;
-            }
-            .stats-bar > div[style*="height: 25px"] { display: none !important; }
-            .support-banner-profile { gap: 10px; padding: 13px; }
-            .support-banner-profile > div:first-child { min-width: 0; }
-            .balance-amount { font-size: 2rem; }
-            .copy-input-container { flex-direction: column; gap: 8px; }
-            .copy-btn { width: 100%; padding: 12px 16px; }
-            .levels-grid { gap: 7px; }
-            .level-card { padding: 10px 5px; }
-            .level-card > div { font-size: .68rem !important; }
-            .wheel-card { padding: 14px 10px; }
-            .wheel-container-wrapper { width: min(230px, 68vw); height: min(230px, 68vw); }
-            .history-card { align-items: flex-start; flex-wrap: wrap; }
-            .history-card > .history-info { flex: 1 1 65%; }
-            .history-card > div:last-child { max-width: 100%; }
-            .menu-item { gap: 10px; min-height: 54px; }
-            .menu-item > span:first-child { min-width: 0; }
-            .vip-card, .hotel-card { margin-bottom: 12px; }
-            .vip-card p { line-height: 1.55; }
-            .modal {
-                align-items: flex-start;
-                padding: max(14px, env(safe-area-inset-top)) 12px max(14px, env(safe-area-inset-bottom));
-            }
-            .modal-content {
-                width: 100%;
-                margin: auto 0;
-                padding: 18px 15px;
-                border-radius: 16px;
-            }
-            .bottom-nav {
-                height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
-                padding-bottom: env(safe-area-inset-bottom);
-            }
-        }
-
-        @media (max-width: 380px) {
-            header { padding-inline: 12px; }
-            header h1 { font-size: 1.25rem; }
-            .content { padding-inline: 9px; }
-            .auth-card { padding-inline: 13px; }
-            .auth-card > div:first-child { gap: 8px !important; }
-            .auth-card > div:first-child h2 { font-size: 1.25rem !important; }
-            .trust-pill { font-size: .68rem; padding-inline: 8px; }
-            .levels-grid { grid-template-columns: 1fr; }
-            .level-card { padding: 12px; }
-            .level-card > div { font-size: .78rem !important; }
-            .nav-link { font-size: .62rem; }
-            .nav-link span { font-size: 1.1rem; }
-        }
-
-        @media (max-width: 480px) and (max-height: 760px) {
-            .auth-layout { gap: 12px; padding-top: 10px; }
-            .auth-brand { padding-top: 0; }
-            .brand-mark { width: 52px; height: 52px; margin-bottom: 10px; font-size: 1.4rem; }
-            .auth-brand h2 { font-size: 1.65rem; margin-bottom: 6px; }
-            .auth-brand p { display: none; }
-            .trust-row { margin-top: 10px; }
-            .trust-pill { padding-block: 6px; }
-            .auth-card { padding-block: 14px; }
-        }
-
-        /* Responsive foundation: keep every generated card and control inside its
-           available width, including content rendered later by JavaScript. */
-        html {
-            min-width: 0;
-            overflow-x: clip;
-            -webkit-text-size-adjust: 100%;
-        }
-        body {
-            width: 100%;
-            min-width: 0;
-            overflow-x: clip;
-            overflow-y: auto;
-            line-height: 1.45;
-        }
-        button, input, select, textarea {
-            font: inherit;
-            max-width: 100%;
-            touch-action: manipulation;
-        }
-        button, .btn, .action-item, .menu-item, .nav-link, .copy-btn,
-        .back-btn-arrow {
-            -webkit-tap-highlight-color: transparent;
-        }
-        button, .btn, .action-item, .menu-item, .copy-btn {
-            min-height: 48px;
-        }
-        img, canvas, svg, video {
-            max-width: 100%;
-        }
-        p, h1, h2, h3, h4, span, label, a {
-            overflow-wrap: anywhere;
-        }
-        .content {
-            width: 100%;
-            overflow-x: clip;
-            overflow-y: visible;
-            overscroll-behavior: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        .screen > * {
-            max-width: 100%;
-        }
-        .form-group > * {
-            min-width: 0;
-        }
-        textarea {
-            min-height: 60px;
-            line-height: 1.55;
-        }
-        .subpage-header {
-            gap: 12px;
-        }
-        .subpage-header h2, .subpage-header h3 {
-            min-width: 0;
-            line-height: 1.35;
-        }
-        .back-btn-arrow {
-            flex: 0 0 42px;
-            width: 42px;
-            height: 42px;
-        }
-        .slider-container {
-            height: clamp(150px, 25vw, 230px);
-        }
-        .slide-caption {
-            line-height: 1.45;
-            overflow-wrap: anywhere;
-        }
-        .action-item {
-            min-width: 0;
-            min-height: 88px;
-        }
-        .action-title {
-            line-height: 1.3;
-        }
-        .wheel-card p {
-            max-width: 620px;
-            margin-inline: auto;
-            line-height: 1.55;
-        }
-        .stats-bar {
-            min-width: 0;
-        }
-        .stats-bar .stat-box {
-            min-width: 0;
-        }
-        .stat-num {
-            overflow-wrap: anywhere;
-        }
-        .balance-card, .referral-earnings-card, .task-progress-box,
-        .task-complete-card, .daily-reward-card, .deposit-notice-box,
-        .withdraw-info-box {
-            overflow-wrap: anywhere;
-        }
-        .support-banner-profile > * {
-            min-width: 0;
-        }
-        .support-banner-profile .btn {
-            flex: 0 1 auto;
-            width: auto;
-            min-width: 110px;
-        }
-        .hotel-info > * {
-            max-width: 100%;
-        }
-        .hotel-img {
-            height: clamp(135px, 28vw, 190px);
-        }
-        .hotel-img > div {
-            min-width: 0;
-        }
-        .hotel-img > div > div {
-            overflow-wrap: anywhere;
-        }
-        .vip-card h3, .vip-card p, .vip-card .btn,
-        .hotel-card h3, .hotel-card p, .hotel-card textarea {
-            max-width: 100%;
-        }
-        .history-card {
-            min-height: 64px;
-        }
-        .history-card > div {
-            min-width: 0;
-        }
-        .history-card .history-info {
-            overflow-wrap: anywhere;
-        }
-        .history-card [style*="text-align:left"],
-        .history-card [style*="text-align: left"] {
-            max-width: 100%;
-            overflow-wrap: anywhere;
-            word-break: break-word;
-        }
-        .modal {
-            min-width: 0;
-            overscroll-behavior: contain;
-        }
-        .modal-content h2, .modal-content h3, .modal-content p,
-        .modal-content label, .modal-content span {
-            overflow-wrap: anywhere;
-        }
-        .modal-content .form-group {
-            min-width: 0;
-        }
-        #withdraw-modal {
-            padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)) !important;
-            align-items: flex-end !important;
-        }
-        #withdraw-modal .modal-content {
-            width: min(100%, 520px);
-            max-height: min(90dvh, 720px);
-            border-radius: 22px;
-            margin: 0 auto;
-        }
-
-        @media (min-width: 761px) and (max-width: 1020px) {
-            .content {
-                padding-inline: clamp(18px, 4vw, 32px);
-            }
-            .auth-layout {
-                grid-template-columns: minmax(0, 1fr) minmax(300px, 390px);
-                gap: clamp(18px, 4vw, 30px);
-            }
-            .auth-brand {
-                padding-inline: 4px;
-            }
-            .admin-hero {
-                padding: 22px;
-            }
-            .admin-panel {
-                padding: 18px;
-            }
-            .quick-actions {
-                gap: 12px;
-            }
-        }
-
-        @media (min-width: 1021px) {
-            .content {
-                padding-inline: clamp(24px, 4vw, 46px);
-            }
-            .screen:not(.admin-screen) {
-                max-width: 960px;
-            }
-        }
-
-        @media (max-width: 760px) {
-            .app-container {
-                isolation: isolate;
-            }
-            .screen {
-                max-width: none;
-            }
-            .content {
-                min-height: 0;
-                padding-bottom: calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
-            }
-            .card, .vip-card, .hotel-card, .wheel-card {
-                border-radius: 15px;
-            }
-            .card {
-                padding: clamp(14px, 4vw, 18px);
-            }
-            .card h3 {
-                line-height: 1.4;
-            }
-            .slider-container {
-                height: clamp(148px, 43vw, 205px);
-                border-radius: 15px;
-            }
-            .slide-caption {
-                padding: 10px 9px;
-                font-size: clamp(.72rem, 2.8vw, .85rem);
-            }
-            .wheel-container-wrapper {
-                margin-block: 12px 16px;
-            }
-            .spin-center-btn {
-                width: 58px;
-                height: 58px;
-            }
-            .stats-bar {
-                justify-content: center;
-            }
-            .stats-bar > .stat-box {
-                flex: 1 1 30%;
-            }
-            .balance-card {
-                padding: 18px 14px;
-            }
-            .balance-amount {
-                font-size: clamp(1.75rem, 9vw, 2.2rem);
-                overflow-wrap: anywhere;
-            }
-            .support-banner-profile {
-                align-items: flex-start;
-            }
-            .support-banner-profile .btn {
-                min-width: 0;
-                width: auto;
-                padding-inline: 12px;
-            }
-            .history-card {
-                width: 100%;
-            }
-            .history-card .history-badge {
-                margin-inline-start: auto;
-            }
-            .menu-item {
-                padding: 13px 14px;
-            }
-            .menu-item select {
-                min-height: 40px;
-                max-width: 48%;
-            }
-            .modal-content {
-                width: 100%;
-                max-width: 520px;
-            }
-            .modal-content .btn {
-                min-height: 50px;
-            }
-        }
-
-        @media (max-width: 420px) {
-            .auth-card .auth-note {
-                font-size: .72rem;
-            }
-            .quick-actions {
-                gap: 7px;
-            }
-            .action-item {
-                min-height: 82px;
-            }
-            .action-icon {
-                width: 38px;
-                height: 38px;
-                font-size: 1.15rem;
-            }
-            .stats-bar {
-                gap: 5px;
-                padding-inline: 7px;
-            }
-            .stats-bar > .stat-box {
-                min-width: 0;
-            }
-            .stat-num {
-                font-size: .98rem;
-            }
-            .stat-lbl {
-                font-size: .64rem;
-            }
-            .support-banner-profile {
-                flex-wrap: wrap;
-            }
-            .support-banner-profile .btn {
-                flex: 1 1 100%;
-                width: 100%;
-            }
-            .history-card {
-                padding: 12px;
-            }
-        }
-
-        @media (max-width: 340px) {
-            .content {
-                padding-inline: 7px;
-            }
-            .auth-card {
-                padding-inline: 11px;
-            }
-            .quick-actions {
-                grid-template-columns: 1fr 1fr;
-            }
-            .levels-grid {
-                grid-template-columns: 1fr;
-            }
-            .stats-bar > .stat-box {
-                flex-basis: 100%;
-            }
-        }
-
-        /* واجهة المصادقة الجديدة: نفس التدفق الوظيفي مع تخطيط مطابق للمرجع */
-        .auth-layout {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 22px;
-            min-height: 0;
-            max-width: 560px;
-            padding: 0 0 28px;
-        }
-        .auth-brand {
-            width: 100%;
-            padding: 0;
-            text-align: center;
-        }
-        .auth-brand .brand-mark,
-        .auth-brand h2,
-        .auth-brand p,
-        .auth-brand .trust-row {
-            display: none;
-        }
-        .auth-brand::before {
-            content: "SECURO";
-            display: block;
-            color: #3f8cff;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: clamp(1.45rem, 4vw, 1.8rem);
-            font-weight: 900;
-            letter-spacing: .14em;
-            text-shadow: 0 0 20px rgba(59, 130, 246, .22);
-        }
-        .auth-card {
-            width: min(100%, 430px);
-            max-width: 430px;
-            justify-self: auto;
-            margin: 0;
-            padding: 25px 22px 20px;
-            background: #1d293d;
-            border: 1px solid rgba(148, 163, 184, .16);
-            border-radius: 17px;
-            box-shadow: 0 18px 42px rgba(0, 0, 0, .22);
-        }
-        .auth-card > div:first-child {
-            justify-content: center !important;
-            margin-bottom: 17px !important;
-        }
-        .auth-card > div:first-child > div:last-child {
-            display: none !important;
-        }
-        .auth-card > div:first-child > div:first-child > div {
-            display: none;
-        }
-        .auth-card #auth-title {
-            margin: 0 !important;
-            color: #f8fafc !important;
-            font-size: clamp(1.45rem, 5vw, 1.75rem);
-            line-height: 1.35;
-            text-align: center;
-            font-weight: 800;
-        }
-        .auth-card .form-group {
-            gap: 10px;
-            margin-top: 0;
-        }
-        .auth-card .field-label {
-            display: none !important;
-        }
-        .auth-card input {
-            height: 46px;
-            min-height: 46px;
-            padding: 0 16px;
-            border: 1px solid rgba(148, 163, 184, .17);
-            border-radius: 12px;
-            background: #202d42;
-            color: #f8fafc;
-            font-size: .88rem;
-            text-align: right;
-        }
-        .auth-card input::placeholder {
-            color: #778399;
-            opacity: 1;
-        }
-        .auth-card input:focus {
-            border-color: #2f6ff2;
-            box-shadow: 0 0 0 3px rgba(47, 111, 242, .12);
-        }
-        .auth-card #reg-name,
-        .auth-card #invite-group {
-            margin-bottom: 0;
-        }
-        .auth-card #invite-group span {
-            display: none !important;
-        }
-        .auth-card .btn-primary {
-            height: 52px;
-            min-height: 52px;
-            margin-top: 1px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #2d6ff2, #2459df);
-            box-shadow: 0 9px 20px rgba(37, 99, 235, .32);
-            font-size: 1rem;
-        }
-        .auth-card .auth-note {
-            display: none;
-        }
-        .auth-card #toggle-text {
-            color: #4d8df8 !important;
-            font-size: .78rem !important;
-            font-weight: 600 !important;
-        }
-        .app-container:has(#auth-screen.active) > header {
-            display: none;
-        }
-        @media (max-width: 760px) {
-            .content {
-                padding: 15px 14px calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom));
-            }
-            .auth-layout {
-                min-height: 0;
-                gap: 23px;
-                padding: 0 0 24px;
-            }
-            .auth-brand::before {
-                font-size: 1.45rem;
-            }
-            .auth-card {
-                max-width: 430px;
-                padding: 24px 14px 19px;
-            }
-        }
-        @media (max-width: 380px) {
-            .content {
-                padding-inline: 14px;
-            }
-            .auth-card {
-                padding-inline: 13px;
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: .01ms !important;
-                animation-iteration-count: 1 !important;
-                scroll-behavior: auto !important;
-                transition-duration: .01ms !important;
-            }
-        }
-
-        /*
-         * Final responsive layout guardrails
-         * ---------------------------------
-         * The document is the app's scroll viewport. Keeping that contract
-         * explicit prevents long screens and modals from being clipped
-         * when the browser changes its mobile URL-bar height.
-         */
-        html, body {
-            width: 100%;
-            min-width: 0;
-            max-width: 100%;
-            overflow-x: clip;
-        }
-        html {
-            min-height: 100%;
-            background: #020617;
-        }
-        body {
-            min-height: 100vh;
-            min-height: 100dvh;
-            margin: 0;
-            display: flex;
-            align-items: stretch;
-            justify-content: center;
-            overflow-y: auto;
-        }
-        .app-container {
-            width: min(100%, 1180px);
-            min-width: 0;
-            min-height: 100vh;
-            min-height: 100dvh;
-            height: auto;
-            overflow: visible;
-        }
-        .content {
-            min-width: 0;
-            min-height: 0;
-            width: 100%;
-            height: auto;
-            overflow: visible;
-            overscroll-behavior: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-gutter: stable;
-            flex: 0 0 auto;
-            padding-bottom: 0;
-        }
-        /*
-         * The document owns the page scroll. The bottom navigation is fixed so
-         * it stays reachable, while this class reserves its real footprint in
-         * normal flow. This prevents the final card from ending underneath it.
-         */
-        .app-container.nav-visible {
-            padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
-        }
-        .screen,
-        .screen > *,
-        .card,
-        .vip-card,
-        .hotel-card,
-        .history-card,
-        .admin-panel,
-        .auth-card {
-            min-width: 0;
-            max-width: 100%;
-        }
-        .screen.active {
-            overflow: visible;
-        }
-        img, canvas, svg, video, iframe {
-            max-width: 100%;
-        }
-        input, select, textarea, button {
-            max-width: 100%;
-        }
-        input, select, textarea {
-            min-width: 0;
-        }
-        .copy-input-container,
-        .support-banner-profile,
-        .history-card,
-        .subpage-header,
-        .admin-hero,
-        .admin-hero-copy {
-            min-width: 0;
-        }
-        .copy-input-container input {
-            flex: 1 1 auto;
-            min-width: 0;
-        }
-        .copy-input-container .copy-btn {
-            flex: 0 1 auto;
-        }
-        .modal {
-            position: absolute;
-            inset: 0;
-            min-width: 0;
-            overflow-y: auto;
-            overscroll-behavior: contain;
-            -webkit-overflow-scrolling: touch;
-        }
-        .modal-content {
-            min-width: 0;
-            width: min(100%, 520px);
-            max-width: 100%;
-            max-height: calc(100dvh - 32px);
-            overflow-x: hidden;
-            overflow-y: auto;
-            overscroll-behavior: contain;
-        }
-        .bottom-nav {
-            max-width: 100%;
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        @media (min-width: 761px) {
-            body {
-                overflow-y: auto;
-            }
-            .content {
-                padding-inline: clamp(18px, 3vw, 46px);
-            }
-            .screen {
-                margin-inline: auto;
-            }
-            .auth-layout {
-                width: 100%;
-            }
-            .admin-hero-copy > div:last-child {
-                min-width: 0;
-            }
-        }
-
-        @media (max-width: 760px) {
-            body {
-                display: block;
-                overflow-y: auto;
-            }
-            .app-container {
-                width: 100%;
-                max-width: none;
-                min-height: 100vh;
-                min-height: 100dvh;
-                height: auto;
-                overflow: visible;
-                border-radius: 0;
-            }
-            .content {
-                height: auto;
-                overflow: visible;
-                padding: 14px 12px 24px;
-                scroll-padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
-            }
-            .screen {
-                padding-inline: 0;
-            }
-            .screen > h2 {
-                font-size: clamp(1.15rem, 5vw, 1.45rem);
-                line-height: 1.45;
-            }
-            .admin-hero-copy {
-                width: 100%;
-            }
-            .admin-hero-copy > div:last-child {
-                flex: 1 1 auto;
-            }
-            .admin-hero-icon {
-                flex: 0 0 52px;
-                width: 52px;
-                height: 52px;
-            }
-            .support-banner-profile {
-                align-items: center;
-            }
-            .support-banner-profile > div:first-child {
-                flex: 1 1 auto;
-            }
-            .support-banner-profile .btn {
-                flex: 0 1 auto;
-                min-width: 0;
-            }
-            .history-card {
-                width: 100%;
-            }
-            .history-card > div {
-                max-width: 100%;
-            }
-            .modal {
-                padding: max(12px, env(safe-area-inset-top))
-                    12px max(12px, env(safe-area-inset-bottom));
-            }
-            .modal-content {
-                width: 100%;
-                max-height: calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-                margin-block: auto;
-            }
-            #deposit-modal,
-            #withdraw-modal {
-                align-items: flex-end !important;
-                padding: 0 0 env(safe-area-inset-bottom) !important;
-            }
-            #deposit-modal .modal-content,
-            #withdraw-modal .modal-content {
-                width: 100%;
-                max-height: min(90dvh, 720px);
-                border-radius: 22px 22px 0 0;
-                margin: 0;
-            }
-            .bottom-nav {
-                width: 100%;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                transform: none;
-                height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
-            }
-        }
-
-        @media (max-width: 420px) {
-            .content {
-                padding-inline: 10px;
-            }
-            .auth-card {
-                padding-inline: 13px;
-            }
-            .stats-bar {
-                gap: 6px;
-            }
-            .stats-bar > .stat-box {
-                flex-basis: 0;
-                min-width: 0;
-            }
-            .stat-num {
-                font-size: clamp(.88rem, 4vw, 1.1rem);
-            }
-            .stat-lbl {
-                line-height: 1.35;
-            }
-            .subpage-header h2 {
-                font-size: 1rem !important;
-            }
-        }
-
-        @media (max-width: 340px) {
-            .content {
-                padding-inline: 8px;
-            }
-            .quick-actions {
-                gap: 6px;
-            }
-            .action-item {
-                padding-inline: 4px;
-            }
-            .nav-link {
-                font-size: .6rem;
-            }
-        }
-
-        /* الصفحة الرئيسية: تقليل الفراغ العلوي مع إبقاء الحواف السفلية
-           محسوبة بواسطة مساحة التنقل حتى يبقى آخر المحتوى قابلاً للظهور. */
-        .content:has(#home-screen.active) {
-            padding-top: 4px;
-            padding-bottom: calc(var(--bottom-nav-height) + 32px + env(safe-area-inset-bottom));
-            scroll-padding-top: 4px;
-            scroll-padding-bottom: calc(var(--bottom-nav-height) + 32px + env(safe-area-inset-bottom));
-        }
-
-        :root {
-            --bottom-nav-height: 60px;
-            --bottom-nav-gap: 16px;
-        }
-
-        .nav-link {
-            gap: 2px;
-        }
-
-        .nav-link span {
-            font-size: 1.15rem;
-        }
-
-        /*
-         * Final responsive contract
-         * -------------------------
-         * The document is the only vertical scroll container. The navigation
-         * remains fixed for quick access, while nav-visible reserves its full
-         * safe-area footprint in normal flow so the last item on every screen
-         * can always be reached.
-         */
-        :root {
-            --bottom-nav-height: 64px;
-            --bottom-nav-space: calc(var(--bottom-nav-height) + 28px + env(safe-area-inset-bottom));
-            --page-gutter: clamp(12px, 3vw, 46px);
-        }
-
-        html,
-        body {
-            width: 100%;
-            min-width: 0;
-            min-height: 100%;
-            overflow-x: clip;
-            overflow-y: auto;
-            -webkit-text-size-adjust: 100%;
-        }
-
-        body {
-            display: block;
-            margin: 0;
-        }
-
-        .app-container {
-            width: min(100%, 1180px);
-            max-width: 1180px;
-            min-width: 0;
-            min-height: 100dvh;
-            height: auto;
-            overflow: visible;
-        }
-
-        .app-container.nav-visible {
-            padding-bottom: var(--bottom-nav-space);
-        }
-
-        .content {
-            width: 100%;
-            min-width: 0;
-            min-height: 0;
-            height: auto;
-            flex: 0 0 auto;
-            overflow: visible;
-            overflow-x: clip;
-            padding: clamp(6px, 1.2vw, 14px) var(--page-gutter) 28px;
-            scroll-padding-bottom: var(--bottom-nav-space);
-        }
-
-        .content:has(#home-screen.active) {
-            padding-top: clamp(4px, 0.8vw, 10px);
-            padding-bottom: 28px;
-            scroll-padding-top: 4px;
-            scroll-padding-bottom: var(--bottom-nav-space);
-        }
-
-        .content:has(#auth-screen.active) {
-            padding-top: 0;
-        }
-
-        .screen {
-            width: 100%;
-            max-width: 1120px;
-            min-width: 0;
-            margin-inline: auto;
-            overflow: visible;
-        }
-
-        .screen.active {
-            display: block;
-        }
-
-        .screen > *,
-        .card,
-        .admin-panel,
-        .vip-card,
-        .hotel-card,
-        .wheel-card,
-        .history-card,
-        .auth-card,
-        .referral-box,
-        .balance-card,
-        .task-progress-box,
-        .task-complete-card {
-            min-width: 0;
-            max-width: 100%;
-        }
-
-        /* Cards should not clip text or controls inserted later by JavaScript. */
-        .card,
-        .admin-panel,
-        .vip-card,
-        .wheel-card,
-        .history-card,
-        .task-complete-card {
-            overflow: visible;
-        }
-
-        .hotel-card {
-            overflow: visible;
-        }
-
-        .hotel-card .hotel-img {
-            border-radius: 15px 15px 0 0;
-        }
-
-        .slider-container {
-            height: clamp(150px, 28vw, 230px);
-        }
-
-        .hotel-img {
-            height: clamp(140px, 26vw, 205px);
-        }
-
-        .auth-layout {
-            width: 100%;
-            min-height: 0;
-            padding: 0 0 24px;
-        }
-
-        .admin-hero,
-        .admin-hero-copy,
-        .support-banner-profile,
-        .history-card,
-        .subpage-header {
-            min-width: 0;
-        }
-
-        .admin-hero-copy > div:last-child,
-        .support-banner-profile > div:first-child,
-        .history-info {
-            min-width: 0;
-            max-width: 100%;
-        }
-
-        .admin-hero h2,
-        .admin-hero p,
-        .card h3,
-        .vip-card h3,
-        .hotel-card h3,
-        .history-title,
-        .history-date,
-        .menu-item,
-        .support-banner-profile,
-        .action-title {
-            overflow-wrap: anywhere;
-            word-break: break-word;
-        }
-
-        input,
-        select,
-        textarea,
-        button,
-        .btn,
-        .action-item,
-        .menu-item,
-        .copy-btn,
-        .back-btn-arrow,
-        .nav-link {
-            max-width: 100%;
-            touch-action: manipulation;
-        }
-
-        button,
-        .btn,
-        .action-item,
-        .menu-item,
-        .copy-btn {
-            min-height: 48px;
-        }
-
-        input,
-        select,
-        textarea {
-            min-width: 0;
-            font-size: max(16px, .95rem);
-        }
-
-        textarea {
-            min-height: 84px;
-            line-height: 1.55;
-        }
-
-        .copy-input-container {
-            min-width: 0;
-            align-items: stretch;
-        }
-
-        .copy-input-container input {
-            min-width: 0;
-            flex: 1 1 auto;
-        }
-
-        .levels-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-
-        .level-card {
-            min-width: 0;
-        }
-
-        .level-card > * {
-            max-width: 100%;
-            overflow-wrap: anywhere;
-        }
-
-        .wheel-container-wrapper {
-            width: min(230px, 68vw);
-            height: min(230px, 68vw);
-            max-width: 100%;
-        }
-
-        .wheel-canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-            aspect-ratio: 1;
-        }
-
-        .modal {
-            position: absolute;
-            inset: 0;
-            min-width: 0;
-            overflow-y: auto;
-            padding: max(14px, env(safe-area-inset-top)) 14px
-                max(14px, env(safe-area-inset-bottom));
-        }
-
-        .modal-content {
-            width: min(100%, 520px);
-            max-width: 100%;
-            max-height: calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-            overflow-x: hidden;
-            overflow-y: auto;
-            margin-block: auto;
-        }
-
-        .bottom-nav {
-            width: min(100%, 1180px);
-            height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
-            padding: 0 6px env(safe-area-inset-bottom);
-            box-sizing: border-box;
-        }
-
-        .nav-link {
-            min-width: 0;
-            min-height: 48px;
-            justify-content: center;
-            line-height: 1.2;
-            text-align: center;
-        }
-
-        @media (max-width: 760px) {
-            .app-container {
-                width: 100%;
-                max-width: none;
-                min-height: 100dvh;
-                box-shadow: none;
-            }
-
-            header {
-                min-height: 54px;
-                padding: 10px 14px;
-            }
-
-            header h1 {
-                font-size: clamp(1.2rem, 5vw, 1.4rem);
-            }
-
-            .content {
-                padding: 6px 12px 24px;
-            }
-
-            .auth-layout {
-                gap: 14px;
-                padding: 0 0 20px;
-            }
-
-            .auth-card {
-                padding: 20px 15px;
-            }
-
-            .admin-hero {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 14px;
-                padding: 18px;
-            }
-
-            .admin-refresh {
-                width: 100%;
-            }
-
-            .admin-panel {
-                padding: 14px;
-            }
-
-            .quick-actions {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 8px;
-            }
-
-            .action-item {
-                min-height: 84px;
-            }
-
-            .stats-bar {
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-
-            .stats-bar > .stat-box {
-                flex: 1 1 28%;
-                min-width: 0;
-            }
-
-            .stats-bar > div[style*="height: 25px"] {
-                display: none !important;
-            }
-
-            .copy-input-container {
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .copy-btn {
-                width: 100%;
-            }
-
-            .support-banner-profile {
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .support-banner-profile .btn {
-                width: auto;
-                min-width: 0;
-            }
-
-            .history-card {
-                align-items: flex-start;
-                flex-wrap: wrap;
-                gap: 10px;
-            }
-
-            .history-info {
-                flex: 1 1 65%;
-            }
-
-            .history-card > div:last-child {
-                max-width: 100%;
-            }
-
-            .levels-grid {
-                gap: 7px;
-            }
-
-            .level-card {
-                padding: 10px 5px;
-            }
-
-            .wheel-card {
-                padding: 14px 10px;
-            }
-
-            .modal {
-                padding-inline: 12px;
-            }
-
-            .modal-content {
-                width: 100%;
-                border-radius: 16px;
-            }
-
-            #deposit-modal,
-            #withdraw-modal {
-                align-items: flex-end;
-                padding: 0 0 env(safe-area-inset-bottom);
-            }
-
-            #deposit-modal .modal-content,
-            #withdraw-modal .modal-content {
-                width: 100%;
-                max-height: min(90dvh, 720px);
-                border-radius: 22px 22px 0 0;
-                margin: 0;
-            }
-
-            .bottom-nav {
-                left: 0;
-                right: 0;
-                transform: none;
-            }
-        }
-
-        @media (max-width: 420px) {
-            .content {
-                padding-inline: 10px;
-            }
-
-            .subpage-header h2 {
-                font-size: 1rem !important;
-            }
-
-            .support-banner-profile {
-                flex-wrap: wrap;
-            }
-
-            .support-banner-profile .btn {
-                flex: 1 1 100%;
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 380px) {
-            .content {
-                padding-inline: 8px;
-            }
-
-            .levels-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .stats-bar > .stat-box {
-                flex-basis: 100%;
-            }
-
-            .nav-link {
-                font-size: .62rem;
-            }
-
-            .nav-link span {
-                font-size: 1.08rem;
-            }
-        }
-        /*
-         * Absolute final mobile/desktop spacing override.
-         * Earlier responsive blocks in this legacy single-file page redefine
-         * the same selectors several times. Keep this block last so the page
-         * always starts at the top instead of inheriting viewport-centering
-         * spacing on narrow screens.
-         */
-        html,
-        body {
-            height: auto !important;
-            min-height: 100% !important;
-            overflow-x: clip !important;
-            overflow-y: auto !important;
-        }
-
-        body {
-            display: block !important;
-            align-items: flex-start !important;
-            justify-content: flex-start !important;
-        }
-
-        .app-container {
-            height: auto !important;
-            min-height: 100dvh !important;
-            margin: 0 !important;
-            overflow: visible !important;
-        }
-
-        .app-container.nav-visible {
-            padding-bottom: var(--bottom-nav-space) !important;
-        }
-
-        .content {
-            height: auto !important;
-            min-height: 0 !important;
-            margin: 0 !important;
-            padding-top: 0 !important;
-            overflow: visible !important;
-            scroll-padding-top: 0 !important;
-            scroll-padding-bottom: var(--bottom-nav-space) !important;
-        }
-
-        .content:has(#home-screen.active),
-        .content:has(#auth-screen.active) {
-            padding-top: 0 !important;
-            scroll-padding-top: 0 !important;
-        }
-
-        .app-container:not(:has(#auth-screen.active)) .content {
-            padding-top: 0 !important;
-            margin-top: 0 !important;
-        }
-
-        .screen,
-        .screen.active {
-            min-height: 0 !important;
-            height: auto !important;
-            margin-top: 0 !important;
-        }
-
-        .auth-layout {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: flex-start !important;
-            gap: 10px !important;
-            min-height: 0 !important;
-            height: auto !important;
-            margin: 0 auto !important;
-            padding: 0 0 24px !important;
-        }
-
-        .auth-brand,
-        .auth-card {
-            margin-top: 0 !important;
-        }
-
-        .auth-layout {
-            gap: 0 !important;
-        }
-
-        .auth-brand {
-            line-height: 1 !important;
-            height: auto !important;
-        }
-
-        .auth-brand::before {
-            line-height: 1 !important;
-            margin: 0 !important;
-        }
-
-        @media (max-width: 760px) {
-            .content {
-                padding: 0 10px 24px !important;
-            }
-
-            .auth-layout {
-                gap: 0 !important;
-                padding: 0 0 20px !important;
-            }
-
-            .auth-card {
-                width: 100% !important;
-                max-width: 430px !important;
-            }
-        }
-
-        /*
-         * Actual page layout contract
-         * ----------------------------
-         * The app shell owns the viewport. The header stays in normal flow and
-         * main.content is the only vertical scroll container. This is required
-         * for long user/Admin screens: a flex child with min-height: 0 can
-         * shrink to the available space and scroll without clipping its cards.
-         * Keep this block last because the legacy stylesheet above has several
-         * conflicting viewport and overflow rules.
-         */
-        html {
-            height: 100%;
-            overflow: hidden;
-        }
-
-        :root {
-            --bottom-nav-space: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
-        }
-
-        body {
-            width: 100%;
-            height: 100%;
-            min-height: 0;
-            margin: 0;
-            display: block;
-            overflow: hidden;
-            overscroll-behavior: none;
-        }
-
-        .app-container {
-            width: min(100%, 1180px);
-            height: 100dvh;
-            min-height: 0;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .app-container > header {
-            flex: 0 0 auto;
-            width: 100%;
-            min-height: 50px;
-            height: auto;
-            padding: 8px 16px;
-        }
-
-        .app-container > .content {
-            flex: 1 1 auto;
-            width: 100%;
-            min-width: 0;
-            min-height: 0;
-            height: auto;
-            margin: 0;
-            padding: 10px var(--page-gutter) 24px;
-            overflow-x: hidden;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior-y: contain;
-            touch-action: pan-y;
-            scroll-padding-top: 0;
-            scroll-padding-bottom: var(--bottom-nav-space);
-        }
-
-        .app-container.nav-visible {
-            padding-bottom: 0 !important;
-        }
-
-        .app-container:not(:has(#auth-screen.active)):not(:has(#admin-screen.active)) > .content {
-            padding-top: 10px;
-            padding-bottom: var(--bottom-nav-space);
-        }
-
-        .app-container:has(#auth-screen.active) > header {
-            display: none;
-        }
-
-        .screen,
-        .screen.active {
-            display: none;
-            width: 100%;
-            min-width: 0;
-            min-height: 0;
-            height: auto;
-            margin: 0 auto;
-            padding-top: 0;
-            overflow: visible;
-        }
-
-        .screen.active {
-            display: block;
-        }
-
-        .app-container:not(:has(#auth-screen.active)) .admin-hero {
-            margin-top: 0;
-            padding: 20px 22px;
-        }
-
-        .app-container:not(:has(#auth-screen.active)) .admin-panel[style*="margin-top"] {
-            margin-top: 12px !important;
-        }
-
-        .app-container:not(:has(#auth-screen.active)):not(:has(#admin-screen.active)) .bottom-nav {
-            display: flex;
-        }
-
-        .app-container:has(#admin-screen.active) .bottom-nav {
-            display: none;
-        }
-
-        @media (max-width: 760px) {
-            .app-container {
-                width: 100%;
-                max-width: none;
-                box-shadow: none;
-            }
-
-            .app-container > header {
-                min-height: 48px;
-                padding: 7px 12px;
-            }
-
-            .app-container > .content,
-            .app-container:not(:has(#auth-screen.active)):not(:has(#admin-screen.active)) > .content {
-                padding: 7px 10px var(--bottom-nav-space);
-            }
-
-            .app-container:has(#auth-screen.active) > .content {
-                padding-bottom: 20px;
-            }
-
-            .app-container:not(:has(#auth-screen.active)) .admin-hero {
-                padding: 16px;
-                border-radius: 18px;
-            }
-        }
-
-        /*
-         * Final mobile home layout
-         * ------------------------
-         * Keep the home screen dense enough for a phone viewport while
-         * preserving a comfortable touch target for every action. This is
-         * intentionally the last rule block because this legacy page has
-         * several older responsive overrides above it.
-         */
-        @media (max-width: 760px) {
-            :root {
-                --bottom-nav-height: 58px;
-                --bottom-nav-space: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
-            }
-
-            .app-container > .content,
-            .app-container:not(:has(#auth-screen.active)):not(:has(#admin-screen.active)) > .content {
-                padding: 6px 10px calc(var(--bottom-nav-space) + 10px) !important;
-                scroll-padding-bottom: calc(var(--bottom-nav-space) + 10px) !important;
-            }
-
-            .app-container:has(#auth-screen.active) > .content {
-                padding: 0 10px 18px !important;
-            }
-
-            .app-container:not(:has(#auth-screen.active)):not(:has(#admin-screen.active)) .screen {
-                padding-top: 0 !important;
-            }
-
-            #home-screen .slider-container {
-                height: clamp(142px, 37vw, 180px);
-                margin-bottom: 10px;
-                border-radius: 15px;
-            }
-
-            #home-screen .quick-actions {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-                gap: 6px;
-                margin-bottom: 10px;
-            }
-
-            #home-screen .action-item {
-                min-height: 70px;
-                padding: 8px 3px;
-                gap: 4px;
-                border-radius: 12px;
-            }
-
-            #home-screen .action-icon {
-                width: 34px;
-                height: 34px;
-                border-radius: 10px;
-                font-size: 1.05rem;
-            }
-
-            #home-screen .action-title {
-                font-size: clamp(.62rem, 2.25vw, .72rem);
-                line-height: 1.2;
-            }
-
-            #home-screen .wheel-card {
-                padding: 12px 8px;
-                margin-bottom: 10px;
-                border-radius: 16px;
-            }
-
-            #home-screen .wheel-card h3 {
-                font-size: 1rem !important;
-            }
-
-            #home-screen .wheel-card p {
-                line-height: 1.45;
-            }
-
-            #home-screen .wheel-container-wrapper {
-                width: min(200px, 58vw);
-                height: min(200px, 58vw);
-                margin: 11px auto;
-            }
-
-            #home-screen .spin-center-btn {
-                width: 48px;
-                height: 48px;
-                font-size: .78rem;
-            }
-
-            #home-screen .stats-bar {
-                margin-bottom: 10px;
-                padding: 9px 7px;
-                border-radius: 12px;
-            }
-
-            .bottom-nav {
-                height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom)) !important;
-                padding: 2px 3px env(safe-area-inset-bottom) !important;
-            }
-
-            .nav-link {
-                min-height: 48px;
-                gap: 1px;
-                font-size: clamp(.58rem, 2.1vw, .68rem);
-                line-height: 1.15;
-            }
-
-            .nav-link span {
-                font-size: clamp(.98rem, 4.5vw, 1.16rem);
-                line-height: 1;
-            }
-        }
-
-        @media (max-width: 380px) {
-            .app-container > .content,
-            .app-container:not(:has(#auth-screen.active)):not(:has(#admin-screen.active)) > .content {
-                padding-inline: 7px !important;
-            }
-
-            #home-screen .action-item {
-                min-height: 66px;
-            }
-
-            #home-screen .action-icon {
-                width: 31px;
-                height: 31px;
-                font-size: .96rem;
-            }
-
-            .nav-link {
-                font-size: .56rem;
-            }
-
-            .nav-link span {
-                font-size: 1rem;
-            }
-        }
-
-        /*
-         * Unified user/admin shell
-         * ------------------------
-         * Both authenticated areas share the same content edge directly
-         * below the header. Keep this block last so no legacy rule can
-         * reintroduce the empty strip above the first card.
-         */
-        .app-container > .content,
-        .app-container:not(:has(#auth-screen.active)) > .content {
-            padding-top: 0 !important;
-        }
-
-        .app-container:not(:has(#auth-screen.active)) .screen,
-        .app-container:not(:has(#auth-screen.active)) .admin-screen,
-        .app-container:not(:has(#auth-screen.active)) .admin-hero {
-            margin-top: 0 !important;
-        }
-
-        .app-container:not(:has(#auth-screen.active)) .screen {
-            width: 100%;
-            max-width: 1120px;
-        }
-
-        .app-container:not(:has(#auth-screen.active)) .admin-screen {
-            padding-top: 0 !important;
-        }
-
-        .app-container:not(:has(#auth-screen.active)) .admin-hero {
-            margin-bottom: 12px;
-        }
-
-        .app-container:not(:has(#auth-screen.active)) .card,
-        .app-container:not(:has(#auth-screen.active)) .vip-card,
-        .app-container:not(:has(#auth-screen.active)) .hotel-card,
-        .app-container:not(:has(#auth-screen.active)) .wheel-card,
-        .app-container:not(:has(#auth-screen.active)) .history-card,
-        .app-container:not(:has(#auth-screen.active)) .admin-panel {
-            max-width: 100%;
-        }
-
-        @media (min-width: 761px) {
-            .app-container:not(:has(#auth-screen.active)) > .content {
-                padding-inline: 24px !important;
-                padding-bottom: 24px !important;
-            }
-
-            .app-container:not(:has(#auth-screen.active)) .admin-hero {
-                padding: 20px 22px;
-            }
-        }
-
-        @media (max-width: 760px) {
-            .app-container:not(:has(#auth-screen.active)) > .content {
-                padding: 0 10px calc(var(--bottom-nav-space) + 10px) !important;
-                scroll-padding-top: 0 !important;
-            }
-
-            .app-container:not(:has(#auth-screen.active)) .admin-hero {
-                padding: 14px;
-                margin-bottom: 10px;
-                border-radius: 16px;
-            }
-
-            .app-container:not(:has(#auth-screen.active)) .admin-panel {
-                padding: 14px;
-                margin-top: 10px !important;
-            }
-
-            .app-container:not(:has(#auth-screen.active)) .admin-stats {
-                gap: 8px;
-                margin-bottom: 10px;
-            }
-        }
-
-        @media (max-width: 380px) {
-            .app-container:not(:has(#auth-screen.active)) > .content {
-                padding-inline: 7px !important;
-            }
-        }
-
-        /* Modern unified shell and platform menu */
+        /* ==========================================================
+         * PLATFORM MENU, SITE HEADER & HOME OVERVIEW
+         * ========================================================== */
         :root {
             --surface-0: #06101f;
             --surface-1: #0d1b2e;
-            --surface-2: #12243b;
             --line-soft: rgba(148, 163, 184, .16);
             --line-strong: rgba(96, 165, 250, .32);
             --text-soft: #b7c7db;
             --menu-width: min(390px, 92vw);
         }
         .site-header {
-            min-height: 76px;
-            padding: 12px clamp(14px, 3vw, 30px);
+            min-height: 70px;
+            padding: 10px clamp(12px, 3vw, 28px);
             display: grid;
             grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            gap: 14px;
-            background: rgba(8, 20, 38, .92);
+            gap: 12px;
+            background: rgba(8, 20, 38, .94);
             border-bottom: 1px solid var(--line-soft);
-            box-shadow: 0 12px 35px rgba(0, 0, 0, .18);
+            box-shadow: 0 8px 28px rgba(0,0,0,.18);
             position: sticky;
             top: 0;
             z-index: 20;
             backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
         }
         .header-start, .header-end { display: flex; align-items: center; min-width: 0; }
         .header-start { justify-content: flex-start; }
-        .header-end { justify-content: flex-end; }
-        .brand-lockup { display: flex; align-items: center; justify-content: center; gap: 10px; min-width: 0; text-align: center; }
+        .header-end   { justify-content: flex-end; }
+        .brand-lockup {
+            display: flex; align-items: center; justify-content: center;
+            gap: 10px; min-width: 0; text-align: center;
+        }
         .brand-symbol {
-            width: 40px; height: 40px; display: grid; place-items: center; border-radius: 13px;
-            color: white; background: linear-gradient(145deg, #38bdf8, #2563eb 72%);
-            box-shadow: 0 10px 24px rgba(37, 99, 235, .3); flex: 0 0 auto;
+            width: 38px; height: 38px; display: grid; place-items: center;
+            border-radius: 12px; color: white; flex: 0 0 auto;
+            background: linear-gradient(145deg, #38bdf8, #2563eb 72%);
+            box-shadow: 0 8px 20px rgba(37,99,235,.28);
         }
         .brand-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; min-width: 0; }
         .brand-copy h1 {
             background: linear-gradient(90deg, #e0f2fe, #60a5fa);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            font-size: 1.25rem; letter-spacing: .12em; line-height: 1.05; white-space: nowrap;
+            font-size: 1.2rem; letter-spacing: .12em; line-height: 1.05; white-space: nowrap;
         }
-        .brand-copy small { color: #8ea8c4; font-size: .66rem; letter-spacing: .04em; white-space: nowrap; }
+        .brand-copy small { color: #8ea8c4; font-size: .62rem; letter-spacing: .04em; white-space: nowrap; }
         .header-menu-button, .header-account-button {
-            border: 1px solid var(--line-soft); background: rgba(30, 64, 175, .17); color: #dbeafe;
-            border-radius: 13px; min-height: 44px; padding: 8px 12px; display: inline-flex;
-            align-items: center; justify-content: center; gap: 8px; cursor: pointer;
-            transition: transform .2s ease, border-color .2s ease, background .2s ease;
+            border: 1px solid var(--line-soft); background: rgba(30,64,175,.17); color: #dbeafe;
+            border-radius: 12px; min-height: 42px; padding: 8px 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 8px; cursor: pointer;
+            transition: transform .2s, border-color .2s, background .2s;
             font: inherit; font-size: .78rem; font-weight: 800;
         }
         .header-menu-button:hover, .header-account-button:hover {
-            transform: translateY(-1px); background: rgba(37, 99, 235, .3); border-color: var(--line-strong);
+            transform: translateY(-1px); background: rgba(37,99,235,.3); border-color: var(--line-strong);
         }
-        .header-menu-button i { font-size: 1.05rem; }
+        .header-menu-button i { font-size: 1rem; }
         .header-account-button { display: none; border-radius: 999px; padding-inline: 13px; }
         .header-account-button i { color: #7dd3fc; }
+
         .platform-menu {
             position: fixed; inset: 0; z-index: 100; visibility: hidden; pointer-events: none;
         }
         .platform-menu.is-open { visibility: visible; pointer-events: auto; }
         .platform-menu-backdrop {
-            position: absolute; inset: 0; background: rgba(2, 6, 23, .68); opacity: 0;
-            transition: opacity .22s ease; backdrop-filter: blur(4px);
+            position: absolute; inset: 0; background: rgba(2,6,23,.7);
+            opacity: 0; transition: opacity .22s ease; backdrop-filter: blur(4px);
         }
         .platform-menu-panel {
             position: absolute; top: 0; right: 0; width: var(--menu-width); height: 100%;
-            padding: 22px 18px max(22px, env(safe-area-inset-bottom)); overflow-y: auto;
+            padding: 20px 16px max(20px, env(safe-area-inset-bottom));
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
             background: linear-gradient(180deg, #102643 0%, #081426 55%, #06101f 100%);
-            border-left: 1px solid rgba(125, 211, 252, .2); box-shadow: -22px 0 65px rgba(0, 0, 0, .38);
-            transform: translateX(105%); transition: transform .25s cubic-bezier(.2, .8, .2, 1);
+            border-left: 1px solid rgba(125,211,252,.18);
+            box-shadow: -20px 0 60px rgba(0,0,0,.36);
+            transform: translateX(105%);
+            transition: transform .25s cubic-bezier(.2,.8,.2,1);
         }
         .platform-menu.is-open .platform-menu-backdrop { opacity: 1; }
         .platform-menu.is-open .platform-menu-panel { transform: translateX(0); }
         .platform-menu-head {
             display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
-            padding-bottom: 18px; margin-bottom: 18px; border-bottom: 1px solid var(--line-soft);
+            padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--line-soft);
         }
-        .platform-menu-head h2 { color: #f8fafc; font-size: 1.15rem; margin-bottom: 4px; }
-        .platform-menu-head p { color: #8ea8c4; font-size: .74rem; line-height: 1.5; }
+        .platform-menu-head h2 { color: #f8fafc; font-size: 1.1rem; margin-bottom: 4px; }
+        .platform-menu-head p  { color: #8ea8c4; font-size: .72rem; line-height: 1.5; }
         .platform-menu-close {
-            width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--line-soft);
-            background: rgba(15, 23, 42, .45); color: #dbeafe; cursor: pointer; font-size: 1rem;
+            width: 36px; height: 36px; border-radius: 11px; border: 1px solid var(--line-soft);
+            background: rgba(15,23,42,.45); color: #dbeafe; cursor: pointer; font-size: 1rem;
+            display: grid; place-items: center;
         }
-        .platform-menu-group { margin-bottom: 20px; }
+        .platform-menu-group { margin-bottom: 18px; }
         .platform-menu-label {
-            display: flex; align-items: center; gap: 7px; color: #7dd3fc; font-size: .68rem;
+            display: flex; align-items: center; gap: 7px; color: #7dd3fc; font-size: .66rem;
             font-weight: 900; letter-spacing: .08em; margin: 0 4px 8px;
         }
         .platform-menu-item {
-            width: 100%; display: flex; align-items: center; gap: 12px; min-height: 48px;
-            padding: 10px 12px; margin-bottom: 6px; border: 1px solid transparent; border-radius: 14px;
-            background: rgba(15, 23, 42, .36); color: #dbeafe; cursor: pointer; text-align: right;
-            font: inherit; font-size: .84rem; transition: background .2s ease, border-color .2s ease, transform .2s ease;
+            width: 100%; display: flex; align-items: center; gap: 12px; min-height: 46px;
+            padding: 9px 12px; margin-bottom: 5px;
+            border: 1px solid transparent; border-radius: 13px;
+            background: rgba(15,23,42,.36); color: #dbeafe; cursor: pointer; text-align: right;
+            font: inherit; font-size: .83rem;
+            transition: background .2s, border-color .2s, transform .2s;
         }
         .platform-menu-item:hover, .platform-menu-item.is-active {
-            background: rgba(37, 99, 235, .22); border-color: rgba(96, 165, 250, .25); transform: translateX(-2px);
+            background: rgba(37,99,235,.22); border-color: rgba(96,165,250,.25); transform: translateX(-2px);
         }
         .platform-menu-item i, .platform-menu-item .menu-item-icon {
-            width: 28px; color: #7dd3fc; text-align: center; font-size: 1.02rem; flex: 0 0 28px;
+            width: 26px; color: #7dd3fc; text-align: center; font-size: 1rem; flex: 0 0 26px;
         }
-        .platform-menu-item .menu-item-arrow { margin-inline-start: auto; color: #6f89a5; font-size: .75rem; }
+        .platform-menu-item .menu-item-arrow { margin-inline-start: auto; color: #6f89a5; font-size: .72rem; }
         .platform-menu-language {
-            width: auto; min-width: 112px; min-height: 36px; margin-inline-start: auto; padding: 5px 8px;
-            border: 1px solid var(--line-soft); border-radius: 10px; background: rgba(15, 23, 42, .55);
-            color: #e2e8f0; font: inherit; font-size: .74rem;
+            width: auto; min-width: 110px; min-height: 34px; margin-inline-start: auto;
+            padding: 4px 8px; border: 1px solid var(--line-soft); border-radius: 10px;
+            background: rgba(15,23,42,.55); color: #e2e8f0; font: inherit; font-size: .72rem;
         }
-        .platform-menu-logout { color: #fda4af; background: rgba(127, 29, 29, .2); border-color: rgba(248, 113, 113, .18); }
+        .platform-menu-logout { color: #fda4af; background: rgba(127,29,29,.2); border-color: rgba(248,113,113,.18); }
         .platform-menu-logout i { color: #fb7185; }
         .menu-admin-only { display: none; }
-        .menu-user-only { display: block; }
+        .menu-user-only  { display: block; }
         .platform-menu.admin-mode .menu-admin-only { display: block; }
-        .platform-menu.admin-mode .menu-user-only { display: none; }
+        .platform-menu.admin-mode .menu-user-only  { display: none; }
+
         .home-overview {
-            display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(240px, .55fr);
-            align-items: stretch; gap: 14px; margin-bottom: 16px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.45fr) minmax(200px, .55fr);
+            align-items: stretch; gap: 14px; margin-bottom: 14px;
         }
         .home-welcome, .home-status {
-            border: 1px solid var(--line-soft); border-radius: 20px;
-            background: linear-gradient(145deg, rgba(22, 53, 91, .9), rgba(13, 27, 46, .92));
-            box-shadow: 0 15px 35px rgba(0, 0, 0, .16);
+            border: 1px solid var(--line-soft); border-radius: 18px;
+            background: linear-gradient(145deg, rgba(22,53,91,.9), rgba(13,27,46,.92));
+            box-shadow: 0 12px 30px rgba(0,0,0,.16);
         }
-        .home-welcome { position: relative; overflow: hidden; padding: 22px; }
+        .home-welcome { position: relative; overflow: hidden; padding: 20px; }
         .home-welcome::after {
-            content: ""; position: absolute; width: 180px; height: 180px; left: -70px; bottom: -95px;
-            border-radius: 50%; background: rgba(56, 189, 248, .13);
+            content: ""; position: absolute; width: 160px; height: 160px;
+            left: -60px; bottom: -80px; border-radius: 50%;
+            background: rgba(56,189,248,.12);
         }
-        .home-kicker { color: #7dd3fc; font-size: .72rem; font-weight: 900; letter-spacing: .08em; margin-bottom: 8px; }
-        .home-welcome h2 { color: #f8fafc; font-size: clamp(1.25rem, 3vw, 1.85rem); margin-bottom: 8px; }
-        .home-welcome p { color: var(--text-soft); font-size: .82rem; line-height: 1.7; max-width: 620px; }
-        .home-status { padding: 18px; display: flex; flex-direction: column; justify-content: center; }
-        .home-status-label { color: #91a8c3; font-size: .75rem; margin-bottom: 4px; }
-        .home-status-value { color: #f8fafc; font-size: 1.65rem; font-weight: 900; }
-        .home-status-note { color: #86efac; font-size: .7rem; margin-top: 4px; }
-        .about-screen .slider-container, .about-screen .stats-bar, .about-screen .card { margin-bottom: 16px; }
-        .screen.active { animation: screenReveal .24s ease both; }
-        @keyframes screenReveal { from { opacity: .45; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .card, .vip-card, .hotel-card, .wheel-card, .history-card, .admin-panel, .balance-card, .referral-box, .daily-reward-card, .task-progress-box {
-            border-radius: 18px; border-color: var(--line-soft);
+        .home-kicker { color: #7dd3fc; font-size: .7rem; font-weight: 900; letter-spacing: .08em; margin-bottom: 7px; }
+        .home-welcome h2 { color: #f8fafc; font-size: clamp(1.15rem, 3vw, 1.75rem); margin-bottom: 7px; }
+        .home-welcome p  { color: var(--text-soft); font-size: .8rem; line-height: 1.65; max-width: 580px; }
+        .home-status { padding: 16px; display: flex; flex-direction: column; justify-content: center; }
+        .home-status-label { color: #91a8c3; font-size: .72rem; margin-bottom: 4px; }
+        .home-status-value { color: #f8fafc; font-size: 1.55rem; font-weight: 900; }
+        .home-status-note  { color: #86efac; font-size: .68rem; margin-top: 4px; }
+        .about-screen .slider-container,
+        .about-screen .stats-bar,
+        .about-screen .card { margin-bottom: 14px; }
+
+        .screen.active { animation: screenReveal .22s ease both; }
+        @keyframes screenReveal { from { opacity: .5; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card, .vip-card, .hotel-card, .wheel-card, .history-card, .admin-panel,
+        .balance-card, .referral-box, .daily-reward-card, .task-progress-box {
+            border-radius: 18px;
+            border-color: var(--line-soft);
         }
         .btn { border-radius: 12px; min-height: 46px; }
-        .admin-panel { background: linear-gradient(145deg, rgba(19, 39, 66, .94), rgba(12, 27, 46, .94)); }
-        .admin-section-anchor { scroll-margin-top: 92px; }
-        @media (max-width: 760px) {
-            .site-header { min-height: 64px; grid-template-columns: auto 1fr auto; gap: 8px; padding: 9px 12px; }
-            .brand-symbol { width: 34px; height: 34px; border-radius: 11px; }
-            .brand-copy h1 { font-size: 1.05rem; }
-            .brand-copy small { font-size: .58rem; }
-            .header-menu-button { width: 44px; min-height: 44px; padding: 0; gap: 0; }
-            .header-menu-button span, .header-account-button span { display: none; }
-            .header-account-button { width: 44px; padding: 0; }
-            .home-overview { grid-template-columns: 1fr; gap: 10px; }
-            .home-welcome { padding: 18px; }
-            .home-status { padding: 14px 18px; }
-            .platform-menu-panel { padding-inline: 14px; }
-        }
-        @media (min-width: 761px) {
-            .app-container:not(:has(#auth-screen.active)) .bottom-nav { display: none !important; }
-        }
-        @media (max-width: 760px) {
-            .app-container:not(:has(#auth-screen.active)) .bottom-nav { display: none !important; }
-            .app-container:not(:has(#auth-screen.active)) { padding-bottom: 0 !important; }
-            .app-container:not(:has(#auth-screen.active)) > .content { padding-bottom: 18px !important; }
-        }
+        .admin-panel { background: linear-gradient(145deg, rgba(19,39,66,.94), rgba(12,27,46,.94)); }
+        .admin-section-anchor { scroll-margin-top: 80px; }
 
-        /*
-         * Absolute final no-gap guard.
-         * The document owns the page scroll and every authenticated screen
-         * starts directly below the header. This intentionally overrides all
-         * legacy viewport-centering and min-height rules above.
-         */
-        html, body {
-            width: 100% !important;
-            height: auto !important;
-            min-height: 100% !important;
-            overflow-x: clip !important;
-            overflow-y: auto !important;
-        }
-        body {
-            display: block !important;
-            margin: 0 !important;
-            align-items: flex-start !important;
-            justify-content: flex-start !important;
-        }
-        .app-container {
-            width: min(100%, 1180px) !important;
-            height: auto !important;
-            min-height: 100dvh !important;
-            margin: 0 !important;
-            overflow: visible !important;
-        }
-        .app-container > .content {
-            display: block !important;
-            width: 100% !important;
-            height: auto !important;
-            min-height: 0 !important;
-            margin: 0 !important;
-            padding-top: 0 !important;
-            overflow: visible !important;
-            scroll-padding-top: 0 !important;
-        }
-        .app-container:not(:has(#auth-screen.active)) > .content {
-            padding-bottom: 18px !important;
-        }
-        .screen, .screen.active, .admin-screen, .admin-screen.active {
-            width: 100% !important;
-            height: auto !important;
-            min-height: 0 !important;
-            margin-top: 0 !important;
-            padding-top: 0 !important;
-        }
-        .screen.active {
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-        .screen:not(.active) { display: none !important; }
-        .admin-screen.active > :first-child,
-        #home-screen.active > :first-child {
-            margin-top: 0 !important;
-        }
-
-        /* ============================================================
-         * DEFINITIVE RESPONSIVE LAYOUT — final override block
-         * All previous conflicting rules above are superseded here.
-         * Strategy: the document (html/body) owns the vertical scroll.
-         * The app-container grows naturally. The sticky site-header stays
-         * visible while the user scrolls. The fixed bottom-nav is offset
-         * by padding on app-container when active.
-         * ============================================================ */
+        /* ==========================================================
+         * DEFINITIVE LAYOUT CONTRACT
+         * Single source of truth — document scroll model
+         * No bottom-nav (platform menu replaces it)
+         * ========================================================== */
 
         :root {
-            --bottom-nav-height: 60px;
-            --page-pad-x:        clamp(10px, 3vw, 26px);
-            --page-pad-top:      14px;
-            --nav-space:         calc(var(--bottom-nav-height) + 22px + env(safe-area-inset-bottom, 0px));
+            --page-gutter:        clamp(12px, 3vw, 40px);
+            --content-pad-top:    14px;
+            --content-pad-bottom: 32px;
         }
 
-        /* 1. Document scroll contract */
+        /* Document owns the scroll */
         html {
-            width: 100% !important;
-            height: auto !important;
-            min-height: 100% !important;
-            overflow-x: clip !important;
-            overflow-y: auto !important;
+            width: 100%;
+            min-width: 0;
+            min-height: 100%;
+            overflow-x: clip;
+            overflow-y: auto;
+            -webkit-text-size-adjust: 100%;
             background: #020617;
         }
-
         body {
-            width: 100% !important;
-            height: auto !important;
-            min-height: 100dvh !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: flex-start !important;
-            overflow-x: clip !important;
-            overflow-y: visible !important;
+            width: 100%;
+            min-width: 0;
+            min-height: 100dvh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            overflow-x: clip;
+            overflow-y: visible;
         }
 
-        /* 2. App shell — natural height, no overflow clip */
+        /* App shell — natural height, no overflow clip */
         .app-container {
-            width: min(100%, 1180px) !important;
-            min-width: 0 !important;
-            height: auto !important;
-            min-height: 100dvh !important;
-            margin: 0 auto !important;
-            padding: 0 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            overflow: visible !important;
-            overflow-x: clip !important;
+            width: min(100%, 1180px);
+            min-width: 0;
+            height: auto;
+            min-height: 100dvh;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            overflow: visible;
+            overflow-x: clip;
             position: relative;
         }
 
-        /* Reserve space for fixed bottom-nav when it is shown */
-        .app-container.nav-visible {
-            padding-bottom: var(--nav-space) !important;
-        }
-
-        /* 3. Sticky header — stays at top while page scrolls */
-        .app-container > .site-header {
-            flex: 0 0 auto !important;
-            width: 100% !important;
-            position: sticky !important;
-            top: 0 !important;
-            z-index: 20 !important;
-            box-sizing: border-box;
-        }
-
-        /* Hide header on auth screen */
-        .app-container:has(#auth-screen.active) > .site-header {
-            display: none !important;
-        }
-
-        /* 4. Content area — natural height, scrolls with document */
+        /* Content — block-level, grows with content */
         .app-container > .content {
-            flex: 0 0 auto !important;
-            width: 100% !important;
-            min-width: 0 !important;
-            height: auto !important;
-            min-height: 0 !important;
-            margin: 0 !important;
-            padding: var(--page-pad-top) var(--page-pad-x) 28px !important;
-            overflow: visible !important;
-            overflow-x: clip !important;
-            scroll-padding-bottom: var(--nav-space);
+            flex: 0 0 auto;
+            width: 100%;
+            min-width: 0;
+            height: auto;
+            min-height: 0;
+            margin: 0;
+            padding: var(--content-pad-top) var(--page-gutter) var(--content-pad-bottom);
+            overflow: visible;
+            overflow-x: clip;
         }
 
-        /* Content when nav is visible needs bottom clearance */
-        .app-container.nav-visible > .content {
-            padding-bottom: calc(var(--nav-space) + 8px) !important;
-        }
-
-        /* Auth screen: vertically centered, no header offset */
-        .app-container:has(#auth-screen.active) > .content {
-            padding: 0 var(--page-pad-x) 32px !important;
-            min-height: 100dvh !important;
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: center !important;
-        }
-
-        /* Admin screen: more bottom breathing room */
-        .app-container:has(#admin-screen.active) > .content {
-            padding-bottom: 40px !important;
-        }
-
-        /* Home screen: tighter top */
-        .app-container:has(#home-screen.active) > .content {
-            padding-top: 8px !important;
-        }
-
-        /* 5. Screens — block-level, auto height */
-        .screen {
-            display: none !important;
-            width: 100% !important;
-            max-width: 1120px !important;
-            min-width: 0 !important;
-            height: auto !important;
-            min-height: 0 !important;
-            margin: 0 auto !important;
-            padding: 0 !important;
-            overflow: visible !important;
-        }
-
-        .screen.active {
-            display: block !important;
-            visibility: visible !important;
-        }
-
-        /* Admin screen stretches full width */
-        .admin-screen {
-            max-width: 100% !important;
-        }
-
-        /* 6. Auth layout — column-centered, full-height card area */
-        .auth-layout {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: center !important;
-            justify-content: flex-start !important;
-            gap: 20px !important;
-            width: 100% !important;
-            max-width: 460px !important;
-            min-height: 0 !important;
-            height: auto !important;
-            margin: 0 auto !important;
-            padding: 28px 0 !important;
-        }
-
-        .auth-brand {
-            width: 100% !important;
-            text-align: center !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            line-height: 1 !important;
-        }
-
-        .auth-card {
-            width: 100% !important;
-            max-width: 430px !important;
-            margin: 0 !important;
-        }
-
-        /* 7. Bottom navigation — fixed at viewport bottom */
-        .bottom-nav {
-            position: fixed !important;
-            bottom: 0 !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            width: min(100%, 1180px) !important;
-            height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px)) !important;
-            padding: 0 6px env(safe-area-inset-bottom, 0px) !important;
-            box-sizing: border-box !important;
-            z-index: 50 !important;
-            background-color: var(--bg-card) !important;
-            border-top: 1px solid var(--border-color) !important;
-        }
-
-        /* Show/hide bottom-nav based on active screen */
-        .app-container:not(:has(#auth-screen.active)):not(:has(#admin-screen.active)) .bottom-nav {
-            display: flex !important;
-        }
-
-        .app-container:has(#auth-screen.active) .bottom-nav,
-        .app-container:has(#admin-screen.active) .bottom-nav {
-            display: none !important;
-        }
-
-        /* 8. Cards — no overflow clipping, no forced height */
-        .card,
-        .vip-card,
-        .hotel-card,
-        .wheel-card,
-        .task-complete-card,
-        .balance-card,
-        .referral-box,
-        .task-progress-box,
-        .daily-reward-card,
-        .referral-earnings-card {
-            overflow: visible !important;
-            max-width: 100% !important;
-            min-width: 0 !important;
-        }
-
-        .history-card {
-            overflow: hidden !important;
-            max-width: 100% !important;
-            min-width: 0 !important;
-        }
-
-        /* 9. Admin panels */
-        .admin-panel {
-            overflow: visible !important;
-            max-width: 100% !important;
-            min-width: 0 !important;
-        }
-
-        .admin-panel .history-card {
-            overflow: hidden !important;
-            width: 100% !important;
-        }
-
-        /* Admin stats — responsive grid */
-        .admin-stats {
-            display: grid !important;
-            grid-template-columns: repeat(3, 1fr) !important;
-            gap: 12px !important;
-        }
-
-        /* 10. Modals — absolute inside app-container */
-        .modal {
-            position: absolute !important;
-            inset: 0 !important;
+        /* Auth screen: full-height centred column */
+        .app-container:has(#auth-screen.active) > .site-header {
             display: none;
-            overflow-y: auto !important;
-            overscroll-behavior: contain !important;
+        }
+        .app-container:has(#auth-screen.active) > .content {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100dvh;
+            padding: 24px var(--page-gutter);
         }
 
-        .modal[style*="display: flex"],
-        .modal[style*="display:flex"] {
-            display: flex !important;
+        /* Admin screen — generous bottom room */
+        .app-container:has(#admin-screen.active) > .content {
+            padding-bottom: 52px;
         }
 
+        /* Home screen — tighter top */
+        .app-container:has(#home-screen.active) > .content {
+            padding-top: 8px;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            width: 100%;
+            max-width: 1120px;
+            min-width: 0;
+            height: auto;
+            min-height: 0;
+            margin: 0 auto;
+            padding: 0;
+            overflow: visible;
+        }
+        .screen.active { display: block; }
+        .admin-screen  { max-width: 100%; }
+
+        /* Auth card layout */
+        .auth-layout {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 18px;
+            width: 100%;
+            max-width: 460px;
+            min-height: 0;
+            height: auto;
+            margin: 0 auto;
+            padding: 24px 0 28px;
+        }
+        .auth-brand {
+            width: 100%;
+            text-align: center;
+            padding: 0;
+            margin: 0;
+            line-height: 1;
+        }
+        .auth-brand::before {
+            content: "SECURO";
+            display: block;
+            color: #3f8cff;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: clamp(1.5rem, 4vw, 1.9rem);
+            font-weight: 900;
+            letter-spacing: .15em;
+            text-shadow: 0 0 24px rgba(59,130,246,.25);
+            margin-bottom: 2px;
+        }
+        /* Hide legacy brand children inside auth screen */
+        .auth-brand .brand-mark,
+        .auth-brand h2,
+        .auth-brand p,
+        .auth-brand .trust-row { display: none; }
+        /* Hide field labels and auth note for cleaner auth card */
+        .auth-card .field-label { display: none; }
+        .auth-card .auth-note { display: none; }
+        /* Hide the icon button (top-right of auth card) */
+        .auth-card > div:first-child > div:last-child { display: none; }
+        .auth-card {
+            width: 100%;
+            max-width: 430px;
+            margin: 0;
+        }
+
+        /* Bottom nav — hidden (platform menu replaces it) */
+        .bottom-nav { display: none; }
+
+        /* Modals — absolute inside app-container so page scrolls beneath */
+        .modal {
+            position: absolute;
+            inset: 0;
+            display: none;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            padding: max(14px, env(safe-area-inset-top)) 14px
+                     max(14px, env(safe-area-inset-bottom));
+        }
         .modal-content {
-            min-width: 0 !important;
-            width: min(100%, 520px) !important;
-            max-width: 100% !important;
-            max-height: calc(100dvh - 32px) !important;
-            overflow-x: hidden !important;
-            overflow-y: auto !important;
-            overscroll-behavior: contain !important;
-            margin: auto !important;
+            min-width: 0;
+            width: min(100%, 520px);
+            max-width: 100%;
+            max-height: calc(100dvh - 28px);
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            margin-block: auto;
+        }
+        #deposit-modal,
+        #withdraw-modal {
+            align-items: flex-end;
+            padding: 0 0 env(safe-area-inset-bottom);
+        }
+        #deposit-modal .modal-content,
+        #withdraw-modal  .modal-content {
+            width: 100%;
+            max-height: min(92dvh, 760px);
+            border-radius: 22px 22px 0 0;
+            margin: 0;
         }
 
-        /* 11. Home overview — responsive 2-col → 1-col */
-        .home-overview {
-            grid-template-columns: minmax(0, 1.4fr) minmax(200px, 0.6fr) !important;
-        }
-
-        /* 12. Platform menu — full-height panel */
-        .platform-menu {
-            position: fixed !important;
-        }
-
-        /* ---- Mobile (≤ 760px) ---- */
-        @media (max-width: 760px) {
-            :root {
-                --bottom-nav-height: 58px;
-                --page-pad-x: 10px;
-                --page-pad-top: 8px;
-            }
-
-            .app-container {
-                max-width: 100% !important;
-                box-shadow: none !important;
-            }
-
-            .app-container > .site-header {
-                min-height: 54px !important;
-                padding: 8px 12px !important;
-            }
-
-            .app-container > .content {
-                padding: var(--page-pad-top) var(--page-pad-x) 24px !important;
-            }
-
-            .app-container.nav-visible > .content,
-            .app-container:not(:has(#auth-screen.active)):not(:has(#admin-screen.active)) > .content {
-                padding-bottom: calc(var(--nav-space) + 10px) !important;
-            }
-
-            .app-container:has(#auth-screen.active) > .content {
-                padding: 0 var(--page-pad-x) 24px !important;
-                min-height: 100dvh !important;
-            }
-
-            .app-container:has(#admin-screen.active) > .content {
-                padding-bottom: 28px !important;
-            }
-
-            .app-container:has(#home-screen.active) > .content {
-                padding-top: 6px !important;
-            }
-
-            .bottom-nav {
-                left: 0 !important;
-                right: 0 !important;
-                transform: none !important;
-                width: 100% !important;
-            }
-
-            .home-overview {
-                grid-template-columns: 1fr !important;
-                gap: 10px !important;
-            }
-
-            .admin-stats {
-                grid-template-columns: 1fr !important;
-                gap: 10px !important;
-            }
-
-            .admin-hero {
-                flex-direction: column !important;
-                align-items: stretch !important;
-                gap: 14px !important;
-                padding: 16px !important;
-                border-radius: 16px !important;
-            }
-
-            .admin-refresh {
-                width: 100% !important;
-            }
-
-            .admin-panel {
-                padding: 14px !important;
-            }
-
-            .admin-panel .history-card {
-                flex-direction: column !important;
-                align-items: flex-start !important;
-                gap: 8px !important;
-            }
-
-            .admin-panel .history-card > div:last-child {
-                text-align: start !important;
-                white-space: normal !important;
-                width: 100% !important;
-            }
-
-            .quick-actions {
-                grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-                gap: 7px !important;
-            }
-
-            .action-item {
-                min-height: 72px !important;
-                padding: 8px 4px !important;
-                gap: 4px !important;
-            }
-
-            .action-icon {
-                width: 36px !important;
-                height: 36px !important;
-                font-size: 1.1rem !important;
-            }
-
-            .action-title {
-                font-size: clamp(.62rem, 2.3vw, .72rem) !important;
-                line-height: 1.2 !important;
-            }
-
-            .slider-container {
-                height: clamp(140px, 40vw, 190px) !important;
-                border-radius: 14px !important;
-            }
-
-            .wheel-container-wrapper {
-                width: min(210px, 62vw) !important;
-                height: min(210px, 62vw) !important;
-            }
-
-            .wheel-card {
-                padding: 14px 10px !important;
-            }
-
-            .stats-bar {
-                flex-wrap: wrap !important;
-                gap: 8px !important;
-            }
-
-            .stats-bar > .stat-box {
-                flex: 1 1 28% !important;
-                min-width: 0 !important;
-            }
-
-            .stats-bar > div[style*="height: 25px"] {
-                display: none !important;
-            }
-
-            .copy-input-container {
-                flex-direction: column !important;
-                gap: 8px !important;
-            }
-
-            .copy-btn {
-                width: 100% !important;
-                min-height: 48px !important;
-            }
-
-            .auth-layout {
-                gap: 16px !important;
-                padding: 24px 0 !important;
-            }
-
-            .auth-card {
-                padding: 20px 15px !important;
-            }
-
-            #deposit-modal,
-            #withdraw-modal {
-                align-items: flex-end !important;
-                padding: 0 0 env(safe-area-inset-bottom, 0px) !important;
-            }
-
-            #deposit-modal .modal-content,
-            #withdraw-modal .modal-content {
-                width: 100% !important;
-                max-height: min(90dvh, 720px) !important;
-                border-radius: 22px 22px 0 0 !important;
-                margin: 0 !important;
-            }
-
-            .support-banner-profile {
-                align-items: flex-start !important;
-                gap: 10px !important;
-            }
-
-            .menu-item {
-                padding: 13px 14px !important;
-                min-height: 54px !important;
-            }
-
-            .balance-amount {
-                font-size: clamp(1.75rem, 9vw, 2.2rem) !important;
-            }
-
-            .levels-grid {
-                gap: 7px !important;
-            }
-
-            .level-card {
-                padding: 10px 5px !important;
-            }
-        }
-
-        /* ---- Tablet (761 – 1020px) ---- */
-        @media (min-width: 761px) and (max-width: 1020px) {
-            :root {
-                --page-pad-x: clamp(18px, 4vw, 32px);
-            }
-
-            .app-container > .content {
-                padding-inline: var(--page-pad-x) !important;
-            }
-
-            .home-overview {
-                grid-template-columns: minmax(0, 1.3fr) minmax(200px, 0.7fr) !important;
-            }
-        }
-
-        /* ---- Desktop (≥ 1021px) ---- */
-        @media (min-width: 1021px) {
-            :root {
-                --page-pad-x: clamp(24px, 4vw, 46px);
-            }
-
-            .app-container {
-                box-shadow: 0 0 80px rgba(15, 23, 42, 0.55);
-            }
-
-            .app-container > .content {
-                padding-inline: var(--page-pad-x) !important;
-                padding-top: 20px !important;
-            }
-
-            .screen:not(.admin-screen) {
-                max-width: 960px !important;
-            }
-        }
-
-        /* ---- Very small phones (≤ 380px) ---- */
-        @media (max-width: 380px) {
-            :root {
-                --page-pad-x: 8px;
-            }
-
-            .quick-actions {
-                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-                gap: 8px !important;
-            }
-
-            .action-item {
-                min-height: 80px !important;
-            }
-
-            .levels-grid {
-                grid-template-columns: 1fr !important;
-            }
-
-            .stats-bar > .stat-box {
-                flex-basis: 100% !important;
-            }
-
-            .nav-link {
-                font-size: .58rem !important;
-            }
-
-            .nav-link span {
-                font-size: 1rem !important;
-            }
-        }
-
-        /* Ensure no horizontal overflow anywhere */
+        /* Global box-model resets */
         * { box-sizing: border-box; }
         img, canvas, svg, video, iframe { max-width: 100%; }
         p, h1, h2, h3, h4, span, label, a { overflow-wrap: anywhere; word-break: break-word; }
-        .screen > *, .card, .vip-card, .hotel-card, .admin-panel, .history-card, .auth-card { min-width: 0; max-width: 100%; }
+        input, select, textarea { min-width: 0; font-size: max(16px, .95rem); }
+        textarea { min-height: 84px; line-height: 1.55; }
+        .screen > *, .card, .vip-card, .hotel-card, .admin-panel,
+        .history-card, .auth-card, .referral-box, .balance-card,
+        .task-progress-box, .task-complete-card, .wheel-card { min-width: 0; max-width: 100%; }
+
+        /* Cards must not clip JS-injected content */
+        .card, .vip-card, .hotel-card, .wheel-card, .task-complete-card,
+        .admin-panel, .balance-card, .referral-box, .task-progress-box,
+        .daily-reward-card, .referral-earnings-card { overflow: visible; }
+        .history-card { overflow: hidden; }
+
+        /* Admin panel lists */
+        .admin-panel > [id$="-list"],
+        .admin-panel > [id$="-requests"] {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .admin-panel .history-card {
+            display: block;
+            width: 100%;
+            margin-bottom: 0;
+        }
+        .admin-panel h3 { overflow-wrap: anywhere; }
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        /* Copy input row */
+        .copy-input-container { min-width: 0; align-items: stretch; }
+        .copy-input-container input { flex: 1 1 auto; min-width: 0; }
+        .copy-btn { min-height: 48px; }
+
+        /* Levels grid */
+        .levels-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .level-card { min-width: 0; }
+        .level-card > * { max-width: 100%; overflow-wrap: anywhere; }
+
+        /* Wheel */
+        .wheel-container-wrapper {
+            width: min(230px, 68vw);
+            height: min(230px, 68vw);
+            max-width: 100%;
+        }
+        .wheel-canvas { display: block; width: 100%; height: 100%; aspect-ratio: 1; }
+
+        /* Subpage header */
+        .subpage-header { gap: 12px; }
+        .subpage-header h2, .subpage-header h3 { min-width: 0; line-height: 1.35; }
+        .back-btn-arrow { flex: 0 0 42px; width: 42px; height: 42px; }
+
+        /* Touch targets */
+        button, .btn, .action-item, .copy-btn { min-height: 48px; }
+        .menu-item { min-height: 52px; }
+
+        /* Slider/hotel image heights */
+        .slider-container { height: clamp(150px, 28vw, 230px); }
+        .hotel-img { height: clamp(140px, 26vw, 200px); }
+
+        /* Quick actions — 4-col grid */
+        .quick-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+
+        /* Support banner */
+        .support-banner-profile { min-width: 0; }
+        .support-banner-profile > div:first-child { min-width: 0; flex: 1 1 auto; }
+        .support-banner-profile .btn { flex: 0 1 auto; min-width: 0; }
+
+        /* History card */
+        .history-card { min-width: 0; gap: 10px; }
+        .history-card > * { min-width: 0; max-width: 100%; }
+        .history-info { min-width: 0; overflow-wrap: anywhere; }
+        .history-badge { white-space: nowrap; }
+
+        /* Admin hero */
+        .admin-hero { min-width: 0; }
+        .admin-hero-copy { min-width: 0; }
+        .admin-hero-copy > div:last-child { min-width: 0; }
+        .admin-hero h2, .admin-hero p { overflow-wrap: anywhere; }
+
+        /* ==========================================================
+         * RESPONSIVE BREAKPOINTS
+         * ========================================================== */
+
+        /* Desktop (≥ 1021px) */
+        @media (min-width: 1021px) {
+            .app-container > .content {
+                padding-inline: clamp(24px, 4vw, 46px);
+                padding-top: 18px;
+            }
+            .screen:not(.admin-screen) { max-width: 960px; }
+        }
+
+        /* Tablet (761 – 1020px) */
+        @media (min-width: 761px) and (max-width: 1020px) {
+            .app-container > .content { padding-inline: clamp(18px, 4vw, 32px); }
+            .home-overview { grid-template-columns: minmax(0, 1.3fr) minmax(200px, 0.7fr); }
+        }
+
+        /* Mobile (≤ 760px) */
+        @media (max-width: 760px) {
+            :root {
+                --page-gutter:        11px;
+                --content-pad-top:    6px;
+                --content-pad-bottom: 22px;
+            }
+
+            body { display: block; }
+
+            .app-container { width: 100%; max-width: none; box-shadow: none; }
+
+            /* Header compact */
+            .site-header {
+                min-height: 56px;
+                padding: 8px 11px;
+                grid-template-columns: auto 1fr auto;
+                gap: 7px;
+            }
+            .brand-symbol { width: 32px; height: 32px; border-radius: 10px; }
+            .brand-copy h1 { font-size: 1rem; }
+            .brand-copy small { font-size: .56rem; }
+            .header-menu-button { width: 42px; min-height: 42px; padding: 0; gap: 0; }
+            .header-menu-button span, .header-account-button span { display: none; }
+            .header-account-button { width: 42px; padding: 0; }
+            .platform-menu-panel { padding-inline: 13px; }
+
+            /* Auth */
+            .app-container:has(#auth-screen.active) > .content {
+                padding: 0 var(--page-gutter) 24px;
+                min-height: 100dvh;
+            }
+            .auth-layout { gap: 14px; padding: 16px 0 24px; }
+            .auth-card { padding: 20px 14px; }
+
+            /* Home */
+            .home-overview { grid-template-columns: 1fr; gap: 10px; }
+            .home-welcome { padding: 16px; }
+            .home-status  { padding: 13px 16px; }
+
+            /* Slider & hotel */
+            .slider-container { height: clamp(140px, 40vw, 190px); border-radius: 14px; }
+            .hotel-img { height: clamp(135px, 36vw, 185px); }
+            .hotel-card .hotel-img { border-radius: 14px 14px 0 0; }
+
+            /* Quick actions */
+            .quick-actions { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 10px; }
+            .action-item  { min-height: 72px; padding: 8px 4px; gap: 4px; border-radius: 12px; }
+            .action-icon  { width: 34px; height: 34px; font-size: 1.05rem; border-radius: 10px; }
+            .action-title { font-size: clamp(.6rem, 2.2vw, .7rem); line-height: 1.2; }
+
+            /* Wheel */
+            .wheel-card { padding: 13px 9px; margin-bottom: 10px; }
+            .wheel-card h3 { font-size: 1rem; }
+            .wheel-container-wrapper { width: min(200px, 58vw); height: min(200px, 58vw); margin: 10px auto; }
+            .spin-center-btn { width: 48px; height: 48px; font-size: .78rem; }
+
+            /* Stats bar */
+            .stats-bar { flex-wrap: wrap; gap: 8px; padding: 9px 7px; }
+            .stats-bar > .stat-box { flex: 1 1 28%; min-width: 0; }
+            .stats-bar > div[style*="height: 25px"] { display: none; }
+            .stat-num { font-size: clamp(.88rem, 4vw, 1.1rem); }
+
+            /* Profile screen */
+            .balance-amount { font-size: clamp(1.75rem, 9vw, 2.2rem); }
+            .balance-card { padding: 18px 14px; }
+
+            /* Team/referral */
+            .copy-input-container { flex-direction: column; gap: 8px; }
+            .copy-btn { width: 100%; }
+            .levels-grid { gap: 7px; }
+            .level-card { padding: 10px 5px; }
+
+            /* Support banner */
+            .support-banner-profile { align-items: flex-start; flex-wrap: wrap; }
+            .support-banner-profile .btn { flex: 1 1 100%; width: 100%; }
+
+            /* Menu list */
+            .menu-item { padding: 13px 14px; min-height: 52px; }
+            .menu-item select { max-width: 48%; }
+
+            /* History cards */
+            .history-card { padding: 12px; align-items: flex-start; flex-wrap: wrap; }
+            .history-info { flex: 1 1 65%; }
+            .history-card > div:last-child { max-width: 100%; }
+
+            /* Admin */
+            .admin-hero {
+                flex-direction: column; align-items: stretch;
+                gap: 12px; padding: 16px; border-radius: 16px;
+            }
+            .admin-hero-copy { width: 100%; }
+            .admin-hero-copy > div:last-child { flex: 1 1 auto; }
+            .admin-hero-icon { flex: 0 0 46px; width: 46px; height: 46px; }
+            .admin-refresh { width: 100%; }
+            .admin-panel { padding: 13px; }
+            .admin-stats { grid-template-columns: 1fr; gap: 8px; }
+            .admin-stats .stat-box { text-align: center; }
+
+            /* Modals */
+            .modal { padding-inline: 11px; }
+            .modal-content { width: 100%; border-radius: 16px; }
+            #deposit-modal, #withdraw-modal {
+                align-items: flex-end;
+                padding: 0 0 env(safe-area-inset-bottom);
+            }
+            #deposit-modal .modal-content,
+            #withdraw-modal .modal-content {
+                max-height: min(92dvh, 760px);
+                border-radius: 22px 22px 0 0;
+                margin: 0;
+            }
+
+            /* Subpage header */
+            .subpage-header h2 { font-size: clamp(.95rem, 5vw, 1.2rem); }
+        }
+
+        /* Very small phones (≤ 380px) */
+        @media (max-width: 380px) {
+            :root { --page-gutter: 8px; }
+            .quick-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+            .action-item { min-height: 78px; }
+            .levels-grid { grid-template-columns: 1fr; }
+            .stats-bar > .stat-box { flex-basis: 100%; }
+            .auth-card { padding-inline: 12px; }
+            .nav-link { font-size: .58rem; }
+        }
     </style>
 </head>
 <body>

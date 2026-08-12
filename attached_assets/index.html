@@ -2577,6 +2577,537 @@
         #home-screen.active > :first-child {
             margin-top: 0 !important;
         }
+
+        /* ============================================================
+         * DEFINITIVE RESPONSIVE LAYOUT — final override block
+         * All previous conflicting rules above are superseded here.
+         * Strategy: the document (html/body) owns the vertical scroll.
+         * The app-container grows naturally. The sticky site-header stays
+         * visible while the user scrolls. The fixed bottom-nav is offset
+         * by padding on app-container when active.
+         * ============================================================ */
+
+        :root {
+            --bottom-nav-height: 60px;
+            --page-pad-x:        clamp(10px, 3vw, 26px);
+            --page-pad-top:      14px;
+            --nav-space:         calc(var(--bottom-nav-height) + 22px + env(safe-area-inset-bottom, 0px));
+        }
+
+        /* 1. Document scroll contract */
+        html {
+            width: 100% !important;
+            height: auto !important;
+            min-height: 100% !important;
+            overflow-x: clip !important;
+            overflow-y: auto !important;
+            background: #020617;
+        }
+
+        body {
+            width: 100% !important;
+            height: auto !important;
+            min-height: 100dvh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            overflow-x: clip !important;
+            overflow-y: visible !important;
+        }
+
+        /* 2. App shell — natural height, no overflow clip */
+        .app-container {
+            width: min(100%, 1180px) !important;
+            min-width: 0 !important;
+            height: auto !important;
+            min-height: 100dvh !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: visible !important;
+            overflow-x: clip !important;
+            position: relative;
+        }
+
+        /* Reserve space for fixed bottom-nav when it is shown */
+        .app-container.nav-visible {
+            padding-bottom: var(--nav-space) !important;
+        }
+
+        /* 3. Sticky header — stays at top while page scrolls */
+        .app-container > .site-header {
+            flex: 0 0 auto !important;
+            width: 100% !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 20 !important;
+            box-sizing: border-box;
+        }
+
+        /* Hide header on auth screen */
+        .app-container:has(#auth-screen.active) > .site-header {
+            display: none !important;
+        }
+
+        /* 4. Content area — natural height, scrolls with document */
+        .app-container > .content {
+            flex: 0 0 auto !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            height: auto !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding: var(--page-pad-top) var(--page-pad-x) 28px !important;
+            overflow: visible !important;
+            overflow-x: clip !important;
+            scroll-padding-bottom: var(--nav-space);
+        }
+
+        /* Content when nav is visible needs bottom clearance */
+        .app-container.nav-visible > .content {
+            padding-bottom: calc(var(--nav-space) + 8px) !important;
+        }
+
+        /* Auth screen: vertically centered, no header offset */
+        .app-container:has(#auth-screen.active) > .content {
+            padding: 0 var(--page-pad-x) 32px !important;
+            min-height: 100dvh !important;
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        /* Admin screen: more bottom breathing room */
+        .app-container:has(#admin-screen.active) > .content {
+            padding-bottom: 40px !important;
+        }
+
+        /* Home screen: tighter top */
+        .app-container:has(#home-screen.active) > .content {
+            padding-top: 8px !important;
+        }
+
+        /* 5. Screens — block-level, auto height */
+        .screen {
+            display: none !important;
+            width: 100% !important;
+            max-width: 1120px !important;
+            min-width: 0 !important;
+            height: auto !important;
+            min-height: 0 !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+            overflow: visible !important;
+        }
+
+        .screen.active {
+            display: block !important;
+            visibility: visible !important;
+        }
+
+        /* Admin screen stretches full width */
+        .admin-screen {
+            max-width: 100% !important;
+        }
+
+        /* 6. Auth layout — column-centered, full-height card area */
+        .auth-layout {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 20px !important;
+            width: 100% !important;
+            max-width: 460px !important;
+            min-height: 0 !important;
+            height: auto !important;
+            margin: 0 auto !important;
+            padding: 28px 0 !important;
+        }
+
+        .auth-brand {
+            width: 100% !important;
+            text-align: center !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            line-height: 1 !important;
+        }
+
+        .auth-card {
+            width: 100% !important;
+            max-width: 430px !important;
+            margin: 0 !important;
+        }
+
+        /* 7. Bottom navigation — fixed at viewport bottom */
+        .bottom-nav {
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            width: min(100%, 1180px) !important;
+            height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px)) !important;
+            padding: 0 6px env(safe-area-inset-bottom, 0px) !important;
+            box-sizing: border-box !important;
+            z-index: 50 !important;
+            background-color: var(--bg-card) !important;
+            border-top: 1px solid var(--border-color) !important;
+        }
+
+        /* Show/hide bottom-nav based on active screen */
+        .app-container:not(:has(#auth-screen.active)):not(:has(#admin-screen.active)) .bottom-nav {
+            display: flex !important;
+        }
+
+        .app-container:has(#auth-screen.active) .bottom-nav,
+        .app-container:has(#admin-screen.active) .bottom-nav {
+            display: none !important;
+        }
+
+        /* 8. Cards — no overflow clipping, no forced height */
+        .card,
+        .vip-card,
+        .hotel-card,
+        .wheel-card,
+        .task-complete-card,
+        .balance-card,
+        .referral-box,
+        .task-progress-box,
+        .daily-reward-card,
+        .referral-earnings-card {
+            overflow: visible !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+        }
+
+        .history-card {
+            overflow: hidden !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+        }
+
+        /* 9. Admin panels */
+        .admin-panel {
+            overflow: visible !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+        }
+
+        .admin-panel .history-card {
+            overflow: hidden !important;
+            width: 100% !important;
+        }
+
+        /* Admin stats — responsive grid */
+        .admin-stats {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 12px !important;
+        }
+
+        /* 10. Modals — absolute inside app-container */
+        .modal {
+            position: absolute !important;
+            inset: 0 !important;
+            display: none;
+            overflow-y: auto !important;
+            overscroll-behavior: contain !important;
+        }
+
+        .modal[style*="display: flex"],
+        .modal[style*="display:flex"] {
+            display: flex !important;
+        }
+
+        .modal-content {
+            min-width: 0 !important;
+            width: min(100%, 520px) !important;
+            max-width: 100% !important;
+            max-height: calc(100dvh - 32px) !important;
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            overscroll-behavior: contain !important;
+            margin: auto !important;
+        }
+
+        /* 11. Home overview — responsive 2-col → 1-col */
+        .home-overview {
+            grid-template-columns: minmax(0, 1.4fr) minmax(200px, 0.6fr) !important;
+        }
+
+        /* 12. Platform menu — full-height panel */
+        .platform-menu {
+            position: fixed !important;
+        }
+
+        /* ---- Mobile (≤ 760px) ---- */
+        @media (max-width: 760px) {
+            :root {
+                --bottom-nav-height: 58px;
+                --page-pad-x: 10px;
+                --page-pad-top: 8px;
+            }
+
+            .app-container {
+                max-width: 100% !important;
+                box-shadow: none !important;
+            }
+
+            .app-container > .site-header {
+                min-height: 54px !important;
+                padding: 8px 12px !important;
+            }
+
+            .app-container > .content {
+                padding: var(--page-pad-top) var(--page-pad-x) 24px !important;
+            }
+
+            .app-container.nav-visible > .content,
+            .app-container:not(:has(#auth-screen.active)):not(:has(#admin-screen.active)) > .content {
+                padding-bottom: calc(var(--nav-space) + 10px) !important;
+            }
+
+            .app-container:has(#auth-screen.active) > .content {
+                padding: 0 var(--page-pad-x) 24px !important;
+                min-height: 100dvh !important;
+            }
+
+            .app-container:has(#admin-screen.active) > .content {
+                padding-bottom: 28px !important;
+            }
+
+            .app-container:has(#home-screen.active) > .content {
+                padding-top: 6px !important;
+            }
+
+            .bottom-nav {
+                left: 0 !important;
+                right: 0 !important;
+                transform: none !important;
+                width: 100% !important;
+            }
+
+            .home-overview {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+            }
+
+            .admin-stats {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+            }
+
+            .admin-hero {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 14px !important;
+                padding: 16px !important;
+                border-radius: 16px !important;
+            }
+
+            .admin-refresh {
+                width: 100% !important;
+            }
+
+            .admin-panel {
+                padding: 14px !important;
+            }
+
+            .admin-panel .history-card {
+                flex-direction: column !important;
+                align-items: flex-start !important;
+                gap: 8px !important;
+            }
+
+            .admin-panel .history-card > div:last-child {
+                text-align: start !important;
+                white-space: normal !important;
+                width: 100% !important;
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+                gap: 7px !important;
+            }
+
+            .action-item {
+                min-height: 72px !important;
+                padding: 8px 4px !important;
+                gap: 4px !important;
+            }
+
+            .action-icon {
+                width: 36px !important;
+                height: 36px !important;
+                font-size: 1.1rem !important;
+            }
+
+            .action-title {
+                font-size: clamp(.62rem, 2.3vw, .72rem) !important;
+                line-height: 1.2 !important;
+            }
+
+            .slider-container {
+                height: clamp(140px, 40vw, 190px) !important;
+                border-radius: 14px !important;
+            }
+
+            .wheel-container-wrapper {
+                width: min(210px, 62vw) !important;
+                height: min(210px, 62vw) !important;
+            }
+
+            .wheel-card {
+                padding: 14px 10px !important;
+            }
+
+            .stats-bar {
+                flex-wrap: wrap !important;
+                gap: 8px !important;
+            }
+
+            .stats-bar > .stat-box {
+                flex: 1 1 28% !important;
+                min-width: 0 !important;
+            }
+
+            .stats-bar > div[style*="height: 25px"] {
+                display: none !important;
+            }
+
+            .copy-input-container {
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+
+            .copy-btn {
+                width: 100% !important;
+                min-height: 48px !important;
+            }
+
+            .auth-layout {
+                gap: 16px !important;
+                padding: 24px 0 !important;
+            }
+
+            .auth-card {
+                padding: 20px 15px !important;
+            }
+
+            #deposit-modal,
+            #withdraw-modal {
+                align-items: flex-end !important;
+                padding: 0 0 env(safe-area-inset-bottom, 0px) !important;
+            }
+
+            #deposit-modal .modal-content,
+            #withdraw-modal .modal-content {
+                width: 100% !important;
+                max-height: min(90dvh, 720px) !important;
+                border-radius: 22px 22px 0 0 !important;
+                margin: 0 !important;
+            }
+
+            .support-banner-profile {
+                align-items: flex-start !important;
+                gap: 10px !important;
+            }
+
+            .menu-item {
+                padding: 13px 14px !important;
+                min-height: 54px !important;
+            }
+
+            .balance-amount {
+                font-size: clamp(1.75rem, 9vw, 2.2rem) !important;
+            }
+
+            .levels-grid {
+                gap: 7px !important;
+            }
+
+            .level-card {
+                padding: 10px 5px !important;
+            }
+        }
+
+        /* ---- Tablet (761 – 1020px) ---- */
+        @media (min-width: 761px) and (max-width: 1020px) {
+            :root {
+                --page-pad-x: clamp(18px, 4vw, 32px);
+            }
+
+            .app-container > .content {
+                padding-inline: var(--page-pad-x) !important;
+            }
+
+            .home-overview {
+                grid-template-columns: minmax(0, 1.3fr) minmax(200px, 0.7fr) !important;
+            }
+        }
+
+        /* ---- Desktop (≥ 1021px) ---- */
+        @media (min-width: 1021px) {
+            :root {
+                --page-pad-x: clamp(24px, 4vw, 46px);
+            }
+
+            .app-container {
+                box-shadow: 0 0 80px rgba(15, 23, 42, 0.55);
+            }
+
+            .app-container > .content {
+                padding-inline: var(--page-pad-x) !important;
+                padding-top: 20px !important;
+            }
+
+            .screen:not(.admin-screen) {
+                max-width: 960px !important;
+            }
+        }
+
+        /* ---- Very small phones (≤ 380px) ---- */
+        @media (max-width: 380px) {
+            :root {
+                --page-pad-x: 8px;
+            }
+
+            .quick-actions {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                gap: 8px !important;
+            }
+
+            .action-item {
+                min-height: 80px !important;
+            }
+
+            .levels-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .stats-bar > .stat-box {
+                flex-basis: 100% !important;
+            }
+
+            .nav-link {
+                font-size: .58rem !important;
+            }
+
+            .nav-link span {
+                font-size: 1rem !important;
+            }
+        }
+
+        /* Ensure no horizontal overflow anywhere */
+        * { box-sizing: border-box; }
+        img, canvas, svg, video, iframe { max-width: 100%; }
+        p, h1, h2, h3, h4, span, label, a { overflow-wrap: anywhere; word-break: break-word; }
+        .screen > *, .card, .vip-card, .hotel-card, .admin-panel, .history-card, .auth-card { min-width: 0; max-width: 100%; }
     </style>
 </head>
 <body>

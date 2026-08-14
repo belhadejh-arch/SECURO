@@ -569,7 +569,7 @@ app.post("/api/vip/trial", requireUser, async (req, res) => {
       const user = locked.rows[0];
       if (user.trial_used) throw Object.assign(new Error("لقد استخدمت الفترة التجريبية سابقاً"), { status: 409 });
       if (user.user_vip) throw Object.assign(new Error("لديك عضوية VIP نشطة حالياً"), { status: 409 });
-      const vip = { name: "الفترة التجريبية (Trial)", price: 0, totalTasks: trialMaxTasks, totalReward: trialMaxTasks * 0.5, isTrial: true };
+      const vip = { name: "الفترة التجريبية (Trial)", price: 0, totalTasks: trialMaxTasks, totalReward: trialMaxTasks * 1, isTrial: true };
       const updated = await client.query(
         `UPDATE users SET user_vip = $1::jsonb, trial_active = TRUE, trial_used = TRUE,
           current_trial_day = 1, completed_tasks_count = 0, task_last_reset_date = CURRENT_DATE,

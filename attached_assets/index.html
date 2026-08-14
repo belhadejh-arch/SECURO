@@ -1255,6 +1255,43 @@
             .quick-actions { grid-template-columns: repeat(2, 1fr); }
             .nav-link { font-size: .58rem; }
         }
+
+        /* Top-anchor invariant: every app screen is document-flow content.
+           This intentionally overrides the earlier auth-era flex rules so a
+           short phone viewport can never create a giant blank lead-in. */
+        .app-container > .content {
+            display: block !important;
+            flex: 0 0 auto !important;
+            align-items: initial !important;
+            justify-content: flex-start !important;
+            min-height: 0 !important;
+            height: auto !important;
+            padding-top: 12px !important;
+        }
+        .screen,
+        .screen.active {
+            min-height: 0 !important;
+            height: auto !important;
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+            justify-content: flex-start !important;
+        }
+        .auth-layout {
+            min-height: 0 !important;
+            padding-top: 12px !important;
+            padding-bottom: 18px !important;
+        }
+        .home-secondary-content { margin: 0; padding: 0; }
+        .home-overview { margin-top: 0; }
+        .screen > :first-child { margin-top: 0 !important; }
+        .content, .screen { scroll-margin-top: 0; }
+        @media (max-width: 760px) {
+            .app-container > .content { padding-top: 10px !important; }
+            .screen > h2 { margin-top: 0 !important; }
+            .app-container.nav-visible .content {
+                padding-bottom: calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom)) !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1498,18 +1535,6 @@
                     <div class="home-status-note">بياناتك محدثة من الخادم</div>
                 </div>
             </div>
-            <div class="slider-container">
-                <div class="slider-slide active" style="background-image: linear-gradient(to top, #0f172a, transparent), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80');">
-                    <div class="slide-caption">🏢 المقر الرئيسي للشركة - نيويورك، الولايات المتحدة الأمريكية</div>
-                </div>
-                <div class="slider-slide" style="background-image: linear-gradient(to top, #0f172a, transparent), url('https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=600&q=80');">
-                    <div class="slide-caption">🏛️ مكاتب العمل الإدارية والتقنية (تأسست عام 2014)</div>
-                </div>
-                <div class="slider-slide" style="background-image: linear-gradient(to top, #0f172a, transparent), url('https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80');">
-                    <div class="slide-caption">⚡ SECURO - ريادة عالمية موثوقة في الاستثمار الذكي</div>
-                </div>
-            </div>
-
             <div class="quick-actions">
                 <div class="action-item" onclick="openDepositModal()">
                     <div class="action-icon">💳</div>
@@ -1529,6 +1554,18 @@
                 </div>
             </div>
 
+            <div id="home-secondary-content" class="home-secondary-content">
+            <div class="slider-container">
+                <div class="slider-slide active" style="background-image: linear-gradient(to top, #0f172a, transparent), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80');">
+                    <div class="slide-caption">🏢 المقر الرئيسي للشركة - نيويورك، الولايات المتحدة الأمريكية</div>
+                </div>
+                <div class="slider-slide" style="background-image: linear-gradient(to top, #0f172a, transparent), url('https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=600&q=80');">
+                    <div class="slide-caption">🏛️ مكاتب العمل الإدارية والتقنية (تأسست عام 2014)</div>
+                </div>
+                <div class="slider-slide" style="background-image: linear-gradient(to top, #0f172a, transparent), url('https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80');">
+                    <div class="slide-caption">⚡ SECURO - ريادة عالمية موثوقة في الاستثمار الذكي</div>
+                </div>
+            </div>
             <!-- عجلة الحظ -->
             <div class="wheel-card">
                 <h3 style="justify-content: center; color: #fbbf24; font-size: 1.2rem; margin-bottom: 2px;">🎡 عجلة الحظ المباشرة</h3>
@@ -1546,7 +1583,6 @@
                 </div>
             </div>
 
-            <div id="home-secondary-content" class="home-secondary-content">
             <div class="stats-bar">
                 <div class="stat-box">
                     <div class="stat-num">$1.2M+</div>
@@ -1592,7 +1628,7 @@
                 <span class="vip-badge trial-badge">تجربة مجانية</span>
                 <h3 style="color: #34d399;">🎁 الفترة التجريبية (Trial Period)</h3>
                 <p style="font-size: 0.85rem; color: #a7f3d0; margin: 5px 0 10px 0;">
-                    تنتهي بعد إكمال 4 مهام | الأرباح: $0.50 لكل مهمة | مجاني بالكامل
+                    تنتهي بعد إكمال 4 مهام | الأرباح: $1.00 لكل مهمة | مجاني بالكامل
                 </p>
                 <button class="btn btn-green" id="btn-trial-activate" onclick="activateTrial()">تفعيل الفترة التجريبية (مجاناً)</button>
                 <div id="trial-success-section" class="trial-success-box">

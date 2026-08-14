@@ -105,10 +105,16 @@
       updateDailyRewardUI();
       const trialButton = document.getElementById("btn-trial-activate");
       const trialSuccess = document.getElementById("trial-success-section");
+      const profileTrialItem = document.getElementById("profile-trial-cancel-item");
       if (trialButton && trialSuccess) {
         trialButton.style.display = trialUsed ? "none" : "block";
-        trialSuccess.style.display = trialUsed ? "block" : "none";
+        trialSuccess.style.display = trialActive ? "block" : "none";
       }
+      if (profileTrialItem) {
+        profileTrialItem.style.display = trialActive ? "flex" : "none";
+      }
+      const homeBalanceEl = document.getElementById("home-balance");
+      if (homeBalanceEl) homeBalanceEl.innerText = balance.toFixed(2);
       if (typeof startTaskDaySync === "function") startTaskDaySync();
     }
   }
@@ -132,6 +138,17 @@
     if (balanceEl) balanceEl.innerText = balance.toFixed(2);
     if (homeBalanceEl) homeBalanceEl.innerText = balance.toFixed(2);
     if (spinsEl) spinsEl.innerText = availableSpins;
+    // Update trial cancel button visibility
+    const trialButton = document.getElementById("btn-trial-activate");
+    const trialSuccess = document.getElementById("trial-success-section");
+    const profileTrialItem = document.getElementById("profile-trial-cancel-item");
+    if (trialButton && trialSuccess) {
+      trialButton.style.display = trialUsed ? "none" : "block";
+      trialSuccess.style.display = trialActive ? "block" : "none";
+    }
+    if (profileTrialItem) {
+      profileTrialItem.style.display = trialActive ? "flex" : "none";
+    }
     if (typeof updateVipUIState === "function") updateVipUIState();
     if (typeof updateDailyRewardUI === "function") updateDailyRewardUI();
   };
@@ -430,11 +447,13 @@
 
         <!-- أزرار الإجراءات -->
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;border-top:1px solid var(--border-color);padding-top:8px">
-          <button class="btn btn-green"  style="flex:1;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminAdjustBalance(${user.id},${Number(user.balance).toFixed(2)})">✏️ تعديل الرصيد</button>
-          <button class="btn btn-gold"   style="flex:1;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminChangeVip(${user.id})">👑 تغيير VIP</button>
-          <button class="btn"            style="flex:1;padding:6px 8px;font-size:.72rem;min-height:38px;background:#6366f1;color:white" onclick="adminResetTasks(${user.id})">🔄 تصفير المهام</button>
-          ${hasTrial ? `<button class="btn btn-red" style="flex:1;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminCancelTrial(${user.id})">🚫 إلغاء التجربة</button>` : ""}
-          ${!user.isAdmin ? `<button class="btn ${user.isBlocked ? "btn-green" : "btn-red"}" style="flex:1;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminToggleBlock(${user.id},${!user.isBlocked})">${user.isBlocked ? "✅ رفع الحظر" : "🚫 حظر"}</button>` : ""}
+          <button class="btn btn-green"  style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminAdjustBalance(${user.id},${Number(user.balance).toFixed(2)})">✏️ تعديل الرصيد</button>
+          <button class="btn btn-gold"   style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminChangeVip(${user.id})">👑 تغيير VIP</button>
+          <button class="btn"            style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px;background:#6366f1;color:white" onclick="adminResetTasks(${user.id})">🔄 تصفير المهام</button>
+          <button class="btn"            style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px;background:#0891b2;color:white" onclick="adminGrantSpin(${user.id})">🎡 منح فرصة عجلة</button>
+          <button class="btn"            style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px;background:#7c3aed;color:white" onclick="adminChangeUserPassword(${user.id})">🔑 تغيير كلمة المرور</button>
+          ${hasTrial ? `<button class="btn btn-red" style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminCancelTrial(${user.id})">🚫 إلغاء التجربة</button>` : ""}
+          ${!user.isAdmin ? `<button class="btn ${user.isBlocked ? "btn-green" : "btn-red"}" style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminToggleBlock(${user.id},${!user.isBlocked})">${user.isBlocked ? "✅ رفع الحظر" : "🚫 حظر"}</button>` : ""}
         </div>
       </div>`;
   }
@@ -558,6 +577,42 @@
         method: "POST",
       });
       await window.renderAdminDashboard();
+    } catch (error) {
+      showApiError(error);
+    }
+  };
+
+  window.adminGrantSpin = async function (userId) {
+    const input = window.prompt("كم عدد المحاولات التي تريد منحها لهذا المستخدم؟", "1");
+    if (input === null) return;
+    const count = Number(input);
+    if (!Number.isInteger(count) || count < 1) {
+      return showApiError(new Error("أدخل عدداً صحيحاً أكبر من صفر"));
+    }
+    try {
+      await api(`/api/admin/users/${encodeURIComponent(userId)}/spins`, {
+        method: "POST",
+        body: JSON.stringify({ count }),
+      });
+      await window.renderAdminDashboard();
+    } catch (error) {
+      showApiError(error);
+    }
+  };
+
+  window.adminChangeUserPassword = async function (userId) {
+    const newPass = window.prompt("أدخل كلمة المرور الجديدة للمستخدم (6 أحرف على الأقل):", "");
+    if (newPass === null || !newPass.trim()) return;
+    if (newPass.trim().length < 6) {
+      return showApiError(new Error("كلمة المرور يجب ألا تقل عن 6 أحرف"));
+    }
+    if (!window.confirm(`تأكيد تغيير كلمة مرور المستخدم ${userId}؟`)) return;
+    try {
+      await api(`/api/admin/users/${encodeURIComponent(userId)}/password`, {
+        method: "POST",
+        body: JSON.stringify({ newPassword: newPass.trim() }),
+      });
+      showCopyToast?.("تم تغيير كلمة المرور ✅", "تم تحديث كلمة مرور المستخدم بنجاح في قاعدة البيانات.");
     } catch (error) {
       showApiError(error);
     }

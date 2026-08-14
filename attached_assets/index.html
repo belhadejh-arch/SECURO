@@ -1390,13 +1390,14 @@
                 <span class="vip-badge trial-badge">تجربة مجانية</span>
                 <h3 style="color: #34d399;">🎁 الفترة التجريبية (Trial Period)</h3>
                 <p style="font-size: 0.85rem; color: #a7f3d0; margin: 5px 0 10px 0;">
-                    صالحة لمدة يومين فقط | الأرباح: $2.00 يومياً | مجاني بالكامل
+                    تنتهي بعد إكمال 4 مهام | الأرباح: $0.50 لكل مهمة | مجاني بالكامل
                 </p>
                 <button class="btn btn-green" id="btn-trial-activate" onclick="activateTrial()">تفعيل الفترة التجريبية (مجاناً)</button>
                 <div id="trial-success-section" class="trial-success-box">
                     <i class="fa-solid fa-circle-check trial-success-icon"></i>
-                    <div class="trial-success-text">تهانينا! تم تفعيل الفترة التجريبية لمدة يومين فقط 🚀</div>
-                    <div style="font-size: 0.82rem; color: #a7f3d0;">يمكنك الآن الانتقال لصفحة "مهامي" للبدء في كسب الأرباح اليومية قبل انتهاء اليومين.</div>
+                    <div class="trial-success-text">الفترة التجريبية نشطة — أكمل 4 مهام لتنتهي تلقائياً 🚀</div>
+                    <div style="font-size: 0.82rem; color: #a7f3d0; margin-bottom: 10px;">انتقل لصفحة "مهامي" وأكمل 4 مهام تقييم لتحصيل أرباحك.</div>
+                    <button class="btn btn-red" style="padding: 8px; font-size: 0.82rem;" id="btn-trial-cancel" onclick="cancelTrialSelf()">⛔ إيقاف الفترة التجريبية</button>
                 </div>
             </div>
 
@@ -1553,6 +1554,12 @@
                 <div class="menu-item" onclick="openSubPage('tx-history-screen')">
                     <span>📊 المعاملات المالية</span> <span>👈</span>
                 </div>
+                <div class="menu-item" onclick="openChangePasswordModal()">
+                    <span>🔑 تغيير كلمة المرور</span> <span>👈</span>
+                </div>
+                <div id="profile-trial-cancel-item" class="menu-item" style="display:none;" onclick="cancelTrialSelf()">
+                    <span style="color:#f87171;">⛔ إيقاف الفترة التجريبية</span> <span>👈</span>
+                </div>
                 <div class="menu-item">
                     <span>🌐 لغة التطبيق (Language)</span>
                     <select onchange="changeLanguage(this.value)">
@@ -1565,38 +1572,38 @@
                 </div>
             </div>
 
-            <button class="btn" style="background-color: #451a03; color: #f87171;" onclick="logout()">🚪 تسجيل الخروج</button>
+            <button class="btn" style="background-color: #451a03; color: #f87171; margin-top: 5px;" onclick="logout()">🚪 تسجيل الخروج</button>
         </div>
 
         <!-- السجلات الفرعية -->
         <div id="deposit-history-screen" class="screen">
             <div class="subpage-header">
+                <button class="back-btn-arrow" type="button" onclick="switchTab('profile')" aria-label="رجوع">➔</button>
                 <h2 style="color: var(--text-white); font-size: 1.2rem;">💳 سجل الإيداع</h2>
-                <div class="back-btn-arrow" onclick="openSubPage('profile-screen')">➔</div>
             </div>
             <div id="deposit-history-list"></div>
         </div>
 
         <div id="reward-history-screen" class="screen">
             <div class="subpage-header">
+                <button class="back-btn-arrow" type="button" onclick="switchTab('profile')" aria-label="رجوع">➔</button>
                 <h2 style="color: var(--text-white); font-size: 1.2rem;">🎁 سجل المكافآت اليومية</h2>
-                <div class="back-btn-arrow" onclick="openSubPage('profile-screen')">➔</div>
             </div>
             <div id="reward-history-list"></div>
         </div>
 
         <div id="withdraw-history-screen" class="screen">
             <div class="subpage-header">
+                <button class="back-btn-arrow" type="button" onclick="switchTab('profile')" aria-label="رجوع">➔</button>
                 <h2 style="color: var(--text-white); font-size: 1.2rem;">📜 سجل طلبات السحب</h2>
-                <div class="back-btn-arrow" onclick="openSubPage('profile-screen')">➔</div>
             </div>
             <div id="withdraw-history-list"></div>
         </div>
 
         <div id="tx-history-screen" class="screen">
             <div class="subpage-header">
+                <button class="back-btn-arrow" type="button" onclick="switchTab('profile')" aria-label="رجوع">➔</button>
                 <h2 style="color: var(--text-white); font-size: 1.2rem;">📊 سجل المعاملات المالية</h2>
-                <div class="back-btn-arrow" onclick="openSubPage('profile-screen')">➔</div>
             </div>
             <div id="tx-history-list"></div>
         </div>
@@ -1696,6 +1703,25 @@
                 </a>
             </div>
             <button class="btn" style="background: var(--bg-light-card); color: var(--text-white);" onclick="closeSupportModal()">إغلاق</button>
+        </div>
+    </div>
+
+    <!-- مودال تغيير كلمة المرور -->
+    <div id="change-password-modal" class="modal">
+        <div class="modal-content" style="padding: 25px; text-align: right;">
+            <div style="font-size: 2.5rem; text-align: center; margin-bottom: 10px;">🔑</div>
+            <h3 style="color: var(--primary-blue); margin-bottom: 15px; text-align: center;">تغيير كلمة المرور</h3>
+            <form class="form-group" onsubmit="event.preventDefault(); submitChangePassword();" autocomplete="on">
+                <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-white);">كلمة المرور الحالية:</label>
+                <input type="password" id="cp-current" name="current-password" placeholder="أدخل كلمة المرور الحالية" autocomplete="current-password">
+                <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-white); margin-top: 6px;">كلمة المرور الجديدة:</label>
+                <input type="password" id="cp-new" name="new-password" placeholder="6 أحرف على الأقل" autocomplete="new-password">
+                <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-white); margin-top: 6px;">تأكيد كلمة المرور الجديدة:</label>
+                <input type="password" id="cp-confirm" name="confirm-password" placeholder="أعد كتابة كلمة المرور الجديدة" autocomplete="new-password">
+                <div id="cp-error" style="color: #f87171; font-size: 0.82rem; display:none;"></div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 5px;">تأكيد التغيير</button>
+                <button type="button" class="btn" style="background: var(--bg-light-card); color: var(--text-white);" onclick="closeChangePasswordModal()">إلغاء</button>
+            </form>
         </div>
     </div>
 
@@ -1876,7 +1902,14 @@
         { name: "فندق ذا ريتز كارلتون - نيويورك", location: "الولايات المتحدة الأمريكية", img: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80" },
         { name: "فندق فور سيزونز - باريس", location: "فرنسا", img: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=600&q=80" },
         { name: "منتجع ماريوت الفاخر - طوكيو", location: "اليابان", img: "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=600&q=80" },
-        { name: "فندق أتلانتس البالم - دبي", location: "الإمارات العربية المتحدة", img: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=600&q=80" }
+        { name: "فندق أتلانتس البالم - دبي", location: "الإمارات العربية المتحدة", img: "https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=600&q=80" },
+        { name: "فندق بارك هيات - طوكيو", location: "اليابان", img: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=600&q=80" },
+        { name: "فندق بوليتشيانو - روما", location: "إيطاليا", img: "https://images.unsplash.com/photo-1564501049412-61c2a3083791?auto=format&fit=crop&w=600&q=80" },
+        { name: "فندق ماندارين أورينتال - لندن", location: "المملكة المتحدة", img: "https://images.unsplash.com/photo-1455587734955-081b22074882?auto=format&fit=crop&w=600&q=80" },
+        { name: "فندق إمباسادور - سنغافورة", location: "سنغافورة", img: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=600&q=80" },
+        { name: "منتجع سيكس سينسز - المالديف", location: "جزر المالديف", img: "https://images.unsplash.com/photo-1439130490301-25e322d88054?auto=format&fit=crop&w=600&q=80" },
+        { name: "فندق الملك داود - القدس", location: "فلسطين", img: "https://images.unsplash.com/photo-1549918864-48ac978761a4?auto=format&fit=crop&w=600&q=80" },
+        { name: "فندق كمبينسكي - جنيف", location: "سويسرا", img: "https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?auto=format&fit=crop&w=600&q=80" }
     ];
 
     function relocateHomeSecondaryContent() {
@@ -2462,6 +2495,10 @@
     function openDepositModal() { document.getElementById('deposit-modal').style.display = 'flex'; }
     function closeDepositModal() { document.getElementById('deposit-modal').style.display = 'none'; }
     function closeDepositSuccessModal() { document.getElementById('deposit-success-modal').style.display = 'none'; }
+    function openWithdrawModal() { document.getElementById('withdraw-modal').style.display = 'flex'; }
+    function closeWithdrawModal() { document.getElementById('withdraw-modal').style.display = 'none'; }
+    function closeWithdrawSuccessModal() { document.getElementById('withdraw-success-modal').style.display = 'none'; }
+    function closeInsufficientModal() { document.getElementById('insufficient-modal').style.display = 'none'; }
 
     function buyVipProduct(name, price, totalTasks, totalReward) {
         pendingVip = { name, price, totalTasks, totalReward, isTrial: false };
@@ -2588,7 +2625,7 @@
             return;
         }
 
-        const taskCount = Math.min(Number(userVip.totalTasks), hotelsList.length);
+        const taskCount = Math.min(Number(userVip.totalTasks), hotelsList.length); // hotelsList now has 12 hotels
         for (let taskIndex = 0; taskIndex < taskCount; taskIndex++) {
             const i = taskIndex;
             const hotel = hotelsList[i];
@@ -2770,6 +2807,62 @@
         document.getElementById('task-success-modal').style.display = 'none';
     }
 
+    function openChangePasswordModal() {
+        document.getElementById('cp-current').value = '';
+        document.getElementById('cp-new').value = '';
+        document.getElementById('cp-confirm').value = '';
+        document.getElementById('cp-error').style.display = 'none';
+        document.getElementById('change-password-modal').style.display = 'flex';
+    }
+    function closeChangePasswordModal() {
+        document.getElementById('change-password-modal').style.display = 'none';
+    }
+
+    async function submitChangePassword() {
+        const current = document.getElementById('cp-current').value;
+        const newPass = document.getElementById('cp-new').value;
+        const confirm = document.getElementById('cp-confirm').value;
+        const errEl = document.getElementById('cp-error');
+        errEl.style.display = 'none';
+
+        if (newPass.length < 6) {
+            errEl.innerText = 'كلمة المرور الجديدة يجب ألا تقل عن 6 أحرف';
+            errEl.style.display = 'block';
+            return;
+        }
+        if (newPass !== confirm) {
+            errEl.innerText = 'كلمة المرور الجديدة وتأكيدها غير متطابقتين';
+            errEl.style.display = 'block';
+            return;
+        }
+        try {
+            await window.securoApi('/api/me/password', {
+                method: 'POST',
+                body: JSON.stringify({ currentPassword: current, newPassword: newPass }),
+            });
+            closeChangePasswordModal();
+            showCopyToast('تم تغيير كلمة المرور ✅', 'تم تحديث كلمة مرورك بنجاح. استخدم كلمة المرور الجديدة في تسجيل الدخول القادم.');
+        } catch (error) {
+            errEl.innerText = error.message || 'تعذر تغيير كلمة المرور';
+            errEl.style.display = 'block';
+        }
+    }
+
+    async function cancelTrialSelf() {
+        if (!window.confirm('هل أنت متأكد من إيقاف الفترة التجريبية؟ لن تتمكن من إعادة تفعيلها لاحقاً.')) return;
+        try {
+            const result = await window.securoApi('/api/vip/trial/cancel', { method: 'POST' });
+            window.syncServerUser(result.user);
+            document.getElementById('btn-trial-activate').style.display = 'none';
+            document.getElementById('trial-success-section').style.display = 'none';
+            const profileItem = document.getElementById('profile-trial-cancel-item');
+            if (profileItem) profileItem.style.display = 'none';
+            showCopyToast('تم إيقاف الفترة التجريبية', 'تم إنهاء الفترة التجريبية. يمكنك الآن الترقية لعضوية مدفوعة من قسم VIP.');
+        } catch (error) {
+            showApiError(error);
+        }
+    }
+
     function updateDailyRewardUI() {
         const claimBtn = document.getElementById('claim-btn');
         if (!claimBtn) return;
@@ -2845,76 +2938,27 @@
     }
 
     function renderRewardsList() {
+        // Rewards come from txLogs filtered by reward types (no separate rewardLogs)
         const container = document.getElementById('reward-history-list');
-        container.innerHTML = "";
-        if(rewardLogs.length === 0) {
+        const rewardTypes = ['مكافأة', 'عجلة الحظ', 'إحالة', 'مهمة'];
+        const rewardItems = txLogs.filter(item => rewardTypes.includes(item.type));
+        if (rewardItems.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">لا توجد مكافآت مسجلة بعد.</div>';
             return;
         }
-        rewardLogs.forEach(item => {
-            container.innerHTML += `
-                <div class="history-card">
-                    <div class="history-info">
-                        <div class="history-title">🎁 ${item.title}</div>
-                        <div class="history-date">📅 ${item.date}</div>
-                    </div>
-                    <div style="text-align:left;">
-                        <div style="font-weight:bold; color:#34d399;">${item.amount}</div>
-                        <span class="history-badge badge-green">${item.status}</span>
-                    </div>
-                </div>`;
-        });
+        const iconMap = { 'مكافأة': '🎁', 'عجلة الحظ': '🎡', 'إحالة': '👥', 'مهمة': '⭐' };
+        container.innerHTML = rewardItems.map(item => `
+            <div class="history-card">
+                <div class="history-info">
+                    <div class="history-title">${iconMap[item.type] || '🎁'} ${item.title}</div>
+                    <div class="history-date">📅 ${new Date(item.date).toLocaleString('ar-DZ', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+                </div>
+                <div style="text-align:left;">
+                    <div style="font-weight:bold; color:#34d399;">${item.amount}</div>
+                    <span class="history-badge badge-green">${item.type}</span>
+                </div>
+            </div>`).join('');
     }
-
-    function renderWithdrawsList() {
-        const container = document.getElementById('withdraw-history-list');
-        container.innerHTML = "";
-        if(withdrawLogs.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">لا توجد عمليات سحب سابقة.</div>';
-            return;
-        }
-        withdrawLogs.forEach(item => {
-            container.innerHTML += `
-                <div class="history-card">
-                    <div class="history-info">
-                        <div class="history-title">🏦 ${item.bank} (${item.account})</div>
-                        <div class="history-date">📅 ${item.date}</div>
-                    </div>
-                    <div style="text-align:left;">
-                        <div style="font-weight:bold; color:#f87171;">${item.amount}</div>
-                        <span class="history-badge badge-orange">${item.status}</span>
-                    </div>
-                </div>`;
-        });
-    }
-
-    function renderTxList() {
-        const container = document.getElementById('tx-history-list');
-        container.innerHTML = "";
-        if(txLogs.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text-muted);">لا توجد معاملات مسجلة بعد.</div>';
-            return;
-        }
-        txLogs.forEach(item => {
-            let badgeClass = item.type === "إيداع" ? "badge-green" : "badge-orange";
-            container.innerHTML += `
-                <div class="history-card">
-                    <div class="history-info">
-                        <div class="history-title">${item.title}</div>
-                        <div class="history-date">📅 ${item.date}</div>
-                    </div>
-                    <div style="text-align:left;">
-                        <div style="font-weight:bold; color:${item.amount.startsWith('+') ? '#34d399' : '#f87171'};">${item.amount}</div>
-                        <span class="history-badge ${badgeClass}">${item.type}</span>
-                    </div>
-                </div>`;
-        });
-    }
-
-    function openWithdrawModal() { document.getElementById('withdraw-modal').style.display = 'flex'; }
-    function closeWithdrawModal() { document.getElementById('withdraw-modal').style.display = 'none'; }
-    function closeInsufficientModal() { document.getElementById('insufficient-modal').style.display = 'none'; }
-    function closeWithdrawSuccessModal() { document.getElementById('withdraw-success-modal').style.display = 'none'; }
 
 </script>
 <script src="client-api.js"></script>

@@ -98,7 +98,8 @@ const statusNames = {
 };
 const rates = [0.1, 0.05, 0.01];
 const dailyRewardAmount = 0.1;
-const trialDurationDays = 2;
+const trialDurationDays = 30; // backup expiry; trial ends by task count (4 tasks)
+const trialMaxTasks = 4;
 const vipProducts = {
   "VIP 1": { price: 14, totalTasks: 3, totalReward: 1.2 },
   "VIP 2": { price: 24, totalTasks: 6, totalReward: 2.5 },
@@ -568,7 +569,7 @@ app.post("/api/vip/trial", requireUser, async (req, res) => {
       const user = locked.rows[0];
       if (user.trial_used) throw Object.assign(new Error("لقد استخدمت الفترة التجريبية سابقاً"), { status: 409 });
       if (user.user_vip) throw Object.assign(new Error("لديك عضوية VIP نشطة حالياً"), { status: 409 });
-      const vip = { name: "الفترة التجريبية (Trial)", price: 0, totalTasks: 2, totalReward: 2, isTrial: true };
+      const vip = { name: "الفترة التجريبية (Trial)", price: 0, totalTasks: trialMaxTasks, totalReward: trialMaxTasks * 0.5, isTrial: true };
       const updated = await client.query(
         `UPDATE users SET user_vip = $1::jsonb, trial_active = TRUE, trial_used = TRUE,
           current_trial_day = 1, completed_tasks_count = 0, task_last_reset_date = CURRENT_DATE,
@@ -782,7 +783,28 @@ app.post("/api/tasks/:taskIndex/complete", requireUser, async (req, res) => {
          VALUES ($1, 'مهمة', $2, 'credit', $3, 'task_attempt', $4)`,
         [req.session.userId, reward.toFixed(2), `عمولة تقييم فندق (${vip.name})`, attempt.rows[0].id],
       );
-       return { user: publicUser(updated.rows[0]), reward, taskIndex, alreadyCompleted: false };
+
+      // Auto-cancel trial after completing trialMaxTasks total tasks
+      let trialCancelled = false;
+      if (vip.isTrial) {
+        const totalTrialTasks = await client.query(
+          `SELECT COUNT(*) FROM task_attempts WHERE user_id = $1 AND completed_at IS NOT NULL`,
+          [req.session.userId],
+        );
+        if (Number(totalTrialTasks.rows[0].count) >= trialMaxTasks) {
+          await client.query(
+            `UPDATE users SET trial_active = FALSE, user_vip = NULL, vip_expires_at = NULL,
+             trial_used = TRUE, updated_at = NOW() WHERE id = $1`,
+            [req.session.userId],
+          );
+          trialCancelled = true;
+        }
+      }
+
+      const finalUser = trialCancelled
+        ? await getUserById(req.session.userId)
+        : updated.rows[0];
+       return { user: publicUser(finalUser), reward, taskIndex, alreadyCompleted: false, trialCancelled };
     });
     res.json(result);
   } catch (error) {
@@ -1037,6 +1059,81 @@ app.post("/api/admin/users/:id/tasks/reset", requireAdmin, async (req, res) => {
     res.json({ user: result });
   } catch (error) {
     appError(res, error.status || 500, error.status ? error.message : "تعذر تصفير مهام المستخدم");
+  }
+});
+
+// User self-cancel trial
+app.post("/api/vip/trial/cancel", requireUser, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `UPDATE users
+       SET trial_active = FALSE, trial_used = TRUE, user_vip = NULL, vip_expires_at = NULL, updated_at = NOW()
+       WHERE id = $1 AND is_admin = FALSE AND (trial_active = TRUE OR (user_vip IS NOT NULL AND user_vip->>'isTrial' = 'true'))
+       RETURNING *`,
+      [req.session.userId],
+    );
+    if (!result.rowCount) {
+      return appError(res, 404, "لا توجد فترة تجريبية نشطة");
+    }
+    res.json({ user: publicUser(result.rows[0]) });
+  } catch {
+    appError(res, 500, "تعذر إلغاء الفترة التجريبية");
+  }
+});
+
+// User change password
+app.post("/api/me/password", requireAuth, async (req, res) => {
+  const currentPassword = String(req.body.currentPassword || "");
+  const newPassword = String(req.body.newPassword || "");
+  if (newPassword.length < 6) return appError(res, 400, "كلمة المرور الجديدة يجب ألا تقل عن 6 أحرف");
+  try {
+    const user = await getUserById(req.session.userId);
+    if (!user) return appError(res, 404, "الحساب غير موجود");
+    const match = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!match) return appError(res, 401, "كلمة المرور الحالية غير صحيحة");
+    const hash = await bcrypt.hash(newPassword, 12);
+    await pool.query("UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2", [hash, req.session.userId]);
+    res.json({ ok: true });
+  } catch {
+    appError(res, 500, "تعذر تغيير كلمة المرور");
+  }
+});
+
+// Admin change user password
+app.post("/api/admin/users/:id/password", requireAdmin, async (req, res) => {
+  const userId = Number(req.params.id);
+  const newPassword = String(req.body.newPassword || "");
+  if (!Number.isInteger(userId) || userId <= 0) return appError(res, 400, "معرّف المستخدم غير صحيح");
+  if (newPassword.length < 6) return appError(res, 400, "كلمة المرور الجديدة يجب ألا تقل عن 6 أحرف");
+  try {
+    const hash = await bcrypt.hash(newPassword, 12);
+    const result = await pool.query(
+      "UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2 AND is_admin = FALSE RETURNING id",
+      [hash, userId],
+    );
+    if (!result.rowCount) return appError(res, 404, "المستخدم غير موجود أو حساب إداري");
+    res.json({ ok: true });
+  } catch {
+    appError(res, 500, "تعذر تغيير كلمة المرور");
+  }
+});
+
+// Admin grant wheel spin
+app.post("/api/admin/users/:id/spins", requireAdmin, async (req, res) => {
+  const userId = Number(req.params.id);
+  const count = Number(req.body.count || 1);
+  if (!Number.isInteger(userId) || userId <= 0) return appError(res, 400, "معرّف المستخدم غير صحيح");
+  if (!Number.isInteger(count) || count < 1 || count > 100) return appError(res, 400, "عدد المحاولات غير صحيح");
+  try {
+    const result = await pool.query(
+      `UPDATE users SET available_spins = available_spins + $1, updated_at = NOW()
+       WHERE id = $2 AND is_admin = FALSE RETURNING *`,
+      [count, userId],
+    );
+    if (!result.rowCount) return appError(res, 404, "المستخدم غير موجود أو حساب إداري");
+    res.json({ user: publicUser(result.rows[0]) });
+  } catch {
+    appError(res, 500, "تعذر منح محاولات عجلة الحظ");
   }
 });
 

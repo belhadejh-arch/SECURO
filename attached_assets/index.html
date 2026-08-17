@@ -1292,6 +1292,33 @@
                 padding-bottom: calc(var(--bottom-nav-height) + var(--bottom-nav-gap) + env(safe-area-inset-bottom)) !important;
             }
         }
+
+        /*
+         * Final no-gap layout rule for authenticated screens.
+         * The home and admin pages must start immediately below the header;
+         * neither page should reserve viewport height before its content.
+         */
+        .app-container:has(#home-screen.active) > .content,
+        .app-container:has(#admin-screen.active) > .content {
+            display: block !important;
+            flex: 0 0 auto !important;
+            height: auto !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding-top: 0 !important;
+            padding-bottom: 32px !important;
+            align-items: initial !important;
+            justify-content: flex-start !important;
+        }
+        #home-screen.active,
+        #admin-screen.active {
+            display: block !important;
+            height: auto !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding-top: 0 !important;
+            transform: none !important;
+        }
     </style>
 </head>
 <body>

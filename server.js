@@ -1147,6 +1147,10 @@ function validatePasswordChange(req, res) {
     appError(res, 400, "كلمة المرور الجديدة يجب ألا تقل عن 6 أحرف");
     return null;
   }
+  if (newPassword.length > 128) {
+    appError(res, 400, "كلمة المرور الجديدة طويلة جداً");
+    return null;
+  }
   if (currentPassword === newPassword) {
     appError(res, 400, "كلمة المرور الجديدة يجب أن تختلف عن الحالية");
     return null;
@@ -1154,9 +1158,9 @@ function validatePasswordChange(req, res) {
   return { currentPassword, newPassword };
 }
 
-// A user changes their own password. The current password is checked server-side
-// and the new bcrypt hash is persisted in PostgreSQL.
-app.post("/api/me/password", requireAuth, async (req, res) => {
+// A regular user changes only their own password. Admins use the dedicated
+// control-panel route below, so this endpoint cannot be used by an admin.
+app.post("/api/me/password", requireUser, async (req, res) => {
   const values = validatePasswordChange(req, res);
   if (!values) return;
   try {

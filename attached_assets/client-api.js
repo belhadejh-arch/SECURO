@@ -432,7 +432,7 @@
   function buildUserCard(user) {
     const accountStatus = adminAccountStatus(user);
     const vipStatus = adminVipStatus(user);
-    const hasTrial = user.userVip && user.userVip.isTrial;
+    const hasTrial = Boolean(user.trialActive || (user.userVip && user.userVip.isTrial));
     const vipExpiry = user.userVip && user.vipExpiresAt
       ? `<small style="display:block;color:var(--text-muted);margin-top:3px">ينتهي: ${escapeHtml(dateText(user.vipExpiresAt))}</small>`
       : "";
@@ -472,15 +472,17 @@
           </div>
         </div>
 
-        <!-- أزرار الإجراءات -->
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;border-top:1px solid var(--border-color);padding-top:8px">
-          <button class="btn btn-green"  style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminAdjustBalance(${user.id},${Number(user.balance).toFixed(2)})">✏️ تعديل الرصيد</button>
-          <button class="btn btn-gold"   style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminChangeVip(${user.id})">👑 تغيير VIP</button>
-          <button class="btn"            style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px;background:#6366f1;color:white" onclick="adminResetTasks(${user.id})">🔄 تصفير المهام</button>
-          <button class="btn"            style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px;background:#0891b2;color:white" onclick="adminGrantSpin(${user.id})">🎡 منح فرصة عجلة</button>
-          ${hasTrial ? `<button class="btn btn-red" style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminCancelTrial(${user.id})">🚫 إلغاء التجربة</button>` : ""}
-          ${!user.isAdmin ? `<button class="btn ${user.isBlocked ? "btn-green" : "btn-red"}" style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminToggleBlock(${user.id},${!user.isBlocked})">${user.isBlocked ? "✅ رفع الحظر" : "🚫 حظر"}</button>` : ""}
-        </div>
+        <!-- أزرار الإجراءات الخاصة بالمستخدمين فقط -->
+        ${!user.isAdmin ? `
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;border-top:1px solid var(--border-color);padding-top:8px">
+            <button class="btn btn-green"  style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminAdjustBalance(${user.id},${Number(user.balance).toFixed(2)})">✏️ تعديل الرصيد</button>
+            <button class="btn btn-gold"   style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminChangeVip(${user.id})">👑 تغيير VIP</button>
+            <button class="btn"            style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px;background:#6366f1;color:white" onclick="adminResetTasks(${user.id})">🔄 تصفير المهام</button>
+            <button class="btn"            style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px;background:#0891b2;color:white" onclick="adminGrantSpin(${user.id})">🎡 منح فرصة عجلة</button>
+            ${hasTrial ? `<button class="btn btn-red" style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminCancelTrial(${user.id})">🚫 إلغاء التجربة</button>` : ""}
+            <button class="btn ${user.isBlocked ? "btn-green" : "btn-red"}" style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminToggleBlock(${user.id},${!user.isBlocked})">${user.isBlocked ? "✅ رفع الحظر" : "🚫 حظر"}</button>
+          </div>
+        ` : ""}
       </div>`;
   }
 

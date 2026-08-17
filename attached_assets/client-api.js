@@ -97,6 +97,8 @@
      referralEarningsByLevel = payload.referralEarningsByLevel || {};
      totalDeposits = Number(payload.totalDeposits || 0);
      totalWithdrawals = Number(payload.totalWithdrawals || 0);
+     totalDepositCount = Number(payload.totalDepositCount || 0);
+     totalWithdrawalCount = Number(payload.totalWithdrawalCount || 0);
 
     if (!isAdmin) {
       document.getElementById("user-balance").innerText = balance.toFixed(2);
@@ -122,6 +124,10 @@
        const totalWithdrawalsEl = document.getElementById("user-total-withdrawals");
        if (totalDepositsEl) totalDepositsEl.innerText = `$${totalDeposits.toFixed(2)}`;
        if (totalWithdrawalsEl) totalWithdrawalsEl.innerText = `$${totalWithdrawals.toFixed(2)}`;
+       const totalDepositCountEl = document.getElementById("user-total-deposit-count");
+       const totalWithdrawalCountEl = document.getElementById("user-total-withdrawal-count");
+       if (totalDepositCountEl) totalDepositCountEl.innerText = `${totalDepositCount} عملية`;
+       if (totalWithdrawalCountEl) totalWithdrawalCountEl.innerText = `${totalWithdrawalCount} عملية`;
       if (typeof startTaskDaySync === "function") startTaskDaySync();
     }
   }
@@ -141,6 +147,8 @@
     trialUsed = Boolean(user.trialUsed);
      if (user.totalDeposits !== undefined) totalDeposits = Number(user.totalDeposits || 0);
      if (user.totalWithdrawals !== undefined) totalWithdrawals = Number(user.totalWithdrawals || 0);
+     if (user.totalDepositCount !== undefined) totalDepositCount = Number(user.totalDepositCount || 0);
+     if (user.totalWithdrawalCount !== undefined) totalWithdrawalCount = Number(user.totalWithdrawalCount || 0);
     const balanceEl = document.getElementById("user-balance");
     const homeBalanceEl = document.getElementById("home-balance");
     const spinsEl = document.getElementById("wheel-spins-count");
@@ -151,6 +159,10 @@
      const totalWithdrawalsEl = document.getElementById("user-total-withdrawals");
      if (totalDepositsEl) totalDepositsEl.innerText = `$${totalDeposits.toFixed(2)}`;
      if (totalWithdrawalsEl) totalWithdrawalsEl.innerText = `$${totalWithdrawals.toFixed(2)}`;
+     const totalDepositCountEl = document.getElementById("user-total-deposit-count");
+     const totalWithdrawalCountEl = document.getElementById("user-total-withdrawal-count");
+     if (totalDepositCountEl) totalDepositCountEl.innerText = `${totalDepositCount} عملية`;
+     if (totalWithdrawalCountEl) totalWithdrawalCountEl.innerText = `${totalWithdrawalCount} عملية`;
     if (typeof updateWheelUI === "function") updateWheelUI();
     // Update trial cancel button visibility
     const trialButton = document.getElementById("btn-trial-activate");
@@ -466,7 +478,6 @@
           <button class="btn btn-gold"   style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminChangeVip(${user.id})">👑 تغيير VIP</button>
           <button class="btn"            style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px;background:#6366f1;color:white" onclick="adminResetTasks(${user.id})">🔄 تصفير المهام</button>
           <button class="btn"            style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px;background:#0891b2;color:white" onclick="adminGrantSpin(${user.id})">🎡 منح فرصة عجلة</button>
-          <button class="btn"            style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px;background:#7c3aed;color:white" onclick="adminChangeUserPassword(${user.id})">🔑 تغيير كلمة المرور</button>
           ${hasTrial ? `<button class="btn btn-red" style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminCancelTrial(${user.id})">🚫 إلغاء التجربة</button>` : ""}
           ${!user.isAdmin ? `<button class="btn ${user.isBlocked ? "btn-green" : "btn-red"}" style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminToggleBlock(${user.id},${!user.isBlocked})">${user.isBlocked ? "✅ رفع الحظر" : "🚫 حظر"}</button>` : ""}
         </div>
@@ -504,6 +515,10 @@
       document.getElementById("admin-total-users").innerText = data.stats.users;
       document.getElementById("admin-total-deposits").innerText = `$${Number(data.stats.deposits).toFixed(2)}`;
       document.getElementById("admin-total-withdraws").innerText = `$${Number(data.stats.withdrawals).toFixed(2)}`;
+       const adminDepositCount = document.getElementById("admin-total-deposit-count");
+       const adminWithdrawalCount = document.getElementById("admin-total-withdrawal-count");
+       if (adminDepositCount) adminDepositCount.innerText = `${Number(data.stats.depositCount || 0)} عملية مقبولة`;
+       if (adminWithdrawalCount) adminWithdrawalCount.innerText = `${Number(data.stats.withdrawalCount || 0)} عملية مقبولة`;
 
       // أعد تطبيق فلتر البحث إن وُجد
       const q = (document.getElementById("admin-search-input")?.value || "").trim();
@@ -615,23 +630,6 @@
     }
   };
 
-  window.adminChangeUserPassword = async function (userId) {
-    const newPass = window.prompt("أدخل كلمة المرور الجديدة للمستخدم (6 أحرف على الأقل):", "");
-    if (newPass === null || !newPass) return;
-    if (newPass.length < 6) {
-      return showApiError(new Error("كلمة المرور يجب ألا تقل عن 6 أحرف"));
-    }
-    if (!window.confirm(`تأكيد تغيير كلمة مرور المستخدم ${userId}؟`)) return;
-    try {
-      await api(`/api/admin/users/${encodeURIComponent(userId)}/password`, {
-        method: "POST",
-        body: JSON.stringify({ newPassword: newPass }),
-      });
-      showCopyToast?.("تم تغيير كلمة المرور ✅", "تم تحديث كلمة مرور المستخدم بنجاح في قاعدة البيانات.");
-    } catch (error) {
-      showApiError(error);
-    }
-  };
   function startAdminDashboardRefresh() {
     stopAdminDashboardRefresh();
     adminRefreshInterval = window.setInterval(() => {

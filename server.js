@@ -280,8 +280,12 @@ async function loadUserPayload(userId) {
         `SELECT
            (SELECT COALESCE(SUM(amount), 0) FROM deposit_requests
             WHERE user_id = $1 AND status = 'accepted') AS total_deposits,
+           (SELECT COUNT(*) FROM deposit_requests
+            WHERE user_id = $1 AND status = 'accepted') AS total_deposit_count,
            (SELECT COALESCE(SUM(amount), 0) FROM withdrawal_requests
-            WHERE user_id = $1 AND status = 'accepted') AS total_withdrawals`,
+            WHERE user_id = $1 AND status = 'accepted') AS total_withdrawals,
+           (SELECT COUNT(*) FROM withdrawal_requests
+            WHERE user_id = $1 AND status = 'accepted') AS total_withdrawal_count`,
         [userId],
       ),
     ]);
@@ -328,6 +332,8 @@ async function loadUserPayload(userId) {
     ),
     totalDeposits: money(totals.rows[0].total_deposits),
     totalWithdrawals: money(totals.rows[0].total_withdrawals),
+    totalDepositCount: Number(totals.rows[0].total_deposit_count || 0),
+    totalWithdrawalCount: Number(totals.rows[0].total_withdrawal_count || 0),
   };
 }
 
@@ -919,9 +925,11 @@ app.get("/api/admin/overview", requireAdmin, async (_req, res) => {
       ),
       pool.query(
         `SELECT
-          (SELECT COUNT(*) FROM users WHERE is_admin = FALSE) AS users,
-          (SELECT COALESCE(SUM(amount), 0) FROM deposit_requests WHERE status = 'accepted') AS deposits,
-          (SELECT COALESCE(SUM(amount), 0) FROM withdrawal_requests WHERE status = 'accepted') AS withdrawals`,
+           (SELECT COUNT(*) FROM users WHERE is_admin = FALSE) AS users,
+           (SELECT COALESCE(SUM(amount), 0) FROM deposit_requests WHERE status = 'accepted') AS deposits,
+           (SELECT COUNT(*) FROM deposit_requests WHERE status = 'accepted') AS deposit_count,
+           (SELECT COALESCE(SUM(amount), 0) FROM withdrawal_requests WHERE status = 'accepted') AS withdrawals,
+           (SELECT COUNT(*) FROM withdrawal_requests WHERE status = 'accepted') AS withdrawal_count`,
       ),
     ]);
     res.json({
@@ -936,6 +944,8 @@ app.get("/api/admin/overview", requireAdmin, async (_req, res) => {
         users: Number(stats.rows[0].users),
         deposits: money(stats.rows[0].deposits),
         withdrawals: money(stats.rows[0].withdrawals),
+        depositCount: Number(stats.rows[0].deposit_count || 0),
+        withdrawalCount: Number(stats.rows[0].withdrawal_count || 0),
       },
     });
   } catch {
@@ -1105,49 +1115,70 @@ app.post("/api/vip/trial/cancel", requireUser, async (req, res) => {
   }
 });
 
-// User change password
-app.post("/api/me/password", requireAuth, async (req, res) => {
+async function updateOwnPassword(userId, currentPassword, newPassword) {
+  return withTransaction(async (client) => {
+    const locked = await client.query(
+      "SELECT password_hash FROM users WHERE id = $1 FOR UPDATE",
+      [userId],
+    );
+    if (!locked.rowCount) {
+      throw Object.assign(new Error("الحساب غير موجود"), { status: 404 });
+    }
+    const match = await bcrypt.compare(currentPassword, locked.rows[0].password_hash);
+    if (!match) {
+      throw Object.assign(new Error("كلمة المرور الحالية غير صحيحة"), { status: 401 });
+    }
+    const hash = await bcrypt.hash(newPassword, 12);
+    await client.query(
+      "UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2",
+      [hash, userId],
+    );
+  });
+}
+
+function validatePasswordChange(req, res) {
   const currentPassword = String(req.body.currentPassword || "");
   const newPassword = String(req.body.newPassword || "");
-  if (!currentPassword) return appError(res, 400, "يرجى إدخال كلمة المرور الحالية");
-  if (newPassword.length < 6) return appError(res, 400, "كلمة المرور الجديدة يجب ألا تقل عن 6 أحرف");
-  if (currentPassword === newPassword) {
-    return appError(res, 400, "كلمة المرور الجديدة يجب أن تختلف عن الحالية");
+  if (!currentPassword) {
+    appError(res, 400, "يرجى إدخال كلمة المرور الحالية");
+    return null;
   }
+  if (newPassword.length < 6) {
+    appError(res, 400, "كلمة المرور الجديدة يجب ألا تقل عن 6 أحرف");
+    return null;
+  }
+  if (currentPassword === newPassword) {
+    appError(res, 400, "كلمة المرور الجديدة يجب أن تختلف عن الحالية");
+    return null;
+  }
+  return { currentPassword, newPassword };
+}
+
+// A user changes their own password. The current password is checked server-side
+// and the new bcrypt hash is persisted in PostgreSQL.
+app.post("/api/me/password", requireAuth, async (req, res) => {
+  const values = validatePasswordChange(req, res);
+  if (!values) return;
   try {
-    const user = await getUserById(req.session.userId);
-    if (!user) return appError(res, 404, "الحساب غير موجود");
-    const match = await bcrypt.compare(currentPassword, user.password_hash);
-    if (!match) return appError(res, 401, "كلمة المرور الحالية غير صحيحة");
-    const hash = await bcrypt.hash(newPassword, 12);
-    const updated = await pool.query(
-      "UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2 RETURNING id",
-      [hash, req.session.userId],
-    );
-    if (!updated.rowCount) return appError(res, 404, "الحساب غير موجود");
-    res.json({ ok: true, userId: updated.rows[0].id });
+    await updateOwnPassword(req.session.userId, values.currentPassword, values.newPassword);
+    res.json({ ok: true });
   } catch (error) {
     console.error("Password update failed:", error.code || error.message);
-    appError(res, 500, "تعذر تغيير كلمة المرور");
+    appError(res, error.status || 500, error.status ? error.message : "تعذر تغيير كلمة المرور");
   }
 });
 
-// Admin change user password
-app.post("/api/admin/users/:id/password", requireAdmin, async (req, res) => {
-  const userId = Number(req.params.id);
-  const newPassword = String(req.body.newPassword || "");
-  if (!Number.isInteger(userId) || userId <= 0) return appError(res, 400, "معرّف المستخدم غير صحيح");
-  if (newPassword.length < 6) return appError(res, 400, "كلمة المرور الجديدة يجب ألا تقل عن 6 أحرف");
+// The admin control panel uses a dedicated route, but still changes only the
+// currently authenticated admin's own password.
+app.post("/api/admin/password", requireAdmin, async (req, res) => {
+  const values = validatePasswordChange(req, res);
+  if (!values) return;
   try {
-    const hash = await bcrypt.hash(newPassword, 12);
-    const result = await pool.query(
-      "UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2 AND is_admin = FALSE RETURNING id",
-      [hash, userId],
-    );
-    if (!result.rowCount) return appError(res, 404, "المستخدم غير موجود أو حساب إداري");
+    await updateOwnPassword(req.session.userId, values.currentPassword, values.newPassword);
     res.json({ ok: true });
-  } catch {
-    appError(res, 500, "تعذر تغيير كلمة المرور");
+  } catch (error) {
+    console.error("Admin password update failed:", error.code || error.message);
+    appError(res, error.status || 500, error.status ? error.message : "تعذر تغيير كلمة مرور المشرف");
   }
 });
 

@@ -1503,11 +1503,13 @@
                     <div style="color:#34d399;margin-bottom:8px;"><i class="fa-solid fa-arrow-trend-up"></i></div>
                     <div class="stat-num" id="admin-total-deposits">$0.00</div>
                     <div class="stat-lbl">إجمالي الإيداع المقبول</div>
+                    <div id="admin-total-deposit-count" style="font-size:.68rem;color:#86efac;margin-top:3px;">0 عملية مقبولة</div>
                 </div>
                 <div class="stat-box">
                     <div style="color:#fbbf24;margin-bottom:8px;"><i class="fa-solid fa-arrow-trend-down"></i></div>
                     <div class="stat-num" id="admin-total-withdraws">$0.00</div>
                     <div class="stat-lbl">إجمالي السحب المقبول</div>
+                    <div id="admin-total-withdrawal-count" style="font-size:.68rem;color:#fde68a;margin-top:3px;">0 عملية مقبولة</div>
                 </div>
             </div>
 
@@ -1788,11 +1790,13 @@
                 <div class="stat-box">
                     <div class="stat-num" id="user-total-deposits">$0.00</div>
                     <div class="stat-lbl">إجمالي الإيداع المقبول</div>
+                    <div id="user-total-deposit-count" style="font-size:.68rem;color:#86efac;margin-top:3px;">0 عملية</div>
                 </div>
                 <div style="height: 25px; width: 1px; background: var(--border-color);"></div>
                 <div class="stat-box">
                     <div class="stat-num" id="user-total-withdrawals">$0.00</div>
                     <div class="stat-lbl">إجمالي السحب المقبول</div>
+                    <div id="user-total-withdrawal-count" style="font-size:.68rem;color:#fde68a;margin-top:3px;">0 عملية</div>
                 </div>
             </div>
 
@@ -1987,7 +1991,7 @@
     <div id="change-password-modal" class="modal">
         <div class="modal-content" style="padding: 25px; text-align: right;">
             <div style="font-size: 2.5rem; text-align: center; margin-bottom: 10px;">🔑</div>
-            <h3 style="color: var(--primary-blue); margin-bottom: 15px; text-align: center;">تغيير كلمة المرور</h3>
+            <h3 id="change-password-title" style="color: var(--primary-blue); margin-bottom: 15px; text-align: center;">تغيير كلمة المرور</h3>
             <form class="form-group" onsubmit="event.preventDefault(); submitChangePassword();" autocomplete="on">
                 <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-white);">كلمة المرور الحالية:</label>
                 <input type="password" id="cp-current" name="current-password" placeholder="أدخل كلمة المرور الحالية" autocomplete="current-password">
@@ -2133,6 +2137,8 @@
     let isAdmin = false;
     let totalDeposits = 0.00;
     let totalWithdrawals = 0.00;
+    let totalDepositCount = 0;
+    let totalWithdrawalCount = 0;
     
     let registeredUsers = [];
 
@@ -3109,6 +3115,8 @@
         document.getElementById('cp-new').value = '';
         document.getElementById('cp-confirm').value = '';
         document.getElementById('cp-error').style.display = 'none';
+        const title = document.getElementById('change-password-title');
+        if (title) title.innerText = isAdmin ? 'تغيير كلمة مرور لوحة التحكم' : 'تغيير كلمة المرور';
         document.getElementById('change-password-modal').style.display = 'flex';
     }
     function closeChangePasswordModal() {
@@ -3133,12 +3141,18 @@
             return;
         }
         try {
-            await window.securoApi('/api/me/password', {
+            const endpoint = isAdmin ? '/api/admin/password' : '/api/me/password';
+            await window.securoApi(endpoint, {
                 method: 'POST',
                 body: JSON.stringify({ currentPassword: current, newPassword: newPass }),
             });
             closeChangePasswordModal();
-            showCopyToast('تم تغيير كلمة المرور ✅', 'تم تحديث كلمة مرورك بنجاح. استخدم كلمة المرور الجديدة في تسجيل الدخول القادم.');
+            showCopyToast(
+                'تم تغيير كلمة المرور ✅',
+                isAdmin
+                    ? 'تم تحديث كلمة مرور لوحة التحكم في قاعدة البيانات بنجاح.'
+                    : 'تم تحديث كلمة مرورك بنجاح. استخدم كلمة المرور الجديدة في تسجيل الدخول القادم.',
+            );
         } catch (error) {
             errEl.innerText = error.message || 'تعذر تغيير كلمة المرور';
             errEl.style.display = 'block';

@@ -2,7 +2,7 @@ services:
   - type: web
     name: securo-backend
     runtime: node
-    buildCommand: npm ci --omit=dev --no-audit --no-fund --registry=https://registry.npmjs.org/ --replace-registry-host=never && npm run build
+    buildCommand: npm ci --omit=dev --no-audit --no-fund --registry=https://registry.npmjs.org/ --replace-registry-host=always && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:

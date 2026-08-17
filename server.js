@@ -98,7 +98,7 @@ const statusNames = {
 };
 const rates = [0.1, 0.05, 0.01];
 const dailyRewardAmount = 0.1;
-const trialDurationDays = 30; // backup expiry; trial ends by task count (4 tasks)
+const trialDurationDays = 30; // backup expiry; trial ends after 4 total tasks
 const trialMaxTasks = 4;
 const vipProducts = {
   "VIP 1": { price: 14, totalTasks: 3, totalReward: 1.2 },
@@ -155,6 +155,7 @@ function publicUser(row) {
     taskLastResetDate: dateOnly(row.task_last_reset_date),
     lastClaimDate: dateOnly(row.last_claim_date),
     currentTrialDay: row.current_trial_day || 1,
+    trialTasksCompleted: Number(row.trial_tasks_completed || 0),
     trialActive: Boolean(row.trial_active),
     trialUsed: Boolean(row.trial_used),
     vipExpiresAt: row.vip_expires_at || null,
@@ -225,7 +226,7 @@ async function loadUserPayload(userId) {
   const user = await getUserById(userId);
   if (!user) return null;
 
-  const [deposits, withdrawals, transactions, taskAttempts, team, commissions, commissionsByLevel] =
+  const [deposits, withdrawals, transactions, taskAttempts, team, commissions, commissionsByLevel, totals] =
     await Promise.all([
       pool.query(
         `SELECT id, amount, txid, network, status, created_at
@@ -275,6 +276,14 @@ async function loadUserPayload(userId) {
          GROUP BY level`,
         [userId],
       ),
+      pool.query(
+        `SELECT
+           (SELECT COALESCE(SUM(amount), 0) FROM deposit_requests
+            WHERE user_id = $1 AND status = 'accepted') AS total_deposits,
+           (SELECT COALESCE(SUM(amount), 0) FROM withdrawal_requests
+            WHERE user_id = $1 AND status = 'accepted') AS total_withdrawals`,
+        [userId],
+      ),
     ]);
 
   return {
@@ -317,6 +326,8 @@ async function loadUserPayload(userId) {
     referralEarningsByLevel: Object.fromEntries(
       commissionsByLevel.rows.map((item) => [item.level, money(item.total)]),
     ),
+    totalDeposits: money(totals.rows[0].total_deposits),
+    totalWithdrawals: money(totals.rows[0].total_withdrawals),
   };
 }
 
@@ -572,7 +583,8 @@ app.post("/api/vip/trial", requireUser, async (req, res) => {
       const vip = { name: "الفترة التجريبية (Trial)", price: 0, totalTasks: trialMaxTasks, totalReward: trialMaxTasks * 1, isTrial: true };
       const updated = await client.query(
         `UPDATE users SET user_vip = $1::jsonb, trial_active = TRUE, trial_used = TRUE,
-          current_trial_day = 1, completed_tasks_count = 0, task_last_reset_date = CURRENT_DATE,
+          current_trial_day = 1, trial_tasks_completed = 0, completed_tasks_count = 0,
+          task_last_reset_date = CURRENT_DATE,
            vip_expires_at = NOW() + ($2 * INTERVAL '1 day'),
           updated_at = NOW() WHERE id = $3 RETURNING *`,
         [JSON.stringify(vip), trialDurationDays, req.session.userId],
@@ -606,7 +618,8 @@ app.post("/api/vip/purchase", requireUser, async (req, res) => {
       const vip = { name, ...product, isTrial: false };
       await client.query(
         `UPDATE users SET balance = balance - $1, user_vip = $2::jsonb,
-          trial_active = FALSE, completed_tasks_count = 0, task_last_reset_date = CURRENT_DATE,
+          trial_active = FALSE, trial_tasks_completed = 0, completed_tasks_count = 0,
+          task_last_reset_date = CURRENT_DATE,
            vip_expires_at = NOW() + INTERVAL '365 days',
            available_spins = available_spins + 1, updated_at = NOW()
          WHERE id = $3 RETURNING *`,
@@ -762,11 +775,15 @@ app.post("/api/tasks/:taskIndex/complete", requireUser, async (req, res) => {
           ? totalRewardCents - baseRewardCents * (taskCount - 1)
           : baseRewardCents;
       const reward = rewardCents / 100;
-       const updated = await client.query(
-        `UPDATE users SET balance = balance + $1, completed_tasks_count = completed_tasks_count + 1,
-          updated_at = NOW() WHERE id = $2 RETURNING *`,
-        [reward.toFixed(2), req.session.userId],
-      );
+        const updated = await client.query(
+         `UPDATE users
+          SET balance = balance + $1,
+              completed_tasks_count = completed_tasks_count + 1,
+              trial_tasks_completed = trial_tasks_completed + $3,
+              updated_at = NOW()
+          WHERE id = $2 RETURNING *`,
+         [reward.toFixed(2), req.session.userId, vip.isTrial ? 1 : 0],
+       );
        const completedAttempt = await client.query(
          `UPDATE task_attempts
           SET completed_at = NOW()
@@ -784,14 +801,10 @@ app.post("/api/tasks/:taskIndex/complete", requireUser, async (req, res) => {
         [req.session.userId, reward.toFixed(2), `عمولة تقييم فندق (${vip.name})`, attempt.rows[0].id],
       );
 
-      // Auto-cancel trial after completing trialMaxTasks total tasks
+      // Auto-cancel after completing trialMaxTasks tasks in this trial.
       let trialCancelled = false;
       if (vip.isTrial) {
-        const totalTrialTasks = await client.query(
-          `SELECT COUNT(*) FROM task_attempts WHERE user_id = $1 AND completed_at IS NOT NULL`,
-          [req.session.userId],
-        );
-        if (Number(totalTrialTasks.rows[0].count) >= trialMaxTasks) {
+        if (Number(updated.rows[0].trial_tasks_completed) >= trialMaxTasks) {
           await client.query(
             `UPDATE users SET trial_active = FALSE, user_vip = NULL, vip_expires_at = NULL,
              trial_used = TRUE, updated_at = NOW() WHERE id = $1`,
@@ -1016,6 +1029,7 @@ app.post("/api/admin/users/:id/vip", requireAdmin, async (req, res) => {
            vip_expires_at = NOW() + INTERVAL '365 days',
            trial_active = FALSE,
            trial_used = TRUE,
+           trial_tasks_completed = 0,
            completed_tasks_count = 0,
            task_last_reset_date = CURRENT_DATE,
            updated_at = NOW()
@@ -1065,19 +1079,29 @@ app.post("/api/admin/users/:id/tasks/reset", requireAdmin, async (req, res) => {
 // User self-cancel trial
 app.post("/api/vip/trial/cancel", requireUser, async (req, res) => {
   try {
-    const result = await pool.query(
-      `UPDATE users
-       SET trial_active = FALSE, trial_used = TRUE, user_vip = NULL, vip_expires_at = NULL, updated_at = NOW()
-       WHERE id = $1 AND is_admin = FALSE AND (trial_active = TRUE OR (user_vip IS NOT NULL AND user_vip->>'isTrial' = 'true'))
-       RETURNING *`,
-      [req.session.userId],
-    );
-    if (!result.rowCount) {
-      return appError(res, 404, "لا توجد فترة تجريبية نشطة");
-    }
-    res.json({ user: publicUser(result.rows[0]) });
-  } catch {
-    appError(res, 500, "تعذر إلغاء الفترة التجريبية");
+    const result = await withTransaction(async (client) => {
+      const locked = await client.query(
+        `SELECT * FROM users
+         WHERE id = $1 AND is_admin = FALSE
+           AND (trial_active = TRUE OR (user_vip IS NOT NULL AND user_vip->>'isTrial' = 'true'))
+         FOR UPDATE`,
+        [req.session.userId],
+      );
+      if (!locked.rowCount) {
+        throw Object.assign(new Error("لا توجد فترة تجريبية نشطة"), { status: 404 });
+      }
+      const updated = await client.query(
+        `UPDATE users
+         SET trial_active = FALSE, trial_used = TRUE, user_vip = NULL,
+             vip_expires_at = NULL, updated_at = NOW()
+         WHERE id = $1 RETURNING *`,
+        [req.session.userId],
+      );
+      return publicUser(updated.rows[0]);
+    });
+    res.json({ user: result });
+  } catch (error) {
+    appError(res, error.status || 500, error.status ? error.message : "تعذر إلغاء الفترة التجريبية");
   }
 });
 
@@ -1152,23 +1176,29 @@ app.post("/api/admin/users/:id/trial/cancel", requireAdmin, async (req, res) => 
     return appError(res, 400, "معرّف المستخدم غير صحيح");
   }
   try {
-    const result = await pool.query(
-      `UPDATE users
-       SET trial_active = FALSE,
-           trial_used = TRUE,
-           user_vip = NULL,
-           vip_expires_at = NULL,
-           updated_at = NOW()
-       WHERE id = $1 AND is_admin = FALSE AND (trial_active = TRUE OR (user_vip IS NOT NULL AND user_vip->>'isTrial' = 'true'))
-       RETURNING *`,
-      [userId],
-    );
-    if (!result.rowCount) {
-      return appError(res, 404, "المستخدم غير موجود أو لا توجد فترة تجريبية نشطة");
-    }
-    res.json({ user: publicUser(result.rows[0]) });
-  } catch {
-    appError(res, 500, "تعذر إلغاء الفترة التجريبية");
+    const result = await withTransaction(async (client) => {
+      const locked = await client.query(
+        `SELECT * FROM users
+         WHERE id = $1 AND is_admin = FALSE
+           AND (trial_active = TRUE OR (user_vip IS NOT NULL AND user_vip->>'isTrial' = 'true'))
+         FOR UPDATE`,
+        [userId],
+      );
+      if (!locked.rowCount) {
+        throw Object.assign(new Error("المستخدم غير موجود أو لا توجد فترة تجريبية نشطة"), { status: 404 });
+      }
+      const updated = await client.query(
+        `UPDATE users
+         SET trial_active = FALSE, trial_used = TRUE, user_vip = NULL,
+             vip_expires_at = NULL, updated_at = NOW()
+         WHERE id = $1 RETURNING *`,
+        [userId],
+      );
+      return publicUser(updated.rows[0]);
+    });
+    res.json({ user: result });
+  } catch (error) {
+    appError(res, error.status || 500, error.status ? error.message : "تعذر إلغاء الفترة التجريبية");
   }
 });
 

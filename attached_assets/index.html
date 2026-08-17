@@ -1502,12 +1502,12 @@
                 <div class="stat-box">
                     <div style="color:#34d399;margin-bottom:8px;"><i class="fa-solid fa-arrow-trend-up"></i></div>
                     <div class="stat-num" id="admin-total-deposits">$0.00</div>
-                    <div class="stat-lbl">الإيداعات المقبولة</div>
+                    <div class="stat-lbl">إجمالي الإيداع المقبول</div>
                 </div>
                 <div class="stat-box">
                     <div style="color:#fbbf24;margin-bottom:8px;"><i class="fa-solid fa-arrow-trend-down"></i></div>
                     <div class="stat-num" id="admin-total-withdraws">$0.00</div>
-                    <div class="stat-lbl">السحوبات المقبولة</div>
+                    <div class="stat-lbl">إجمالي السحب المقبول</div>
                 </div>
             </div>
 
@@ -1779,9 +1779,21 @@
         <!-- 6. شاشة ملكي -->
         <div id="profile-screen" class="screen">
             <div class="balance-card">
-                <div style="font-size: 0.9rem; opacity: 0.9;">إجمالي الرصيد الحالي</div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">الرصيد المتاح للسحب</div>
                 <div class="balance-amount">$<span id="user-balance">0.00</span></div>
                 <div style="font-size: 0.85rem; opacity: 0.8;" id="user-display-email">email@example.com</div>
+            </div>
+
+            <div class="stats-bar" style="margin-top: 12px; margin-bottom: 15px;">
+                <div class="stat-box">
+                    <div class="stat-num" id="user-total-deposits">$0.00</div>
+                    <div class="stat-lbl">إجمالي الإيداع المقبول</div>
+                </div>
+                <div style="height: 25px; width: 1px; background: var(--border-color);"></div>
+                <div class="stat-box">
+                    <div class="stat-num" id="user-total-withdrawals">$0.00</div>
+                    <div class="stat-lbl">إجمالي السحب المقبول</div>
+                </div>
             </div>
 
             <div class="support-banner-profile" onclick="openSupportModal()">
@@ -2119,6 +2131,8 @@
     let currentUser = null;
     let balance = 0.00;
     let isAdmin = false;
+    let totalDeposits = 0.00;
+    let totalWithdrawals = 0.00;
     
     let registeredUsers = [];
 
@@ -2887,7 +2901,7 @@
         progressEl.innerText = `المهام المنجزة اليوم: ${completedTasksCount} / ${userVip.totalTasks}`;
 
         if (completedTasksCount >= userVip.totalTasks) {
-            let trialDayText = userVip.isTrial ? ` (اليوم التجريبي رقم ${currentTrialDay} من أصل 2 أيام)` : " (صالحة لمدة 365 يوماً)";
+            let trialDayText = userVip.isTrial ? ` (تجربة من 4 مهام إجمالاً)` : " (صالحة لمدة 365 يوماً)";
             container.innerHTML = `
                 <div class="task-complete-card">
                     <div class="task-complete-icon-box">

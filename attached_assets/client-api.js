@@ -62,7 +62,7 @@
   function adminVipStatus(user) {
     if (!user.userVip) return { label: "غير مشترك", className: "badge-orange" };
     if (user.userVip.isTrial) {
-      return { label: "تجريبي — صالح ليومين", className: "badge-green" };
+      return { label: "تجريبي — 4 مهام إجمالاً", className: "badge-green" };
     }
     return { label: user.userVip.name || "VIP نشط", className: "badge-green" };
   }
@@ -95,6 +95,8 @@
     teamMembers = payload.teamMembers || [];
     referralEarnings = Number(payload.referralEarnings || 0);
      referralEarningsByLevel = payload.referralEarningsByLevel || {};
+     totalDeposits = Number(payload.totalDeposits || 0);
+     totalWithdrawals = Number(payload.totalWithdrawals || 0);
 
     if (!isAdmin) {
       document.getElementById("user-balance").innerText = balance.toFixed(2);
@@ -116,6 +118,10 @@
       }
       const homeBalanceEl = document.getElementById("home-balance");
       if (homeBalanceEl) homeBalanceEl.innerText = balance.toFixed(2);
+       const totalDepositsEl = document.getElementById("user-total-deposits");
+       const totalWithdrawalsEl = document.getElementById("user-total-withdrawals");
+       if (totalDepositsEl) totalDepositsEl.innerText = `$${totalDeposits.toFixed(2)}`;
+       if (totalWithdrawalsEl) totalWithdrawalsEl.innerText = `$${totalWithdrawals.toFixed(2)}`;
       if (typeof startTaskDaySync === "function") startTaskDaySync();
     }
   }
@@ -133,12 +139,18 @@
     currentTrialDay = Number(user.currentTrialDay || 1);
     trialActive = Boolean(user.trialActive);
     trialUsed = Boolean(user.trialUsed);
+     if (user.totalDeposits !== undefined) totalDeposits = Number(user.totalDeposits || 0);
+     if (user.totalWithdrawals !== undefined) totalWithdrawals = Number(user.totalWithdrawals || 0);
     const balanceEl = document.getElementById("user-balance");
     const homeBalanceEl = document.getElementById("home-balance");
     const spinsEl = document.getElementById("wheel-spins-count");
     if (balanceEl) balanceEl.innerText = balance.toFixed(2);
     if (homeBalanceEl) homeBalanceEl.innerText = balance.toFixed(2);
     if (spinsEl) spinsEl.innerText = availableSpins;
+     const totalDepositsEl = document.getElementById("user-total-deposits");
+     const totalWithdrawalsEl = document.getElementById("user-total-withdrawals");
+     if (totalDepositsEl) totalDepositsEl.innerText = `$${totalDeposits.toFixed(2)}`;
+     if (totalWithdrawalsEl) totalWithdrawalsEl.innerText = `$${totalWithdrawals.toFixed(2)}`;
     if (typeof updateWheelUI === "function") updateWheelUI();
     // Update trial cancel button visibility
     const trialButton = document.getElementById("btn-trial-activate");
@@ -589,8 +601,8 @@
     const input = window.prompt("كم عدد المحاولات التي تريد منحها لهذا المستخدم؟", "1");
     if (input === null) return;
     const count = Number(input);
-    if (!Number.isInteger(count) || count < 1) {
-      return showApiError(new Error("أدخل عدداً صحيحاً أكبر من صفر"));
+    if (!Number.isInteger(count) || count < 1 || count > 100) {
+      return showApiError(new Error("أدخل عدداً صحيحاً بين 1 و100"));
     }
     try {
       await api(`/api/admin/users/${encodeURIComponent(userId)}/spins`, {
@@ -605,15 +617,15 @@
 
   window.adminChangeUserPassword = async function (userId) {
     const newPass = window.prompt("أدخل كلمة المرور الجديدة للمستخدم (6 أحرف على الأقل):", "");
-    if (newPass === null || !newPass.trim()) return;
-    if (newPass.trim().length < 6) {
+    if (newPass === null || !newPass) return;
+    if (newPass.length < 6) {
       return showApiError(new Error("كلمة المرور يجب ألا تقل عن 6 أحرف"));
     }
     if (!window.confirm(`تأكيد تغيير كلمة مرور المستخدم ${userId}؟`)) return;
     try {
       await api(`/api/admin/users/${encodeURIComponent(userId)}/password`, {
         method: "POST",
-        body: JSON.stringify({ newPassword: newPass.trim() }),
+        body: JSON.stringify({ newPassword: newPass }),
       });
       showCopyToast?.("تم تغيير كلمة المرور ✅", "تم تحديث كلمة مرور المستخدم بنجاح في قاعدة البيانات.");
     } catch (error) {

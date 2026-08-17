@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
   task_last_reset_date DATE,
   last_claim_date DATE,
   current_trial_day INTEGER NOT NULL DEFAULT 1,
+  trial_tasks_completed INTEGER NOT NULL DEFAULT 0,
   trial_active BOOLEAN NOT NULL DEFAULT FALSE,
   trial_used BOOLEAN NOT NULL DEFAULT FALSE,
   available_spins INTEGER NOT NULL DEFAULT 0,
@@ -33,6 +34,9 @@ ALTER TABLE users
 
 ALTER TABLE users
   ADD COLUMN IF NOT EXISTS available_spins INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS trial_tasks_completed INTEGER NOT NULL DEFAULT 0;
 
 DO $$
 BEGIN

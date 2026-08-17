@@ -158,7 +158,7 @@ function publicUser(row) {
     trialActive: Boolean(row.trial_active),
     trialUsed: Boolean(row.trial_used),
     vipExpiresAt: row.vip_expires_at || null,
-    availableSpins: row.available_spins || 0,
+    availableSpins: Number(row.available_spins || 0),
     createdAt: row.created_at,
   };
 }
@@ -1085,16 +1085,25 @@ app.post("/api/vip/trial/cancel", requireUser, async (req, res) => {
 app.post("/api/me/password", requireAuth, async (req, res) => {
   const currentPassword = String(req.body.currentPassword || "");
   const newPassword = String(req.body.newPassword || "");
+  if (!currentPassword) return appError(res, 400, "يرجى إدخال كلمة المرور الحالية");
   if (newPassword.length < 6) return appError(res, 400, "كلمة المرور الجديدة يجب ألا تقل عن 6 أحرف");
+  if (currentPassword === newPassword) {
+    return appError(res, 400, "كلمة المرور الجديدة يجب أن تختلف عن الحالية");
+  }
   try {
     const user = await getUserById(req.session.userId);
     if (!user) return appError(res, 404, "الحساب غير موجود");
     const match = await bcrypt.compare(currentPassword, user.password_hash);
     if (!match) return appError(res, 401, "كلمة المرور الحالية غير صحيحة");
     const hash = await bcrypt.hash(newPassword, 12);
-    await pool.query("UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2", [hash, req.session.userId]);
-    res.json({ ok: true });
-  } catch {
+    const updated = await pool.query(
+      "UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2 RETURNING id",
+      [hash, req.session.userId],
+    );
+    if (!updated.rowCount) return appError(res, 404, "الحساب غير موجود");
+    res.json({ ok: true, userId: updated.rows[0].id });
+  } catch (error) {
+    console.error("Password update failed:", error.code || error.message);
     appError(res, 500, "تعذر تغيير كلمة المرور");
   }
 });
@@ -1148,6 +1157,7 @@ app.post("/api/admin/users/:id/trial/cancel", requireAdmin, async (req, res) => 
        SET trial_active = FALSE,
            trial_used = TRUE,
            user_vip = NULL,
+           vip_expires_at = NULL,
            updated_at = NOW()
        WHERE id = $1 AND is_admin = FALSE AND (trial_active = TRUE OR (user_vip IS NOT NULL AND user_vip->>'isTrial' = 'true'))
        RETURNING *`,

@@ -99,6 +99,7 @@
     if (!isAdmin) {
       document.getElementById("user-balance").innerText = balance.toFixed(2);
       document.getElementById("wheel-spins-count").innerText = availableSpins;
+      if (typeof updateWheelUI === "function") updateWheelUI();
       document.getElementById("user-display-email").innerText = currentUser.email;
       setupUserInviteData();
       updateVipUIState();
@@ -138,6 +139,7 @@
     if (balanceEl) balanceEl.innerText = balance.toFixed(2);
     if (homeBalanceEl) homeBalanceEl.innerText = balance.toFixed(2);
     if (spinsEl) spinsEl.innerText = availableSpins;
+    if (typeof updateWheelUI === "function") updateWheelUI();
     // Update trial cancel button visibility
     const trialButton = document.getElementById("btn-trial-activate");
     const trialSuccess = document.getElementById("trial-success-section");
@@ -419,6 +421,7 @@
             <div class="history-title">👤 ${escapeHtml(user.name)} ${user.isAdmin ? "👑" : ""}</div>
             <div class="history-date">📧 ${escapeHtml(user.email)}</div>
             <div class="history-date" style="margin-top:2px">رمز الإحالة: ${escapeHtml(user.inviteCode)} | تسجيل: ${dateText(user.createdAt)}</div>
+            <div class="history-date" style="margin-top:2px">🎡 فرص عجلة الحظ: ${Number(user.availableSpins || 0)}</div>
           </div>
           <div style="text-align:left;white-space:nowrap;min-width:0">
             <strong style="color:#60a5fa;font-size:1.05rem">$${Number(user.balance).toFixed(2)}</strong><br>
@@ -451,6 +454,7 @@
           <button class="btn btn-gold"   style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminChangeVip(${user.id})">👑 تغيير VIP</button>
           <button class="btn"            style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px;background:#6366f1;color:white" onclick="adminResetTasks(${user.id})">🔄 تصفير المهام</button>
           <button class="btn"            style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px;background:#0891b2;color:white" onclick="adminGrantSpin(${user.id})">🎡 منح فرصة عجلة</button>
+          <button class="btn"            style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px;background:#7c3aed;color:white" onclick="adminChangeUserPassword(${user.id})">🔑 تغيير كلمة المرور</button>
           ${hasTrial ? `<button class="btn btn-red" style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminCancelTrial(${user.id})">🚫 إلغاء التجربة</button>` : ""}
           ${!user.isAdmin ? `<button class="btn ${user.isBlocked ? "btn-green" : "btn-red"}" style="flex:1;min-width:100px;padding:6px 8px;font-size:.72rem;min-height:38px" onclick="adminToggleBlock(${user.id},${!user.isBlocked})">${user.isBlocked ? "✅ رفع الحظر" : "🚫 حظر"}</button>` : ""}
         </div>

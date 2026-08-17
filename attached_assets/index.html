@@ -1574,7 +1574,7 @@
                 <div class="wheel-container-wrapper">
                     <div class="wheel-pointer"></div>
                     <canvas id="wheel-canvas" class="wheel-canvas" width="230" height="230"></canvas>
-                    <button class="spin-center-btn" onclick="spinWheel()">دوران</button>
+                    <button class="spin-center-btn" id="spin-wheel-button" type="button" onclick="spinWheel()" disabled>دوران</button>
                 </div>
 
                 <div style="background: rgba(0, 0, 0, 0.3); border-radius: 12px; padding: 8px 12px; display: inline-block; border: 1px solid rgba(255, 255, 255, 0.1);">
@@ -2286,17 +2286,34 @@
             ctx.fillText(wheelSectors[i].label, radius - 15, 5);
             ctx.restore();
         }
+        updateWheelUI();
+    }
+
+    function updateWheelUI() {
+        const button = document.getElementById('spin-wheel-button');
+        if (!button) return;
+        const hasSpins = Number(availableSpins || 0) > 0;
+        button.disabled = isSpinning || !hasSpins;
+        button.title = hasSpins ? 'استخدم فرصة عجلة الحظ' : 'لا توجد فرص متاحة حالياً';
+        button.innerText = isSpinning ? '...' : 'دوران';
     }
 
     async function spinWheel() {
-        if (isSpinning) return;
+        if (isSpinning || Number(availableSpins || 0) < 1) {
+            if (Number(availableSpins || 0) < 1) {
+                showApiError(new Error("لا توجد محاولات حظ متاحة"));
+            }
+            return;
+        }
         isSpinning = true;
+        updateWheelUI();
         let result;
         try {
             result = await window.securoApi("/api/wheel/spin", { method: "POST" });
             if (result.user) window.syncServerUser(result.user);
         } catch (error) {
             isSpinning = false;
+            updateWheelUI();
             showApiError(error);
             return;
         }
@@ -2317,6 +2334,7 @@
 
         setTimeout(() => {
             isSpinning = false;
+            updateWheelUI();
             const wonSector = wheelSectors[selectedSectorIndex];
             
             const modal = document.getElementById('wheel-result-modal');
